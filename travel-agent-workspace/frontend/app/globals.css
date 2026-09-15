@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #090e14;
+  --foreground: #f8fafc;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  min-height: 100vh;
+}
+
+/* Glassmorphism Wanderlust theme */
+.wanderlust-glass {
+  background: rgba(15, 23, 30, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
+}
+
+.wanderlust-glass-card {
+  background: rgba(18, 28, 36, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Mint Action Button */
+.btn-mint {
+  background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+  color: #042f2e;
+  font-weight: 700;
+  box-shadow: 0 10px 25px -5px rgba(45, 212, 191, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-mint:hover {
+  background: linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%);
+  box-shadow: 0 15px 30px -5px rgba(45, 212, 191, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(9, 14, 20, 0.9);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.65);
+}
+
+/* Card hover zoom */
+.dest-card-zoom img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dest-card-zoom:hover img {
+  transform: scale(1.08);
+}

@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/travel-agent-workspace/backend/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/travel-agent-workspace/backend"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/travel-agent-workspace/backend"
+  ]
+}
