@@ -67,20 +67,16 @@ The application coordinates an Agent Team Lead with 3 specialized agents:
 
 ## 🚀 Quick Start with Docker Compose
 
-1. Clone or navigate to `travel-agent-workspace/`:
+1. Configure environment variables:
    ```bash
-   cd travel-agent-workspace
-   ```
-
-2. Configure environment:
-   ```bash
+   cp .env.example .env
    cp backend/.env.example backend/.env
-   # Add your GEMINI_API_KEY if using live Gemini LLM
+   # Add your GEMINI_API_KEY in .env
    ```
 
-3. Start all services (PostgreSQL, Backend, Frontend):
+2. Start all services (PostgreSQL, Backend, Frontend):
    ```bash
-   docker compose up --build
+   docker compose up --build -d
    ```
 
 - **Frontend UI**: [http://localhost:3000](http://localhost:3000)
