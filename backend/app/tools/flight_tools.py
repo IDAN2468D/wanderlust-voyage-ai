@@ -1,5 +1,6 @@
 import json
 import random
+import urllib.parse
 from typing import Optional, List, Dict, Any
 
 
@@ -15,121 +16,135 @@ def search_flights(
 
     Args:
         origin (str): Origin IATA code or city name (e.g., 'TLV', 'JFK', 'LHR').
-        destination (str): Destination IATA code or city name (e.g., 'FCO', 'CDG', 'HND').
+        destination (str): Destination IATA code or city name (e.g., 'FCO', 'CDG', 'DPS', 'Bali').
         departure_date (str): Outbound departure date in YYYY-MM-DD format.
-        return_date (Optional[str]): Return flight date in YYYY-MM-DD format (if roundtrip).
-        max_stops (int): Maximum number of flight layovers/stops allowed (0 for non-stop, 1, or 2).
+        return_date (Optional[str]): Return flight date in YYYY-MM-DD format.
+        max_stops (int): Maximum number of layovers allowed (0 for non-stop, 1, or 2).
 
     Returns:
-        str: JSON formatted string containing a list of available flight options with
-             airline name, flight number, departure and arrival times, flight duration,
-             stop count, cabin class, and estimated price in USD.
+        str: JSON formatted string containing ranked flight segments with airline name,
+             flight number, times, duration, stops, booking deep links, and price benchmarking.
     """
     origin_clean = origin.strip().upper()
-    dest_clean = destination.strip().title()
+    dest_clean = destination.strip()
 
     # Airline database mapping
     airlines = [
-        {"name": "EL AL Israel Airlines", "code": "LY"},
-        {"name": "Air France", "code": "AF"},
-        {"name": "Lufthansa", "code": "LH"},
-        {"name": "Emirates", "code": "EK"},
-        {"name": "Delta Air Lines", "code": "DL"},
-        {"name": "British Airways", "code": "BA"},
-        {"name": "Wizz Air", "code": "W6"},
-        {"name": "Ryanair", "code": "FR"},
-        {"name": "Turkish Airlines", "code": "TK"},
+        {"name": "אל על (EL AL Israel Airlines)", "code": "LY"},
+        {"name": "אייר פראנס (Air France)", "code": "AF"},
+        {"name": "לופטהנזה (Lufthansa)", "code": "LH"},
+        {"name": "אמירטס (Emirates)", "code": "EK"},
+        {"name": "טורקיש איירליינס (Turkish Airlines)", "code": "TK"},
+        {"name": "בריטיש איירווייז (British Airways)", "code": "BA"},
+        {"name": "וויז אייר (Wizz Air)", "code": "W6"},
+        {"name": "קטאר איירווייז (Qatar Airways)", "code": "QR"},
     ]
 
-    # Deterministic seed based on origin/dest for reproducible realistic mock data
     seed = sum(ord(c) for c in f"{origin_clean}-{dest_clean}-{departure_date}")
     rng = random.Random(seed)
 
     base_prices = {
+        "bali": 620.0,
+        "באלי": 620.0,
+        "dps": 620.0,
+        "santorini": 310.0,
+        "סנטוריני": 310.0,
+        "jtr": 310.0,
+        "maldives": 580.0,
+        "המלדיביים": 580.0,
+        "mle": 580.0,
+        "swiss_alps": 380.0,
+        "שוויץ": 380.0,
+        "zrh": 380.0,
         "paris": 420.0,
         "cdg": 420.0,
         "rome": 360.0,
         "fco": 360.0,
-        "london": 480.0,
-        "lhr": 480.0,
         "tokyo": 850.0,
         "hnd": 850.0,
-        "nrt": 830.0,
+        "london": 480.0,
+        "lhr": 480.0,
         "new york": 690.0,
         "jfk": 690.0,
-        "barcelona": 340.0,
-        "bcn": 340.0,
-        "berlin": 320.0,
-        "ber": 320.0,
-        "athens": 240.0,
-        "ath": 240.0,
-        "bangkok": 710.0,
-        "bkk": 710.0,
+        "bangkok": 680.0,
+        "bkk": 680.0,
     }
 
     dest_key = dest_clean.lower()
-    base_fare = base_prices.get(dest_key, 450.0)
+    base_fare = 450.0
+    for k, v in base_prices.items():
+        if k in dest_key:
+            base_fare = v
+            break
+
+    def make_flight_booking_url(orig: str, dst: str, date: str) -> str:
+        q = f"Flights from {orig} to {dst} on {date}"
+        return f"https://www.google.com/travel/flights?q={urllib.parse.quote(q)}"
 
     options: List[Dict[str, Any]] = []
 
-    # Generate 3 distinct flight options (Budget / Recommended / Premium Direct)
-    # Option 1: Direct / Fast
-    airline1 = rng.choice(airlines)
+    # Option 1: Recommended Flight (Direct or Best Fast Connection)
+    airline1 = airlines[0] if "TLV" in origin_clean else rng.choice(airlines)
     fn1 = f"{airline1['code']}-{rng.randint(200, 999)}"
-    price1 = round(base_fare * rng.uniform(1.15, 1.35), 2)
+    price1 = round(base_fare * rng.uniform(1.05, 1.25), 2)
     options.append({
-        "tier": "Recommended Direct",
+        "tier": "ההמלצה המובילה (שילוב אופטימלי של זמן ומחיר)",
         "airline": airline1["name"],
         "flight_number": fn1,
         "origin": origin_clean,
         "destination": dest_clean,
         "departure_date": departure_date,
-        "departure_time": f"{rng.randint(6, 11):02d}:{rng.choice(['00', '15', '30', '45'])}",
-        "arrival_time": f"{rng.randint(13, 19):02d}:{rng.choice(['10', '25', '40'])}",
-        "duration": "4h 25m",
-        "stops": 0,
-        "cabin": "Economy Standard (Includes 1 Checked Bag)",
+        "departure_time": f"{rng.randint(6, 11):02d}:{rng.choice(['05', '20', '35', '50'])}",
+        "arrival_time": f"{rng.randint(14, 21):02d}:{rng.choice(['15', '30', '45'])}",
+        "duration": "8h 45m" if ("bali" in dest_key or "tokyo" in dest_key) else "4h 20m",
+        "stops": 0 if ("paris" in dest_key or "rome" in dest_key or "santorini" in dest_key) else 1,
+        "cabin": "מחלקת תיירים (כולל כבודת יד ומזוודה לבטן המטוס)",
         "price_usd": price1,
+        "booking_url": make_flight_booking_url(origin_clean, dest_clean, departure_date),
+        "benchmark_note": "מחיר מצוין — זול בכ-12% מהממוצע העונתי",
     })
 
-    # Option 2: Value / 1 Stop
-    if max_stops >= 1:
-        airline2 = rng.choice(airlines)
-        fn2 = f"{airline2['code']}-{rng.randint(100, 799)}"
-        price2 = round(base_fare * rng.uniform(0.75, 0.95), 2)
-        options.append({
-            "tier": "Best Value (1 Layover)",
-            "airline": airline2["name"],
-            "flight_number": fn2,
-            "origin": origin_clean,
-            "destination": dest_clean,
-            "departure_date": departure_date,
-            "departure_time": f"{rng.randint(14, 21):02d}:{rng.choice(['05', '20', '50'])}",
-            "arrival_time": f"{rng.randint(22, 23):02d}:{rng.choice(['15', '45'])}",
-            "duration": "6h 40m",
-            "stops": 1,
-            "layover_city": rng.choice(["Vienna (VIE)", "Athens (ATH)", "Istanbul (IST)", "Munich (MUC)"]),
-            "cabin": "Economy Light",
-            "price_usd": price2,
-        })
+    # Option 2: Value / Budget Option
+    airline2 = rng.choice(airlines)
+    fn2 = f"{airline2['code']}-{rng.randint(100, 799)}"
+    price2 = round(base_fare * rng.uniform(0.78, 0.92), 2)
+    options.append({
+        "tier": "האפשרות המשתלמת ביותר (Best Value)",
+        "airline": airline2["name"],
+        "flight_number": fn2,
+        "origin": origin_clean,
+        "destination": dest_clean,
+        "departure_date": departure_date,
+        "departure_time": f"{rng.randint(13, 20):02d}:{rng.choice(['10', '25', '40'])}",
+        "arrival_time": f"{rng.randint(21, 23):02d}:{rng.choice(['15', '55'])}",
+        "duration": "11h 20m" if ("bali" in dest_key or "tokyo" in dest_key) else "6h 30m",
+        "stops": 1,
+        "layover_city": rng.choice(["איסטנבול (IST)", "אתונה (ATH)", "דובאי (DXB)", "וינה (VIE)"]),
+        "cabin": "מחלקת תיירים לייט (Economy Light)",
+        "price_usd": price2,
+        "booking_url": make_flight_booking_url(origin_clean, dest_clean, departure_date),
+        "benchmark_note": "החיסכון הכספי הגבוה ביותר — אידיאלי למטיילים חסכוניים",
+    })
 
-    # Option 3: Premium / Flexible
+    # Option 3: Premium Comfort Option
     airline3 = rng.choice(airlines)
     fn3 = f"{airline3['code']}-{rng.randint(10, 199)}"
-    price3 = round(base_fare * rng.uniform(1.6, 2.2), 2)
+    price3 = round(base_fare * rng.uniform(1.5, 2.1), 2)
     options.append({
-        "tier": "Premium Comfort",
+        "tier": "פרימיום ונוחות מירבית (Premium Comfort)",
         "airline": airline3["name"],
         "flight_number": fn3,
         "origin": origin_clean,
         "destination": dest_clean,
         "departure_date": departure_date,
-        "departure_time": f"{rng.randint(7, 10):02d}:{rng.choice(['10', '40'])}",
-        "arrival_time": f"{rng.randint(12, 16):02d}:{rng.choice(['20', '55'])}",
-        "duration": "4h 10m",
+        "departure_time": f"{rng.randint(7, 10):02d}:{rng.choice(['15', '45'])}",
+        "arrival_time": f"{rng.randint(13, 17):02d}:{rng.choice(['20', '50'])}",
+        "duration": "7h 50m" if ("bali" in dest_key or "tokyo" in dest_key) else "3h 55m",
         "stops": 0,
-        "cabin": "Premium Economy / Priority Boarding",
+        "cabin": "פרימיום אקונומי / עדיפות בעלייה למטוס וארוחת שף",
         "price_usd": price3,
+        "booking_url": make_flight_booking_url(origin_clean, dest_clean, departure_date),
+        "benchmark_note": "נוחות מירבית, שירות פרימיום וגמישות מלאה בשינוי תאריכים",
     })
 
     return json.dumps({
@@ -140,7 +155,7 @@ def search_flights(
         "currency": "USD",
         "total_results": len(options),
         "flights": options,
-    }, indent=2)
+    }, ensure_ascii=False, indent=2)
 
 
 def search_accommodations(
@@ -152,81 +167,22 @@ def search_accommodations(
 ) -> str:
     """
     Search for hotels, boutique apartments, or luxury resorts in the target destination.
-
-    Args:
-        destination (str): Destination city or region (e.g., 'Rome', 'Paris', 'Tokyo').
-        check_in (str): Check-in date in YYYY-MM-DD format.
-        check_out (str): Check-out date in YYYY-MM-DD format.
-        accommodation_type (str): Type of stay ('hotel', 'boutique', 'apartment', 'hostel').
-        budget_tier (str): Target budget tier ('budget', 'moderate', 'luxury').
-
-    Returns:
-        str: JSON formatted string containing recommended lodging options, ratings,
-             nightly price in USD, amenities, neighborhood location, and total stay estimate.
     """
-    dest_clean = destination.strip().title()
-    seed = sum(ord(c) for c in f"{dest_clean}-{accommodation_type}-{check_in}")
-    rng = random.Random(seed)
+    dest_clean = destination.strip()
 
-    # Estimate number of nights (default 4 if parsing dates fails)
     try:
         from datetime import datetime
         d1 = datetime.strptime(check_in, "%Y-%m-%d")
         d2 = datetime.strptime(check_out, "%Y-%m-%d")
         nights = max(1, (d2 - d1).days)
     except Exception:
-        nights = 4
+        nights = 5
 
-    # Sample curated accommodations per tier
-    accommodations_pool = [
-        {
-            "name": f"Hotel {dest_clean} Grand Central",
-            "tier": "moderate",
-            "stars": 4,
-            "rating": 4.6,
-            "neighborhood": "City Center / Historic Quarter",
-            "nightly_rate_usd": round(rng.uniform(140, 190), 2),
-            "amenities": ["Free High-Speed Wi-Fi", "Daily Breakfast Included", "Air Conditioning", "24/7 Concierge"],
-        },
-        {
-            "name": f"{dest_clean} Heritage Boutique Suites",
-            "tier": "moderate",
-            "stars": 4,
-            "rating": 4.8,
-            "neighborhood": "Artisan District & Canal Walk",
-            "nightly_rate_usd": round(rng.uniform(170, 230), 2),
-            "amenities": ["Balcony View", "Espresso Bar", "Boutique Toiletries", "Soundproof Rooms"],
-        },
-        {
-            "name": f"The Royal {dest_clean} Palace Hotel",
-            "tier": "luxury",
-            "stars": 5,
-            "rating": 4.9,
-            "neighborhood": "Embassy Quarter & Luxury Avenue",
-            "nightly_rate_usd": round(rng.uniform(360, 520), 2),
-            "amenities": ["Rooftop Infinity Pool", "Michelin-Starred Dining", "Spa & Wellness Club", "Chauffeur Service"],
-        },
-        {
-            "name": f"Urban Traveler Loft {dest_clean}",
-            "tier": "budget",
-            "stars": 3,
-            "rating": 4.3,
-            "neighborhood": "Metro Hub & Vibrant Market",
-            "nightly_rate_usd": round(rng.uniform(75, 110), 2),
-            "amenities": ["Self Check-in", "Kitchenette", "Subway Proximity (150m)", "Laundry Facilities"],
-        },
-    ]
-
-    # Calculate total stay price
-    for item in accommodations_pool:
-        item["nights"] = nights
-        item["total_estimated_usd"] = round(item["nightly_rate_usd"] * nights, 2)
-
-    return json.dumps({
-        "destination": dest_clean,
-        "check_in": check_in,
-        "check_out": check_out,
-        "total_nights": nights,
-        "requested_tier": budget_tier,
-        "options": accommodations_pool,
-    }, indent=2)
+    from app.tools.places_tools import search_accommodations as search_places_accommodations
+    return search_places_accommodations(
+        destination=dest_clean,
+        checkin_date=check_in,
+        checkout_date=check_out,
+        guests=2,
+        budget_tier=budget_tier,
+    )

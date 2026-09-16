@@ -1,10 +1,10 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "project": "wanderlust-voyage-ai",
   "agents": [
     {
       "name": "wanderlust-orchestrator",
-      "description": "Primary travel planner coordinating flight, places, budget sub-agents and Google Workspace sync.",
+      "description": "Primary travel planner coordinating flight, places, budget, weather, safety, culture sub-agents and Google Workspace sync.",
       "prompt_file": "PROMPT_COPYABLE.md",
       "mcp_servers": [
         {
@@ -23,6 +23,9 @@
         "flight-search-engine",
         "places-curation-hotel",
         "budget-currency-optimizer",
+        "weather-packing-optimizer",
+        "safety-health-advisor",
+        "culture-events-specialist",
         "liquid-glass-travel-ui",
         "google-flow-travel-mcp"
       ]
@@ -41,6 +44,30 @@
       "tool_module": "backend.app.tools.places_tools",
       "skills": [
         "places-curation-hotel"
+      ]
+    },
+    {
+      "name": "weather-packing-specialist",
+      "description": "Analyzes climate forecasts, seasonal temperatures, and builds personalized packing checklists.",
+      "tool_module": "backend.app.tools.weather_tools",
+      "skills": [
+        "weather-packing-optimizer"
+      ]
+    },
+    {
+      "name": "safety-advisory-specialist",
+      "description": "Verifies international visa policies, passport validity, emergency numbers, and health requirements.",
+      "tool_module": "backend.app.tools.safety_tools",
+      "skills": [
+        "safety-health-advisor"
+      ]
+    },
+    {
+      "name": "culture-events-specialist",
+      "description": "Uncovers local festivals, live seasonal events, rooftop spots, and secret gems.",
+      "tool_module": "backend.app.tools.events_tools",
+      "skills": [
+        "culture-events-specialist"
       ]
     },
     {

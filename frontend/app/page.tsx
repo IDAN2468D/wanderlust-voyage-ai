@@ -69,6 +69,16 @@ export default function Home() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
   const [carouselIndex, setCarouselIndex] = useState<number>(0);
 
+  // Specialist Agents Extra Data
+  const [weatherMetrics, setWeatherMetrics] = useState<any>(null);
+  const [packingChecklist, setPackingChecklist] = useState<any[]>([]);
+  const [safetyInfo, setSafetyInfo] = useState<any>(null);
+  const [seasonalEvents, setSeasonalEvents] = useState<any>(null);
+  const [structuredDays, setStructuredDays] = useState<any[]>([]);
+  const [recommendedFlight, setRecommendedFlight] = useState<any>(null);
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
+  const [startDateFormatted, setStartDateFormatted] = useState<string>("");
+
   const agentSectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -119,6 +129,14 @@ export default function Home() {
     setFlightCost(null);
     setHotelCost(null);
     setBreakdown(null);
+    setWeatherMetrics(null);
+    setPackingChecklist([]);
+    setSafetyInfo(null);
+    setSeasonalEvents(null);
+    setStructuredDays([]);
+    setRecommendedFlight(null);
+    setSelectedHotel(null);
+    setStartDateFormatted("");
     setCurrentDestination(formData.destination);
     setCurrentDuration(formData.durationDays);
 
@@ -128,7 +146,7 @@ export default function Home() {
     }, 150);
 
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
-    const streamUrl = `${apiBase}/api/v1/plan-trip/stream`;
+    const streamUrl = `${apiBase}/api/v1/trips/plan/stream`;
 
     const requestPayload = {
       origin: formData.origin,
@@ -141,7 +159,7 @@ export default function Home() {
     };
 
     try {
-      const response = await fetch(streamUrl, {
+      let response = await fetch(streamUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,6 +167,18 @@ export default function Home() {
         },
         body: JSON.stringify(requestPayload),
       });
+
+      // If /trips/plan/stream not available, fallback to /plan-trip/stream
+      if (!response.ok && response.status === 404) {
+        response = await fetch(`${apiBase}/api/v1/plan-trip/stream`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/event-stream",
+          },
+          body: JSON.stringify(requestPayload),
+        });
+      }
 
       if (!response.ok || !response.body) {
         throw new Error(`שרת ה-API החזיר שגיאה: ${response.status}`);
@@ -194,6 +224,7 @@ export default function Home() {
                   id: Math.random().toString(),
                   type: "step",
                   agent: data.agent,
+                  stage: data.stage,
                   title: data.title,
                   message: data.message,
                   timestamp: nowTime,
@@ -220,6 +251,14 @@ export default function Home() {
               setFlightCost(data.flight_cost);
               setHotelCost(data.hotel_cost);
               setBreakdown(data.breakdown);
+              setWeatherMetrics(data.weather_metrics || null);
+              setPackingChecklist(data.packing_checklist || []);
+              setSafetyInfo(data.safety_info || null);
+              setSeasonalEvents(data.seasonal_events || null);
+              setStructuredDays(data.structured_days || []);
+              setRecommendedFlight(data.recommended_flight || null);
+              setSelectedHotel(data.selected_hotel || null);
+              setStartDateFormatted(data.start_date_formatted || "");
               setActiveAgent(null);
               setLogs((prev) => [
                 ...prev,
@@ -227,8 +266,9 @@ export default function Home() {
                   id: Math.random().toString(),
                   type: "done",
                   agent: "travel_orchestrator",
-                  title: "התוכנית הושלמה בהצלחה",
-                  message: `כל משימות הסוכנים סוכמו במלואן. סטטוס תקציב: ${data.budget_status === "APPROVED" ? "מאושר" : "חריגה"}`,
+                  stage: "COMPLETE",
+                  title: "התוכנית הושלמה בהצלחה ע\"י 7 סוכני ה-AI",
+                  message: `כל משימות הסוכנים סוכמו במלואן. סטטוס תקציב: ${data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"}`,
                   timestamp: nowTime,
                 },
               ]);
@@ -241,12 +281,19 @@ export default function Home() {
     } catch (error) {
       console.warn("שגיאה בהזרמת SSE, מנסה מסלול ישיר:", error);
       try {
-        const syncUrl = `${apiBase}/api/v1/plan-trip`;
-        const res = await fetch(syncUrl, {
+        const syncUrl = `${apiBase}/api/v1/trips/plan`;
+        let res = await fetch(syncUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestPayload),
         });
+        if (!res.ok && res.status === 404) {
+          res = await fetch(`${apiBase}/api/v1/plan-trip`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestPayload),
+          });
+        }
         if (res.ok) {
           const syncData = await res.json();
           setMarkdownPlan(syncData.markdown_plan);
@@ -256,6 +303,14 @@ export default function Home() {
           setFlightCost(syncData.flight_cost);
           setHotelCost(syncData.hotel_cost);
           setBreakdown(syncData.itemized_breakdown);
+          setWeatherMetrics(syncData.weather_metrics || null);
+          setPackingChecklist(syncData.packing_checklist || []);
+          setSafetyInfo(syncData.safety_info || null);
+          setSeasonalEvents(syncData.seasonal_events || null);
+          setStructuredDays(syncData.structured_days || []);
+          setRecommendedFlight(syncData.recommended_flight || null);
+          setSelectedHotel(syncData.selected_hotel || null);
+          setStartDateFormatted(syncData.start_date_formatted || "");
         }
       } catch (fallbackErr) {
         setLogs((prev) => [
@@ -538,6 +593,14 @@ export default function Home() {
               breakdown={breakdown}
               destination={currentDestination}
               durationDays={currentDuration}
+              weatherMetrics={weatherMetrics}
+              packingChecklist={packingChecklist}
+              safetyInfo={safetyInfo}
+              seasonalEvents={seasonalEvents}
+              structuredDays={structuredDays}
+              recommendedFlight={recommendedFlight}
+              selectedHotel={selectedHotel}
+              startDateFormatted={startDateFormatted}
             />
           )}
         </section>

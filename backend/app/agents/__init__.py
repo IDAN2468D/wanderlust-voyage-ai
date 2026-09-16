@@ -6,6 +6,9 @@ from app.agents.orchestrator import (
     flight_hotel_agent,
     itinerary_agent,
     budget_agent,
+    weather_packing_agent,
+    safety_advisory_agent,
+    culture_events_agent,
 )
 
 __all__ = [
@@ -14,4 +17,7 @@ __all__ = [
     "flight_hotel_agent",
     "itinerary_agent",
     "budget_agent",
+    "weather_packing_agent",
+    "safety_advisory_agent",
+    "culture_events_agent",
 ]

@@ -114,3 +114,76 @@ def test_calculate_trip_budget_over_budget_case():
     assert data["remaining_balance_usd"] < 0  # Deficit
     assert data["total_projected_expenses_usd"] > 1000.0
     assert any("Over Budget Warning" in rec for rec in data["recommendations"])
+
+
+def test_weather_and_packing_tools():
+    """Verify weather specialist returns temperature metrics and categorized checklist."""
+    from app.tools.weather_tools import get_destination_weather, generate_packing_checklist
+
+    weather_raw = get_destination_weather("Bali", "2026-10-15", 7)
+    weather_data = json.loads(weather_raw)
+    assert weather_data["destination"] == "Bali"
+    assert "metrics" in weather_data
+    assert weather_data["metrics"]["temp_high"] >= 20
+    assert "plug_type" in weather_data["metrics"]
+
+    packing_raw = generate_packing_checklist("Bali", travel_style="balanced", interests=["חופים ורוגע", "טבע"])
+    packing_data = json.loads(packing_raw)
+    assert len(packing_data["categories"]) >= 4
+    for cat in packing_data["categories"]:
+        assert "category" in cat
+        assert len(cat["items"]) > 0
+
+
+def test_safety_and_visa_tools():
+    """Verify safety specialist returns visa requirements, emergency numbers, and etiquette."""
+    from app.tools.safety_tools import get_safety_and_visa_info
+
+    safety_raw = get_safety_and_visa_info("Santorini", nationality="IL")
+    safety_data = json.loads(safety_raw)
+    advisory = safety_data["advisory"]
+    assert "visa_requirement" in advisory
+    assert "emergency_numbers" in advisory
+    assert "police" in advisory["emergency_numbers"]
+    assert "ambulance" in advisory["emergency_numbers"]
+    assert len(advisory["scam_alerts"]) > 0
+
+
+def test_culture_and_events_tools():
+    """Verify culture specialist returns secret gems and seasonal festivals."""
+    from app.tools.events_tools import search_seasonal_events_and_gems
+
+    events_raw = search_seasonal_events_and_gems("Bali")
+    events_data = json.loads(events_raw)
+    ce = events_data["culture_and_events"]
+    assert len(ce["festivals"]) > 0
+    assert len(ce["secret_gems"]) > 0
+    assert len(ce["sunset_nightlife_spots"]) > 0
+    assert "maps_query" in ce["secret_gems"][0]
+
+
+def test_orchestrator_7_agents_synthesis():
+    """Verify orchestrator synthesizes a complete plan combining all 7 specialists."""
+    from app.agents.orchestrator import synthesize_deterministic_plan
+
+    plan = synthesize_deterministic_plan(
+        origin="TLV",
+        destination="באלי, אינדונזיה",
+        start_date="2026-10-15",
+        duration_days=7,
+        total_budget=3500.0,
+        interests=["חופים ורוגע", "קולינריה ויין"],
+        travel_style="luxury",
+    )
+
+    assert plan["budget_status"] in ["APPROVED", "OVER_BUDGET"]
+    assert plan["total_estimated"] > 0
+    assert plan["weather_metrics"] is not None
+    assert len(plan["packing_checklist"]) >= 4
+    assert plan["safety_info"] is not None
+    assert plan["seasonal_events"] is not None
+    assert len(plan["structured_days"]) == 7
+    assert plan["recommended_flight"]["booking_url"].startswith("http")
+    assert plan["selected_hotel"]["google_maps_url"].startswith("http")
+    assert plan["start_date_formatted"] == "15/10/2026"  # Israeli format DD/MM/YYYY
+
