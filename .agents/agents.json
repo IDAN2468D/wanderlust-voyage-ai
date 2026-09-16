@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "project": "wanderlust-voyage-ai",
+  "agents": [
+    {
+      "name": "wanderlust-orchestrator",
+      "description": "Primary travel planner coordinating flight, places, budget sub-agents and Google Workspace sync.",
+      "prompt_file": "PROMPT_COPYABLE.md",
+      "mcp_servers": [
+        {
+          "name": "google-flow",
+          "url": "https://flow.google.com/mcp",
+          "auth": "oauth2",
+          "scopes": [
+            "https://www.googleapis.com/auth/calendar.events",
+            "https://www.googleapis.com/auth/gmail.send",
+            "https://www.googleapis.com/auth/drive.file"
+          ]
+        }
+      ],
+      "skills": [
+        "travel-orchestrator-agent",
+        "flight-search-engine",
+        "places-curation-hotel",
+        "budget-currency-optimizer",
+        "liquid-glass-travel-ui",
+        "google-flow-travel-mcp"
+      ]
+    },
+    {
+      "name": "flight-specialist",
+      "description": "Searches, ranks, and verifies flight schedules, layovers, and pricing.",
+      "tool_module": "backend.app.tools.flight_tools",
+      "skills": [
+        "flight-search-engine"
+      ]
+    },
+    {
+      "name": "places-specialist",
+      "description": "Curates accommodations, restaurants, cultural landmarks, and activities.",
+      "tool_module": "backend.app.tools.places_tools",
+      "skills": [
+        "places-curation-hotel"
+      ]
+    },
+    {
+      "name": "budget-optimizer",
+      "description": "Calculates cost allocations, currency exchanges, and ensures strict budget guardrails.",
+      "tool_module": "backend.app.tools.budget_tools",
+      "skills": [
+        "budget-currency-optimizer"
+      ]
+    }
+  ]
+}
