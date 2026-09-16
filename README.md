@@ -80,8 +80,9 @@ The application coordinates an Agent Team Lead with 3 specialized agents:
    ```
 
 - **Frontend UI**: [http://localhost:3000](http://localhost:3000)
-- **FastAPI Backend & Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
+- **Live Backend API (Render)**: [https://wanderlust-voyage-ai.onrender.com](https://wanderlust-voyage-ai.onrender.com)
+- **FastAPI Interactive Docs**: [https://wanderlust-voyage-ai.onrender.com/docs](https://wanderlust-voyage-ai.onrender.com/docs)
+- **API Health Check**: [https://wanderlust-voyage-ai.onrender.com/health](https://wanderlust-voyage-ai.onrender.com/health)
 
 ---
 

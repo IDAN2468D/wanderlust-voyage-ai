@@ -127,7 +127,7 @@ export default function Home() {
       agentSectionRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 150);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
     const streamUrl = `${apiBase}/api/v1/plan-trip/stream`;
 
     const requestPayload = {
