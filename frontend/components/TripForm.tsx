@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Plane, Calendar, DollarSign, Clock, MapPin, ArrowLeft, ArrowRightLeft, Sparkles, Hotel, Compass, Check } from "lucide-react";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export interface TripFormData {
   origin: string;
@@ -31,8 +32,26 @@ const AVAILABLE_INTERESTS = [
 ];
 
 export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selectedDestination }) => {
+  const { currency, currencyConfig, convert, convertToUsd } = useCurrency();
   const [activeTab, setActiveTab] = useState<"flights" | "hotels" | "experiences">("flights");
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Default budget based on currency
+  const getDefaultBudget = () => {
+    if (currency === "ILS") return 8800;
+    if (currency === "EUR") return 2200;
+    return 2400;
+  };
+
+  const [enteredBudget, setEnteredBudget] = useState<number>(getDefaultBudget());
+
+  // Update budget when currency changes if user hasn't heavily modified it
+  React.useEffect(() => {
+    setEnteredBudget((prev) => {
+      // Scale nicely to the new currency
+      return convert(convertToUsd(prev)) || getDefaultBudget();
+    });
+  }, [currency]);
 
   const [formData, setFormData] = useState<TripFormData>({
     origin: "תל אביב (TLV)",
@@ -73,7 +92,11 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.destination.trim()) return;
-    onSubmit(formData);
+    const budgetInUsd = convertToUsd(enteredBudget);
+    onSubmit({
+      ...formData,
+      totalBudget: budgetInUsd,
+    });
   };
 
   return (
@@ -200,22 +223,29 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
 
           {/* Duration & Budget */}
           <div className="p-3 rounded-2xl bg-black/40 border border-white/10 hover:border-white/20 transition">
-            <span className="text-[10px] text-slate-400 font-medium block flex items-center gap-1">
-              <DollarSign className="w-3 h-3 text-mint-400" />
-              תקציב יעד (USD)
+            <span className="text-[10px] text-slate-400 font-medium flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <span className="text-mint-400 font-bold">{currencyConfig.symbol}</span>
+                תקציב יעד ({currencyConfig.label})
+              </span>
+              {currency !== "USD" && (
+                <span className="text-[9px] text-slate-400 font-mono">
+                  ~${convertToUsd(enteredBudget)} USD
+                </span>
+              )}
             </span>
             <div className="flex items-center gap-1 mt-1">
               <input
                 type="number"
-                min={200}
-                step={50}
+                min={currency === "ILS" ? 1000 : 200}
+                step={currency === "ILS" ? 200 : 50}
                 required
                 disabled={isLoading}
-                value={formData.totalBudget}
-                onChange={(e) => setFormData({ ...formData, totalBudget: parseInt(e.target.value) || 500 })}
+                value={enteredBudget}
+                onChange={(e) => setEnteredBudget(parseInt(e.target.value) || 0)}
                 className="bg-transparent border-none text-white text-xs font-semibold focus:outline-none w-full"
               />
-              <span className="text-[11px] text-slate-400">USD</span>
+              <span className="text-[11px] font-bold text-mint-400 shrink-0">{currencyConfig.label}</span>
             </div>
           </div>
         </div>

@@ -15,6 +15,8 @@ const frankRuhl = Frank_Ruhl_Libre({
   weight: ["400", "500", "700", "900"],
 });
 
+import { CurrencyProvider } from "@/context/CurrencyContext";
+
 export const metadata: Metadata = {
   title: "Wanderlust VoyageAI | הרפתקאות שנשארות איתך לתמיד",
   description:
@@ -29,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`dark ${heebo.variable} ${frankRuhl.variable} scroll-smooth`}>
       <body className="antialiased bg-[#090e14] text-slate-100 font-sans selection:bg-teal-500/30 selection:text-teal-200 min-h-screen text-right">
-        {children}
+        <CurrencyProvider>
+          {children}
+        </CurrencyProvider>
       </body>
     </html>
   );

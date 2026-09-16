@@ -1,17 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Mountain, Search, Globe, ArrowLeft, Menu, X, Check } from "lucide-react";
 import { SearchModal } from "@/components/SearchModal";
+import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD $");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const currencyDropdownRef = useRef<HTMLDivElement>(null);
+
+  const { currency, setCurrency, currencyConfig } = useCurrency();
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        currencyDropdownRef.current &&
+        !currencyDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCurrencyOpen(false);
+      }
+    };
+    if (isCurrencyOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCurrencyOpen]);
 
   const NAV_LINKS = [
     { label: "דף הבית", href: "/" },
@@ -22,7 +43,7 @@ export const Navbar: React.FC = () => {
     { label: "בלוג", href: "/blog" },
   ];
 
-  const CURRENCIES = ["USD $", "ILS ₪", "EUR €"];
+  const currencyList = Object.values(CURRENCIES);
 
   return (
     <>
@@ -76,33 +97,51 @@ export const Navbar: React.FC = () => {
               <Search className="w-4 h-4" />
             </button>
 
-            {/* Currency Selector Dropdown */}
-            <div className="relative hidden sm:block">
+            {/* Currency Selector Dropdown (Desktop) */}
+            <div className="relative hidden sm:block" ref={currencyDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-200 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-full border border-white/10 backdrop-blur-md transition"
+                className="flex items-center gap-2 text-xs font-semibold text-slate-200 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-full border border-white/10 backdrop-blur-md transition shadow-sm"
+                aria-label="בחר מטבע תשלום"
               >
-                <Globe className="w-3.5 h-3.5 text-mint-400" />
-                <span>{selectedCurrency} ▾</span>
+                <span className="text-sm leading-none">{currencyConfig.flag}</span>
+                <span className="font-medium text-white">{currencyConfig.label}</span>
+                <span className="text-[10px] text-slate-400">▾</span>
               </button>
 
               {isCurrencyOpen && (
-                <div className="absolute left-0 mt-2 w-32 rounded-2xl wanderlust-glass border border-white/15 p-1.5 shadow-xl space-y-1 z-50 animate-fade-in">
-                  {CURRENCIES.map((curr) => (
-                    <button
-                      key={curr}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCurrency(curr);
-                        setIsCurrencyOpen(false);
-                      }}
-                      className="w-full px-3 py-1.5 rounded-xl text-right text-xs font-medium hover:bg-white/10 text-white flex items-center justify-between"
-                    >
-                      <span>{curr}</span>
-                      {selectedCurrency === curr && <Check className="w-3 h-3 text-mint-400" />}
-                    </button>
-                  ))}
+                <div className="absolute left-0 mt-2 w-44 rounded-2xl wanderlust-glass border border-white/15 p-1.5 shadow-2xl space-y-1 z-50 animate-fade-in bg-[#0c121e]/95 backdrop-blur-xl">
+                  <div className="px-2.5 py-1 text-[10px] font-semibold text-slate-400 border-b border-white/10 text-right">
+                    בחר מטבע תשלום
+                  </div>
+                  {currencyList.map((curr) => {
+                    const isSelected = currency === curr.code;
+                    return (
+                      <button
+                        key={curr.code}
+                        type="button"
+                        onClick={() => {
+                          setCurrency(curr.code as CurrencyCode);
+                          setIsCurrencyOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 rounded-xl text-right text-xs font-medium transition flex items-center justify-between ${
+                          isSelected
+                            ? "bg-mint-500/20 text-mint-300 font-bold border border-mint-500/30"
+                            : "hover:bg-white/10 text-slate-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{curr.flag}</span>
+                          <div className="text-right">
+                            <span className="block text-white text-xs">{curr.label}</span>
+                            <span className="block text-[10px] text-slate-400">{curr.hebrewName}</span>
+                          </div>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-mint-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -137,7 +176,7 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-white/10 space-y-2 animate-fade-in">
+          <div className="md:hidden mt-4 pt-4 border-t border-white/10 space-y-3 animate-fade-in">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
@@ -152,6 +191,32 @@ export const Navbar: React.FC = () => {
                 {link.label}
               </a>
             ))}
+
+            {/* Mobile Currency Selector */}
+            <div className="pt-2 border-t border-white/10">
+              <span className="text-xs text-slate-400 block mb-2 font-medium">מטבע תשלום לתצוגה:</span>
+              <div className="grid grid-cols-3 gap-2">
+                {currencyList.map((curr) => {
+                  const isSelected = currency === curr.code;
+                  return (
+                    <button
+                      key={curr.code}
+                      type="button"
+                      onClick={() => setCurrency(curr.code as CurrencyCode)}
+                      className={`p-2 rounded-xl text-center border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                        isSelected
+                          ? "bg-mint-500/20 text-mint-300 border-mint-500/40 shadow-sm"
+                          : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10"
+                      }`}
+                    >
+                      <span>{curr.flag}</span>
+                      <span>{curr.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="pt-2">
               <button
                 type="button"

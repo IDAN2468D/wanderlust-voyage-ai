@@ -14,6 +14,7 @@ import {
   DollarSign,
   Compass,
 } from "lucide-react";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface DestinationItem {
   id: string;
@@ -112,6 +113,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
 
 export default function DestinationsPage() {
   const router = useRouter();
+  const { formatPrice } = useCurrency();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -263,7 +265,7 @@ export default function DestinationsPage() {
                   <div className="grid grid-cols-2 gap-2 pt-2 text-[11px]">
                     <div className="bg-white/5 p-2 rounded-xl border border-white/10 flex items-center gap-1.5 text-slate-300">
                       <DollarSign className="w-3.5 h-3.5 text-mint-400 shrink-0" />
-                      <span>החל מ-<strong>${dest.priceFrom}</strong></span>
+                      <span>החל מ-<strong>{formatPrice(dest.priceFrom)}</strong></span>
                     </div>
                     <div className="bg-white/5 p-2 rounded-xl border border-white/10 flex items-center gap-1.5 text-slate-300">
                       <Calendar className="w-3.5 h-3.5 text-mint-400 shrink-0" />
