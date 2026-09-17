@@ -18,6 +18,8 @@ import {
   Film,
   Play,
   Pause,
+  Upload,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -78,10 +80,13 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // וידאו רקע Google Flow
-  const [selectedVideo, setSelectedVideo] = useState<"flow" | "aurora">("flow");
+  // וידאו רקע Google Flow (כולל תמיכה בפרויקטים מותאמים אישית)
+  const [selectedVideo, setSelectedVideo] = useState<"flow" | "aurora" | "custom">("flow");
+  const [customVideoUrl, setCustomVideoUrl] = useState<string | null>(null);
+  const [customVideoName, setCustomVideoName] = useState<string>("");
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -91,7 +96,36 @@ function LoginForm() {
         videoRef.current.pause();
       }
     }
-  }, [isVideoPlaying, selectedVideo]);
+  }, [isVideoPlaying, selectedVideo, customVideoUrl]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCustomVideoUrl(url);
+      setCustomVideoName(file.name);
+      setSelectedVideo("custom");
+      setIsVideoPlaying(true);
+    }
+  };
+
+  const handleDropVideo = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (
+      file &&
+      (file.type.startsWith("video/") ||
+        file.name.endsWith(".mp4") ||
+        file.name.endsWith(".webm") ||
+        file.name.endsWith(".mov"))
+    ) {
+      const url = URL.createObjectURL(file);
+      setCustomVideoUrl(url);
+      setCustomVideoName(file.name);
+      setSelectedVideo("custom");
+      setIsVideoPlaying(true);
+    }
+  };
 
   // אם המשתמש כבר מחובר – ניתוב אוטומטי ליעד המבוקש
   useEffect(() => {
@@ -203,6 +237,8 @@ function LoginForm() {
     <div
       className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 bg-[#040914] selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
       dir="rtl"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleDropVideo}
     >
       {/* ====================================================================== */}
       {/* GOOGLE FLOW (flow.google.com) LIVE AMBIENT VIDEO BACKGROUND             */}
@@ -210,7 +246,7 @@ function LoginForm() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-30">
         <video
           ref={videoRef}
-          key={selectedVideo}
+          key={selectedVideo === "custom" ? customVideoUrl : selectedVideo}
           autoPlay
           loop
           muted
@@ -219,7 +255,13 @@ function LoginForm() {
           className="w-full h-full object-cover scale-105 filter brightness-[0.72] contrast-125 saturate-[1.3] transition-all duration-1000"
         >
           <source
-            src={selectedVideo === "flow" ? "/videos/demo.mp4" : "/videos/flow_bg.mp4"}
+            src={
+              selectedVideo === "custom" && customVideoUrl
+                ? customVideoUrl
+                : selectedVideo === "flow"
+                ? "/videos/demo.mp4"
+                : "/videos/flow_bg.mp4"
+            }
             type="video/mp4"
           />
         </video>
@@ -228,7 +270,7 @@ function LoginForm() {
       </div>
 
       {/* Floating Google Flow Video Switcher Pill */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2 bg-[#081020]/80 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-full text-xs text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex flex-wrap items-center gap-2 bg-[#081020]/85 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-full text-xs text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         <span className="flex h-2 w-2 relative">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
@@ -262,6 +304,50 @@ function LoginForm() {
         >
           זוהר צפוני
         </button>
+
+        {customVideoUrl && (
+          <button
+            type="button"
+            onClick={() => setSelectedVideo("custom")}
+            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
+              selectedVideo === "custom"
+                ? "bg-emerald-500 text-slate-950 shadow-sm"
+                : "text-slate-300 hover:text-white hover:bg-white/10"
+            }`}
+            title={`הפעל וידאו פרויקט: ${customVideoName}`}
+          >
+            פרויקט Flow שלי ✨
+          </button>
+        )}
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          accept="video/mp4,video/webm,video/quicktime"
+          className="hidden"
+        />
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/10 hover:bg-white/20 text-slate-200 transition border border-white/10"
+          title="טעינת קובץ וידאו שהורדת מפרויקט Google Flow (או גרור למסך)"
+        >
+          <Upload className="w-3 h-3 text-cyan-400" />
+          <span>טען קובץ מ-Flow</span>
+        </button>
+
+        <a
+          href="https://flow.google.com/project/6edf806c-09f3-4041-a2a8-8b0715d8c97a"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-gradient-to-r from-blue-600/30 to-cyan-600/30 hover:from-blue-600/50 hover:to-cyan-600/50 text-cyan-200 transition border border-cyan-400/30"
+          title="פתיחת הפרויקט ב-Google Flow"
+        >
+          <ExternalLink className="w-3 h-3" />
+          <span className="hidden lg:inline">פרויקט 6edf806c</span>
+        </a>
 
         <button
           type="button"
