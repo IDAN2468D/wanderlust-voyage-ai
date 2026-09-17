@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.api.schemas import UserCreate, UserLogin, UserResponse, Token, GoogleAuthRequest
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user
+from app.core.config import settings
 
 logger = logging.getLogger("auth_routes")
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -113,6 +114,14 @@ async def google_login(payload: GoogleAuthRequest):
                 )
                 if res.status_code == 200:
                     google_info = res.json()
+                    # Verify audience against GOOGLE_CLIENT_ID if configured
+                    aud = google_info.get("aud")
+                    if settings.GOOGLE_CLIENT_ID and aud and aud != settings.GOOGLE_CLIENT_ID:
+                        logger.warning(f"Google token audience mismatch: {aud} vs {settings.GOOGLE_CLIENT_ID}")
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="מזהה הלקוח של Google אינו תואם להגדרות המערכת",
+                        )
                     email = google_info.get("email", "").lower().strip()
                     full_name = google_info.get("name") or payload.name or ""
                     picture = google_info.get("picture") or payload.picture or ""

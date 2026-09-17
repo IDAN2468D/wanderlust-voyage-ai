@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
+    # Google OAuth 2.0 Credentials
+    GOOGLE_CLIENT_ID: str = Field(default="", description="Google OAuth 2.0 Client ID")
+    GOOGLE_CLIENT_SECRET: str = Field(default="", description="Google OAuth 2.0 Client Secret")
+    GOOGLE_REDIRECT_URI: str = Field(
+        default="http://localhost:3000/api/auth/callback/google",
+        description="Authorized redirect URI for Google OAuth",
+    )
+
     # PostgreSQL Database
     POSTGRES_USER: str = "travel_agent"
     POSTGRES_PASSWORD: str = "travel_agent_secret"
