@@ -15,11 +15,6 @@ import {
   Loader2,
   Sparkles,
   Compass,
-  Film,
-  Play,
-  Pause,
-  Upload,
-  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -80,34 +75,16 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // וידאו רקע Google Flow (כולל תמיכה בפרויקטים מותאמים אישית)
-  const [selectedVideo, setSelectedVideo] = useState<"flow" | "aurora" | "custom">("flow");
-  const [customVideoUrl, setCustomVideoUrl] = useState<string | null>(null);
-  const [customVideoName, setCustomVideoName] = useState<string>("");
-  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(true);
+  // וידאו רקע Google Flow
   const videoRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [customVideoUrl, setCustomVideoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (videoRef.current) {
-      if (isVideoPlaying) {
-        videoRef.current.play().catch(() => {});
-      } else {
-        videoRef.current.pause();
-      }
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
     }
-  }, [isVideoPlaying, selectedVideo, customVideoUrl]);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setCustomVideoUrl(url);
-      setCustomVideoName(file.name);
-      setSelectedVideo("custom");
-      setIsVideoPlaying(true);
-    }
-  };
+  }, [customVideoUrl]);
 
   const handleDropVideo = (e: React.DragEvent) => {
     e.preventDefault();
@@ -121,9 +98,6 @@ function LoginForm() {
     ) {
       const url = URL.createObjectURL(file);
       setCustomVideoUrl(url);
-      setCustomVideoName(file.name);
-      setSelectedVideo("custom");
-      setIsVideoPlaying(true);
     }
   };
 
@@ -235,7 +209,7 @@ function LoginForm() {
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 bg-[#040914] selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
+      className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 bg-slate-900 selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
       dir="rtl"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDropVideo}
@@ -243,178 +217,30 @@ function LoginForm() {
       {/* ====================================================================== */}
       {/* GOOGLE FLOW (flow.google.com) LIVE AMBIENT VIDEO BACKGROUND             */}
       {/* ====================================================================== */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-30">
+      <div
+        className="absolute inset-0 overflow-hidden pointer-events-none -z-30 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/demo_preview.jpg')" }}
+      >
         <video
           ref={videoRef}
-          key={selectedVideo === "custom" ? customVideoUrl : selectedVideo}
+          key={customVideoUrl || "flow-ambient"}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           poster="/demo_preview.jpg"
-          className="w-full h-full object-cover scale-105 filter brightness-[0.72] contrast-125 saturate-[1.3] transition-all duration-1000"
+          className="w-full h-full object-cover"
         >
-          <source
-            src={
-              selectedVideo === "custom" && customVideoUrl
-                ? customVideoUrl
-                : selectedVideo === "flow"
-                ? "/videos/demo.mp4"
-                : "/videos/flow_bg.mp4"
-            }
-            type="video/mp4"
-          />
+          <source src={customVideoUrl || "/videos/demo.mp4"} type="video/mp4" />
         </video>
-        {/* Soft Vignette Overlay to enhance contrast and card readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/75 via-[#040914]/40 to-[#030712]/80 backdrop-blur-[1px]" />
+        {/* Soft, minimal cinematic tint so the card pops while the background remains 100% visible and vivid */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/25 pointer-events-none" />
       </div>
 
-      {/* Floating Google Flow Video Switcher Pill */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex flex-wrap items-center gap-2 bg-[#081020]/85 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-full text-xs text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-        <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-        </span>
-        <Film className="w-3.5 h-3.5 text-cyan-400" />
-        <span className="text-[11px] font-medium text-slate-300 hidden sm:inline">וידאו Flow</span>
-        <div className="h-3 w-px bg-white/20 mx-0.5" />
-        
-        <button
-          type="button"
-          onClick={() => setSelectedVideo("flow")}
-          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
-            selectedVideo === "flow"
-              ? "bg-cyan-500 text-slate-950 shadow-sm"
-              : "text-slate-300 hover:text-white hover:bg-white/10"
-          }`}
-          title="וידאו מסלולי Flow אלפיניים (Google Veo)"
-        >
-          גלי Flow ואלפים
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setSelectedVideo("aurora")}
-          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
-            selectedVideo === "aurora"
-              ? "bg-purple-500 text-white shadow-sm"
-              : "text-slate-300 hover:text-white hover:bg-white/10"
-          }`}
-          title="וידאו זוהר צפוני קוסמי זורם"
-        >
-          זוהר צפוני
-        </button>
-
-        {customVideoUrl && (
-          <button
-            type="button"
-            onClick={() => setSelectedVideo("custom")}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
-              selectedVideo === "custom"
-                ? "bg-emerald-500 text-slate-950 shadow-sm"
-                : "text-slate-300 hover:text-white hover:bg-white/10"
-            }`}
-            title={`הפעל וידאו פרויקט: ${customVideoName}`}
-          >
-            פרויקט Flow שלי ✨
-          </button>
-        )}
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          accept="video/mp4,video/webm,video/quicktime"
-          className="hidden"
-        />
-
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/10 hover:bg-white/20 text-slate-200 transition border border-white/10"
-          title="טעינת קובץ וידאו שהורדת מפרויקט Google Flow (או גרור למסך)"
-        >
-          <Upload className="w-3 h-3 text-cyan-400" />
-          <span>טען קובץ מ-Flow</span>
-        </button>
-
-        <a
-          href="https://flow.google.com/project/6edf806c-09f3-4041-a2a8-8b0715d8c97a"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-gradient-to-r from-blue-600/30 to-cyan-600/30 hover:from-blue-600/50 hover:to-cyan-600/50 text-cyan-200 transition border border-cyan-400/30"
-          title="פתיחת הפרויקט ב-Google Flow"
-        >
-          <ExternalLink className="w-3 h-3" />
-          <span className="hidden lg:inline">פרויקט 6edf806c</span>
-        </a>
-
-        <button
-          type="button"
-          onClick={() => setIsVideoPlaying((p) => !p)}
-          className="p-1 rounded-full text-slate-300 hover:text-white hover:bg-white/15 transition mr-0.5"
-          title={isVideoPlaying ? "השהה וידאו" : "הפעל וידאו"}
-        >
-          {isVideoPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-        </button>
-      </div>
-
-      {/* ====================================================================== */}
-      {/* GOOGLE FLOW (flow.google.com) SIGNATURE DYNAMIC IRIDESCENT BACKGROUND   */}
-      {/* ====================================================================== */}
-      
-      {/* 1. Deep Obsidian Base Gradient (Semi-transparent for Video Pass-Through) */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#030712]/60 via-[#05131f]/40 to-[#02050d]/70 -z-20" />
-
-      {/* 2. Floating Liquid Aurora Orbs (Animated Drift & Breath) */}
-      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#6366f1]/35 via-[#818cf8]/20 to-transparent blur-[140px] pointer-events-none -top-40 -right-20 animate-flow-1 -z-10 mix-blend-screen" />
-      <div className="absolute w-[550px] h-[550px] rounded-full bg-gradient-to-bl from-[#06b6d4]/30 via-[#14b8a6]/25 to-transparent blur-[130px] pointer-events-none -bottom-32 -left-20 animate-flow-2 -z-10 mix-blend-screen" />
-      <div className="absolute w-[450px] h-[450px] rounded-full bg-gradient-to-r from-[#ec4899]/20 via-[#d946ef]/20 to-transparent blur-[120px] pointer-events-none top-1/3 left-1/4 animate-flow-3 -z-10 mix-blend-screen" />
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-[#10b981]/15 blur-[110px] pointer-events-none bottom-10 right-1/4 animate-flow-1 -z-10 mix-blend-screen" />
-
-      {/* 3. Google Flow Prismatic Harmonic Waveform Vectors */}
-      <svg
-        className="absolute inset-0 w-full h-full opacity-20 pointer-events-none -z-10"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1440 900"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="flowGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#6366f1" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#ec4899" stopOpacity="0.8" />
-          </linearGradient>
-          <linearGradient id="flowGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.7" />
-            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.6" />
-          </linearGradient>
-        </defs>
-
-        <path
-          d="M0,288L48,272C96,256,192,224,288,213.3C384,203,480,213,576,234.7C672,256,768,288,864,282.7C960,277,1056,235,1152,218.7C1248,203,1344,213,1392,218.7L1440,224L1440,900L1392,900C1344,900,1248,900,1152,900C1056,900,960,900,864,900C768,900,672,900,576,900C480,900,384,900,288,900C192,900,96,900,48,900L0,900Z"
-          fill="none"
-          stroke="url(#flowGrad1)"
-          strokeWidth="2"
-        />
-        <path
-          d="M0,160L60,186.7C120,213,240,267,360,277.3C480,288,600,256,720,234.7C840,213,960,203,1080,218.7C1200,235,1320,277,1380,298.7L1440,320L1440,900L0,900Z"
-          fill="none"
-          stroke="url(#flowGrad2)"
-          strokeWidth="1.5"
-          opacity="0.6"
-        />
-      </svg>
-
-      {/* 4. Fine Generative Grid Dots */}
-      <div
-        className="absolute inset-0 opacity-[0.035] pointer-events-none -z-10"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)`,
-          backgroundSize: "28px 28px",
-        }}
-      />
+      {/* Subtle Luminous Aurora Glows around edges */}
+      <div className="absolute w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-indigo-500/20 via-cyan-400/15 to-transparent blur-[140px] pointer-events-none -top-36 -right-20 -z-10 mix-blend-screen" />
+      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-teal-400/20 via-emerald-500/15 to-transparent blur-[130px] pointer-events-none -bottom-36 -left-20 -z-10 mix-blend-screen" />
 
       {/* ====================================================================== */}
       {/* CENTER MASTER CARD (SPLIT SCREEN ACCORDING TO USER REFERENCE IMAGE)     */}
