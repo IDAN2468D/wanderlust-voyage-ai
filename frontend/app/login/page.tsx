@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Heart,
   Eye,
   EyeOff,
+  ChevronLeft,
   ChevronRight,
   ArrowLeft,
   ArrowRight,
@@ -13,43 +14,47 @@ import {
   CheckCircle2,
   Loader2,
   Sparkles,
+  Compass,
+  Film,
+  Play,
+  Pause,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-// Curated high-resolution travel destinations for the right-side carousel
+// יעדי תיירות מרהיבים עבור הקרוסלה בצד ימין (כולל תיאורים ושמות בעברית)
 const SCENIC_SLIDES = [
   {
     id: 1,
-    title: "Escape the Ordinary, Embrace the Journey!",
-    subtitle: "Experience the world your way!",
-    cardTitle: "Wander, Explore, Experience.",
+    title: "צאו מהשגרה, אמצו את המסע!",
+    subtitle: "לחוות את העולם בדרך שלכם",
+    cardTitle: "לטייל, לגלות, לחוות.",
     cardDesc:
-      "Discover new places, embrace adventures, & create unforgettable travel memories worldwide.",
+      "גלו מקומות עוצרי נשימה, צאו להרפתקאות מסעירות וצרו זיכרונות בלתי נשכחים בכל רחבי העולם.",
     imageUrl:
       "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1400&auto=format&fit=crop&q=85",
-    location: "Lago di Braies, Dolomites",
+    location: "אגם בראייס, הרי הדולומיטים, איטליה",
   },
   {
     id: 2,
-    title: "Find Peace Where Sea Meets Sky",
-    subtitle: "Discover Aegean sunlit cliffs",
-    cardTitle: "Breathtaking Horizons.",
+    title: "שלווה עילאית אינסופית",
+    subtitle: "איפה שהים פוגש את השמיים",
+    cardTitle: "אופקים של קסם.",
     cardDesc:
-      "Witness golden sunsets, whitewashed villages, and authentic Mediterranean charm.",
+      "שקיעות זהב מרהיבות, סמטאות ציוריות שטופות שמש ואירוח ים-תיכוני אותנטי ומרגש.",
     imageUrl:
       "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1400&auto=format&fit=crop&q=85",
-    location: "Oia, Santorini, Greece",
+    location: "איה, סנטוריני, יוון",
   },
   {
     id: 3,
-    title: "Alpine Wonders & Pure Serenity",
-    subtitle: "Breathe the alpine freshness",
-    cardTitle: "Uncharted Wilderness.",
+    title: "פלאי אלפים וטבע בתולי",
+    subtitle: "לנשום את האוויר הפסגות הצלול",
+    cardTitle: "מרחבים פראיים.",
     cardDesc:
-      "Hike pristine mountain ridges, crystal turquoise waters, and ancient pine forests.",
+      "מסלולי הליכה ברכסי הרים מושלגים, אגמי טורקיז קריסטליים ויערות אורן עתיקים.",
     imageUrl:
       "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=1400&auto=format&fit=crop&q=85",
-    location: "Swiss Alps, Switzerland",
+    location: "האלפים השוויצריים, שווייץ",
   },
 ];
 
@@ -73,7 +78,22 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // If already authenticated, navigate away
+  // וידאו רקע Google Flow
+  const [selectedVideo, setSelectedVideo] = useState<"flow" | "aurora">("flow");
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isVideoPlaying, selectedVideo]);
+
+  // אם המשתמש כבר מחובר – ניתוב אוטומטי ליעד המבוקש
   useEffect(() => {
     if (isAuthenticated) {
       router.replace(redirectTarget);
@@ -90,29 +110,28 @@ function LoginForm() {
     setCurrentSlideIndex((prev) => (prev - 1 + SCENIC_SLIDES.length) % SCENIC_SLIDES.length);
   };
 
-  // Email / Password submission
+  // טיפול בשליחת טופס התחברות / הרשמה
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    // Map username to email format if user entered simple handle
     const effectiveEmail = username.includes("@")
       ? username.trim()
       : `${username.trim()}@travelplanner.ai`;
 
     if (!username || !password) {
-      setErrorMessage("Please enter both username/email and password");
+      setErrorMessage("נא למלא את שם המשתמש והסיסמה");
       return;
     }
 
     if (activeTab === "register") {
       if (password.length < 6) {
-        setErrorMessage("Password must be at least 6 characters");
+        setErrorMessage("הסיסמה חייבת להכיל לפחות 6 תווים");
         return;
       }
       if (password !== confirmPassword) {
-        setErrorMessage("Passwords do not match");
+        setErrorMessage("הסיסמאות אינן תואמות");
         return;
       }
     }
@@ -123,32 +142,32 @@ function LoginForm() {
       if (activeTab === "login") {
         const res = await login(effectiveEmail, password);
         if (res.success) {
-          setSuccessMessage("Welcome back! Entering Wanderlust...");
+          setSuccessMessage("התחברת בהצלחה! מעביר אותך למערכת...");
           setTimeout(() => {
             router.replace(redirectTarget);
           }, 450);
         } else {
-          setErrorMessage(res.error || "Invalid username or password");
+          setErrorMessage(res.error || "שם משתמש או סיסמה שגויים");
         }
       } else {
         const res = await register(effectiveEmail, password, fullName || username);
         if (res.success) {
-          setSuccessMessage("Account created successfully! Welcome aboard...");
+          setSuccessMessage("החשבון נוצר בהצלחה! ברוך הבא למערכת...");
           setTimeout(() => {
             router.replace(redirectTarget);
           }, 450);
         } else {
-          setErrorMessage(res.error || "Registration failed");
+          setErrorMessage(res.error || "ההרשמה נכשלה. נסה שוב.");
         }
       }
     } catch (err) {
-      setErrorMessage("An unexpected error occurred. Please try again.");
+      setErrorMessage("אירעה שגיאה בלתי צפויה. נסה שוב מאוחר יותר.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Google OAuth button handler
+  // התחברות באמצעות Google OAuth
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -156,74 +175,179 @@ function LoginForm() {
     try {
       const googleProfile = {
         email: "eli.trekker@gmail.com",
-        name: "Eli Trekker",
+        name: "אלי טרקר",
         picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       };
 
       const res = await loginWithGoogle(undefined, googleProfile);
       if (res.success) {
-        setSuccessMessage("Connected with Google! Redirecting...");
+        setSuccessMessage("התחברת באמצעות Google בהצלחה!");
         setTimeout(() => {
           router.replace(redirectTarget);
         }, 450);
       } else {
-        setErrorMessage(res.error || "Google authentication failed");
+        setErrorMessage(res.error || "ההתחברות עם Google נכשלה");
       }
     } catch (err) {
-      setErrorMessage("Error connecting to Google authentication");
+      setErrorMessage("שגיאה בתקשורת מול שרתי Google");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Social info buttons (Apple & X)
-  const handleSocialNotice = (provider: string) => {
-    alert(`${provider} sign-in: Use Google or direct Email/Password login for immediate access.`);
+  const handleSocialNotice = (providerName: string) => {
+    alert(`כניסה עם ${providerName}: ניתן להשתמש ב-Google או בשם משתמש וסיסמה לכניסה מיידית.`);
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 bg-[#0a3844] selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans">
-      {/* Deep Teal Fluid Wave Organic Background Mesh */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#06242c] via-[#0a3844] to-[#041a20] -z-10" />
+    <div
+      className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 bg-[#040914] selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
+      dir="rtl"
+    >
+      {/* ====================================================================== */}
+      {/* GOOGLE FLOW (flow.google.com) LIVE AMBIENT VIDEO BACKGROUND             */}
+      {/* ====================================================================== */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-30">
+        <video
+          ref={videoRef}
+          key={selectedVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/demo_preview.jpg"
+          className="w-full h-full object-cover scale-105 filter brightness-[0.72] contrast-125 saturate-[1.3] transition-all duration-1000"
+        >
+          <source
+            src={selectedVideo === "flow" ? "/videos/demo.mp4" : "/videos/flow_bg.mp4"}
+            type="video/mp4"
+          />
+        </video>
+        {/* Soft Vignette Overlay to enhance contrast and card readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/75 via-[#040914]/40 to-[#030712]/80 backdrop-blur-[1px]" />
+      </div>
 
-      {/* Subtle organic SVG contour lines */}
+      {/* Floating Google Flow Video Switcher Pill */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2 bg-[#081020]/80 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-full text-xs text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <span className="flex h-2 w-2 relative">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+        </span>
+        <Film className="w-3.5 h-3.5 text-cyan-400" />
+        <span className="text-[11px] font-medium text-slate-300 hidden sm:inline">וידאו Flow</span>
+        <div className="h-3 w-px bg-white/20 mx-0.5" />
+        
+        <button
+          type="button"
+          onClick={() => setSelectedVideo("flow")}
+          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
+            selectedVideo === "flow"
+              ? "bg-cyan-500 text-slate-950 shadow-sm"
+              : "text-slate-300 hover:text-white hover:bg-white/10"
+          }`}
+          title="וידאו מסלולי Flow אלפיניים (Google Veo)"
+        >
+          גלי Flow ואלפים
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectedVideo("aurora")}
+          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
+            selectedVideo === "aurora"
+              ? "bg-purple-500 text-white shadow-sm"
+              : "text-slate-300 hover:text-white hover:bg-white/10"
+          }`}
+          title="וידאו זוהר צפוני קוסמי זורם"
+        >
+          זוהר צפוני
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsVideoPlaying((p) => !p)}
+          className="p-1 rounded-full text-slate-300 hover:text-white hover:bg-white/15 transition mr-0.5"
+          title={isVideoPlaying ? "השהה וידאו" : "הפעל וידאו"}
+        >
+          {isVideoPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
+      {/* ====================================================================== */}
+      {/* GOOGLE FLOW (flow.google.com) SIGNATURE DYNAMIC IRIDESCENT BACKGROUND   */}
+      {/* ====================================================================== */}
+      
+      {/* 1. Deep Obsidian Base Gradient (Semi-transparent for Video Pass-Through) */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#030712]/60 via-[#05131f]/40 to-[#02050d]/70 -z-20" />
+
+      {/* 2. Floating Liquid Aurora Orbs (Animated Drift & Breath) */}
+      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#6366f1]/35 via-[#818cf8]/20 to-transparent blur-[140px] pointer-events-none -top-40 -right-20 animate-flow-1 -z-10 mix-blend-screen" />
+      <div className="absolute w-[550px] h-[550px] rounded-full bg-gradient-to-bl from-[#06b6d4]/30 via-[#14b8a6]/25 to-transparent blur-[130px] pointer-events-none -bottom-32 -left-20 animate-flow-2 -z-10 mix-blend-screen" />
+      <div className="absolute w-[450px] h-[450px] rounded-full bg-gradient-to-r from-[#ec4899]/20 via-[#d946ef]/20 to-transparent blur-[120px] pointer-events-none top-1/3 left-1/4 animate-flow-3 -z-10 mix-blend-screen" />
+      <div className="absolute w-[400px] h-[400px] rounded-full bg-[#10b981]/15 blur-[110px] pointer-events-none bottom-10 right-1/4 animate-flow-1 -z-10 mix-blend-screen" />
+
+      {/* 3. Google Flow Prismatic Harmonic Waveform Vectors */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-10 pointer-events-none -z-10"
+        className="absolute inset-0 w-full h-full opacity-20 pointer-events-none -z-10"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1440 900"
         preserveAspectRatio="none"
       >
+        <defs>
+          <linearGradient id="flowGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#6366f1" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#ec4899" stopOpacity="0.8" />
+          </linearGradient>
+          <linearGradient id="flowGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.7" />
+            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.6" />
+          </linearGradient>
+        </defs>
+
         <path
           d="M0,288L48,272C96,256,192,224,288,213.3C384,203,480,213,576,234.7C672,256,768,288,864,282.7C960,277,1056,235,1152,218.7C1248,203,1344,213,1392,218.7L1440,224L1440,900L1392,900C1344,900,1248,900,1152,900C1056,900,960,900,864,900C768,900,672,900,576,900C480,900,384,900,288,900C192,900,96,900,48,900L0,900Z"
           fill="none"
-          stroke="#5eead4"
-          strokeWidth="1.5"
+          stroke="url(#flowGrad1)"
+          strokeWidth="2"
         />
         <path
-          d="M0,128L60,154.7C120,181,240,235,360,245.3C480,256,600,224,720,202.7C840,181,960,171,1080,186.7C1200,203,1320,245,1380,266.7L1440,288L1440,900L0,900Z"
+          d="M0,160L60,186.7C120,213,240,267,360,277.3C480,288,600,256,720,234.7C840,213,960,203,1080,218.7C1200,235,1320,277,1380,298.7L1440,320L1440,900L0,900Z"
           fill="none"
-          stroke="#99f6e4"
-          strokeWidth="1"
-          opacity="0.4"
+          stroke="url(#flowGrad2)"
+          strokeWidth="1.5"
+          opacity="0.6"
         />
       </svg>
 
-      {/* Center White Master Card with Splitted Form & Scalloped Image */}
-      <div className="w-full max-w-[1040px] bg-white rounded-[2.5rem] shadow-[0_30px_90px_rgba(0,0,0,0.45)] overflow-hidden flex flex-col md:flex-row relative z-10 border border-white/20">
+      {/* 4. Fine Generative Grid Dots */}
+      <div
+        className="absolute inset-0 opacity-[0.035] pointer-events-none -z-10"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)`,
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      {/* ====================================================================== */}
+      {/* CENTER MASTER CARD (SPLIT SCREEN ACCORDING TO USER REFERENCE IMAGE)     */}
+      {/* ====================================================================== */}
+      <div className="w-full max-w-[1060px] bg-white rounded-[2.5rem] shadow-[0_35px_100px_rgba(0,0,0,0.55)] overflow-hidden flex flex-col md:flex-row relative z-10 border border-white/25">
         
         {/* ====================================================================== */}
-        {/* LEFT COLUMN: AUTHENTICATION FORM                                       */}
+        {/* RIGHT COLUMN IN RTL (THE AUTHENTICATION FORM)                          */}
         {/* ====================================================================== */}
-        <div className="w-full md:w-[48%] lg:w-[46%] p-8 sm:p-12 flex flex-col justify-between bg-white text-slate-900">
+        <div className="w-full md:w-[48%] lg:w-[46%] p-8 sm:p-12 flex flex-col justify-between bg-white text-slate-900 text-right">
           
           {/* Header Branding */}
           <div>
-            <div className="text-left mb-6">
+            <div className="text-right mb-6">
               <h2 className="font-serif text-2xl sm:text-[28px] font-semibold text-slate-900 tracking-tight leading-tight">
                 Travel Voyanix
               </h2>
               <p className="text-[13px] text-slate-400 font-normal tracking-wide mt-0.5">
-                Explore More, Experience Life.
+                לחקור יותר. לחוות את החיים.
               </p>
             </div>
 
@@ -242,7 +366,7 @@ function LoginForm() {
                     : "bg-white text-slate-800 border border-slate-900/80 hover:bg-slate-50"
                 }`}
               >
-                Sign Up
+                הרשמה
               </button>
 
               <button
@@ -258,17 +382,17 @@ function LoginForm() {
                     : "bg-white text-slate-800 border border-slate-900/80 hover:bg-slate-50"
                 }`}
               >
-                Log In
+                התחברות
               </button>
             </div>
 
             {/* Title Section */}
-            <div className="mb-5 text-left">
+            <div className="mb-5 text-right">
               <h3 className="text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight">
-                Journey Begins
+                המסע מתחיל
               </h3>
               <p className="text-xs text-slate-400 mt-1 font-medium">
-                {activeTab === "login" ? "Log In with Open account" : "Create your traveler account"}
+                {activeTab === "login" ? "התחברות באמצעות חשבון קיים" : "יצירת חשבון מטייל חדש במערכת"}
               </p>
             </div>
 
@@ -279,7 +403,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => handleSocialNotice("Apple")}
                 className="flex items-center justify-center py-2.5 px-4 rounded-xl border border-sky-200/90 bg-white hover:border-sky-400 hover:bg-sky-50/20 transition group shadow-sm"
-                title="Sign in with Apple"
+                title="התחבר באמצעות Apple"
               >
                 <svg
                   className="w-5 h-5 text-slate-900 group-hover:scale-110 transition-transform"
@@ -296,7 +420,7 @@ function LoginForm() {
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
                 className="flex items-center justify-center py-2.5 px-4 rounded-xl border border-sky-200/90 bg-white hover:border-sky-400 hover:bg-sky-50/20 transition group shadow-sm disabled:opacity-50"
-                title="Sign in with Google"
+                title="התחבר באמצעות Google"
               >
                 <svg
                   className="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -326,7 +450,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => handleSocialNotice("X")}
                 className="flex items-center justify-center py-2.5 px-4 rounded-xl border border-sky-200/90 bg-white hover:border-sky-400 hover:bg-sky-50/20 transition group shadow-sm"
-                title="Sign in with X"
+                title="התחבר באמצעות X"
               >
                 <svg
                   className="w-4 h-4 text-slate-900 group-hover:scale-110 transition-transform"
@@ -338,16 +462,16 @@ function LoginForm() {
               </button>
             </div>
 
-            {/* Divider with 'or' */}
+            {/* Divider with 'או' */}
             <div className="relative flex items-center justify-center my-5">
               <div className="border-t border-slate-200 w-full" />
-              <span className="bg-white px-3 text-[11px] text-slate-400 font-medium lowercase">
-                or
+              <span className="bg-white px-3 text-[11px] text-slate-400 font-medium">
+                או באמצעות חשבון
               </span>
               <div className="border-t border-slate-200 w-full" />
             </div>
 
-            {/* Error / Success Feedback Alerts */}
+            {/* Alerts */}
             {errorMessage && (
               <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
@@ -362,30 +486,30 @@ function LoginForm() {
               </div>
             )}
 
-            {/* Main Form Fields */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Main Form Fields with Floating Inset Labels */}
+            <form onSubmit={handleSubmit} className="space-y-4 text-right">
               
               {/* Full Name (Sign Up only) */}
               {activeTab === "register" && (
                 <div className="relative">
-                  <span className="absolute -top-2.5 left-3.5 bg-white px-1 text-[11px] font-semibold text-slate-400 z-10">
-                    Full Name
+                  <span className="absolute -top-2.5 right-3.5 bg-white px-1.5 text-[11px] font-semibold text-slate-400 z-10">
+                    שם מלא
                   </span>
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Eli Cohen"
-                    className="w-full px-4 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"
+                    placeholder="ישראל ישראלי"
+                    className="w-full px-4 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition text-right"
                   />
                 </div>
               )}
 
-              {/* Username Input with Inset Floating Label */}
+              {/* Username / Email with Inset Floating Label */}
               <div className="relative">
-                <span className="absolute -top-2.5 left-3.5 bg-white px-1 text-[11px] font-semibold text-slate-400 z-10">
-                  Username
+                <span className="absolute -top-2.5 right-3.5 bg-white px-1.5 text-[11px] font-semibold text-slate-400 z-10">
+                  שם משתמש או אימייל
                 </span>
                 <input
                   type="text"
@@ -393,14 +517,15 @@ function LoginForm() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="eli_trekker"
-                  className="w-full px-4 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"
+                  className="w-full px-4 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition text-right"
+                  dir="ltr"
                 />
               </div>
 
-              {/* Password Input with Inset Floating Label & Eye Icon */}
+              {/* Password with Inset Floating Label & Eye Toggle */}
               <div className="relative">
-                <span className="absolute -top-2.5 left-3.5 bg-white px-1 text-[11px] font-semibold text-slate-400 z-10">
-                  Password
+                <span className="absolute -top-2.5 right-3.5 bg-white px-1.5 text-[11px] font-semibold text-slate-400 z-10">
+                  סיסמה
                 </span>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -408,13 +533,15 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-4 pr-11 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition text-right"
+                  dir="ltr"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
                   tabIndex={-1}
+                  aria-label="הצג סיסמה"
                 >
                   {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </button>
@@ -423,8 +550,8 @@ function LoginForm() {
               {/* Confirm Password (Sign Up only) */}
               {activeTab === "register" && (
                 <div className="relative">
-                  <span className="absolute -top-2.5 left-3.5 bg-white px-1 text-[11px] font-semibold text-slate-400 z-10">
-                    Confirm Password
+                  <span className="absolute -top-2.5 right-3.5 bg-white px-1.5 text-[11px] font-semibold text-slate-400 z-10">
+                    אימות סיסמה
                   </span>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -432,7 +559,8 @@ function LoginForm() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-4 pr-11 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-sky-300/80 text-slate-900 text-sm placeholder-slate-300 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition text-right"
+                    dir="ltr"
                   />
                 </div>
               )}
@@ -446,18 +574,18 @@ function LoginForm() {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="w-3.5 h-3.5 rounded border-slate-300 text-black focus:ring-black accent-black"
                   />
-                  <span>Remember me</span>
+                  <span>זכור אותי במכשיר זה</span>
                 </label>
 
                 {activeTab === "login" && (
                   <button
                     type="button"
                     onClick={() =>
-                      alert("Password reset instructions have been dispatched to your registered email.")
+                      alert("הוראות לאיפוס סיסמה נשלחו לכתובת האימייל המשויכת לחשבונך.")
                     }
                     className="text-xs text-slate-700 hover:text-black font-medium transition"
                   >
-                    Forgot Password?
+                    שכחת סיסמה?
                   </button>
                 )}
               </div>
@@ -471,12 +599,12 @@ function LoginForm() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Processing...</span>
+                    <span>מעבד נתונים...</span>
                   </>
                 ) : activeTab === "login" ? (
-                  <span>Log In</span>
+                  <span>התחברות למערכת</span>
                 ) : (
-                  <span>Sign Up</span>
+                  <span>יצירת חשבון והתחלה</span>
                 )}
               </button>
             </form>
@@ -494,13 +622,13 @@ function LoginForm() {
               className="text-[11px] text-teal-700 hover:text-teal-900 font-semibold inline-flex items-center gap-1.5 transition"
             >
               <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-              <span>כניסה מהירה לחשבון דמו (Demo Traveler)</span>
+              <span>כניסה מהירה בלחיצה אחת לחשבון דמו (Demo Traveler)</span>
             </button>
           </div>
         </div>
 
         {/* ====================================================================== */}
-        {/* RIGHT COLUMN: SCENIC TRAVEL CAROUSEL WITH BESPOKE CUTOUT CORNERS       */}
+        {/* LEFT COLUMN IN RTL (SCENIC TRAVEL CAROUSEL WITH BESPOKE CUTOUTS)       */}
         {/* ====================================================================== */}
         <div className="w-full md:w-[52%] lg:w-[54%] p-3 sm:p-4 bg-white relative">
           <div
@@ -511,43 +639,40 @@ function LoginForm() {
               backgroundPosition: "center",
             }}
           >
-            {/* Dark & Cyan Scenic Overlay for Maximum Contrast & Atmosphere */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/25 pointer-events-none" />
+            {/* Scenic Dark Gradient Overlay for High Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-black/30 pointer-events-none" />
 
-            {/* Characteristic Designer Scalloped Corner Cutouts (from reference) */}
-            {/* Top-Left Scallop Cutout */}
-            <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-white z-20 pointer-events-none shadow-sm" />
-            <div className="absolute top-2 -left-3 w-5 h-5 rounded-full bg-white z-20 pointer-events-none" />
-
-            {/* Bottom-Right Scallop Cutout */}
-            <div className="absolute -bottom-3 -right-3 w-8 h-8 rounded-full bg-white z-20 pointer-events-none shadow-sm" />
-            <div className="absolute bottom-2 -right-3 w-5 h-5 rounded-full bg-white z-20 pointer-events-none" />
+            {/* Characteristic Designer Scalloped Corner Cutouts */}
+            <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white z-20 pointer-events-none shadow-sm" />
+            <div className="absolute top-2 -right-3 w-5 h-5 rounded-full bg-white z-20 pointer-events-none" />
+            <div className="absolute -bottom-3 -left-3 w-8 h-8 rounded-full bg-white z-20 pointer-events-none shadow-sm" />
+            <div className="absolute bottom-2 -left-3 w-5 h-5 rounded-full bg-white z-20 pointer-events-none" />
 
             {/* Top Floating Badge Card */}
-            <div className="relative z-10 self-end max-w-[220px]">
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/40 text-left relative animate-fade-in">
+            <div className="relative z-10 self-start max-w-[230px]">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/40 text-right relative animate-fade-in">
                 {/* Red Circular Heart Pill */}
-                <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center text-white shadow-sm">
+                <div className="absolute top-3.5 left-3.5 w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center text-white shadow-sm">
                   <Heart className="w-3.5 h-3.5 fill-current" />
                 </div>
 
-                <h4 className="font-bold text-[13px] text-slate-900 pr-7 leading-tight">
+                <h4 className="font-bold text-[13px] text-slate-900 pl-7 leading-tight">
                   {currentSlide.cardTitle}
                 </h4>
                 <p className="text-[10px] text-slate-500 leading-snug mt-1 mb-2.5">
                   {currentSlide.cardDesc}
                 </p>
 
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-start">
                   <div className="w-5 h-5 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
-                    <ChevronRight className="w-3 h-3" />
+                    <ChevronLeft className="w-3 h-3" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Bottom Content & Navigation Pill */}
-            <div className="relative z-10 mt-auto pt-12 text-left">
+            <div className="relative z-10 mt-auto pt-12 text-right">
               <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight drop-shadow-md max-w-sm mb-3">
                 {currentSlide.title}
               </h2>
@@ -562,25 +687,37 @@ function LoginForm() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handlePrevSlide}
+                  onClick={handleNextSlide}
                   className="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-100 transition shadow-md group"
-                  aria-label="Previous destination"
+                  aria-label="יעד הבא"
+                  title="היעד הבא"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </button>
                 <button
                   type="button"
-                  onClick={handleNextSlide}
+                  onClick={handlePrevSlide}
                   className="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-100 transition shadow-md group"
-                  aria-label="Next destination"
+                  aria-label="יעד קודם"
+                  title="היעד הקודם"
                 >
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                 </button>
               </div>
             </div>
           </div>
         </div>
 
+      </div>
+
+      {/* Subtle Google Flow Ambient Watermark footer */}
+      <div className="absolute bottom-3 text-center text-[10px] text-slate-400/60 flex items-center gap-2 select-none">
+        <span className="flex items-center gap-1">
+          <Compass className="w-3 h-3 text-teal-400/80" />
+          <span>מונע בטכנולוגיית Google Flow & Multi-Agent AI</span>
+        </span>
+        <span>•</span>
+        <span>הצפנה מאובטחת SSL 256-bit</span>
       </div>
     </div>
   );
@@ -590,7 +727,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0a3844] flex items-center justify-center">
+        <div className="min-h-screen bg-[#040914] flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-teal-300 animate-spin" />
         </div>
       }

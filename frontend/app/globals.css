@@ -71,3 +71,49 @@ body {
 .dest-card-zoom:hover img {
   transform: scale(1.08);
 }
+
+/* Google Flow Liquid Aurora Animation Effects */
+@keyframes flow-drift-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(60px, -40px) scale(1.12);
+  }
+  66% {
+    transform: translate(-40px, 50px) scale(0.92);
+  }
+}
+
+@keyframes flow-drift-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-50px, 60px) scale(1.08);
+  }
+  66% {
+    transform: translate(40px, -30px) scale(0.95);
+  }
+}
+
+@keyframes flow-drift-3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(50px, 30px) scale(1.15);
+  }
+}
+
+.animate-flow-1 {
+  animation: flow-drift-1 18s ease-in-out infinite;
+}
+
+.animate-flow-2 {
+  animation: flow-drift-2 22s ease-in-out infinite;
+}
+
+.animate-flow-3 {
+  animation: flow-drift-3 15s ease-in-out infinite;
+}
