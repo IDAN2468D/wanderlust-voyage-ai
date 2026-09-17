@@ -374,13 +374,19 @@ function LoginForm() {
               </button>
             </div>
 
-            {/* Divider with 'או' */}
-            <div className="relative flex items-center justify-center my-5">
-              <div className="border-t border-slate-200 w-full" />
-              <span className="bg-white px-3 text-[11px] text-slate-400 font-medium">
-                או באמצעות חשבון
-              </span>
-              <div className="border-t border-slate-200 w-full" />
+            {/* Redesigned Luxury Divider */}
+            <div className="relative flex items-center justify-center my-6 select-none">
+              {/* Soft Gradient Separator Line */}
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+              
+              {/* Refined Pill Badge with Micro-Accents */}
+              <div className="absolute px-3.5 py-1 rounded-full bg-white/95 border border-slate-200/80 shadow-sm flex items-center gap-2 backdrop-blur-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                <span className="text-[11px] font-medium text-slate-500 tracking-wide">
+                  או באמצעות חשבון
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+              </div>
             </div>
 
             {/* Alerts */}
