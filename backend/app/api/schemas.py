@@ -136,6 +136,17 @@ class UserResponse(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     role: str = "user"
+    picture: Optional[str] = None
+    auth_provider: str = "local"
+
+
+class GoogleAuthRequest(BaseModel):
+    """Google OAuth authentication request payload."""
+
+    credential: Optional[str] = Field(default=None, description="Google ID token (JWT) from Google Identity Services")
+    email: Optional[EmailStr] = Field(default=None, description="Email address provided by Google profile")
+    name: Optional[str] = Field(default=None, description="Full name provided by Google profile")
+    picture: Optional[str] = Field(default=None, description="Profile avatar URL from Google")
 
 
 class Token(BaseModel):
