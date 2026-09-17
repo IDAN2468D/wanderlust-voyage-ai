@@ -36,6 +36,7 @@ export const Navbar: React.FC = () => {
 
   const NAV_LINKS = [
     { label: "דף הבית", href: "/" },
+    { label: "טיסות חגים TLV ✈️", href: "/flights" },
     { label: "יעדים", href: "/destinations" },
     { label: "חוויות", href: "/experiences" },
     { label: "מסלולים", href: "/trips" },

@@ -27,7 +27,17 @@
         "safety-health-advisor",
         "culture-events-specialist",
         "liquid-glass-travel-ui",
-        "google-flow-travel-mcp"
+        "google-flow-travel-mcp",
+        "tlv-holiday-flight-board"
+      ]
+    },
+    {
+      "name": "tlv-holiday-flight-specialist",
+      "description": "Constructs live Ben Gurion departure boards for Israeli holidays, enforcing Shabbat/chag restrictions, full baggage math, and BOI foreign currency conversions.",
+      "tool_module": "backend.app.tools.tlv_flight_board_tools",
+      "agent_module": "backend.app.agents.tlv_flight_agent",
+      "skills": [
+        "tlv-holiday-flight-board"
       ]
     },
     {

@@ -13,6 +13,8 @@ import {
   Headphones,
   CalendarCheck,
   Lock,
+  Plane,
+  Sparkles,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -399,6 +401,14 @@ export default function Home() {
                   </div>
                   <span>צפה בהדגמה</span>
                 </button>
+
+                <a
+                  href="/flights"
+                  className="flex items-center gap-2 px-5 py-3 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-sm font-bold transition group"
+                >
+                  <Plane className="w-4 h-4 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
+                  <span>לוח טיסות חגים נתב"ג ✈️</span>
+                </a>
               </div>
             </div>
 
@@ -562,6 +572,34 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* ========================================================
+          TLV HOLIDAY FLIGHT BOARD SPOTLIGHT BANNER
+      ======================================================== */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8">
+        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#0a121e]/80 to-teal-950/40 border border-cyan-500/30 backdrop-blur-2xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>חדש באתר: סוכן טיסות חגים מנתב"ג</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              מתכננים חופשה בפסח, שבועות, קיץ או סוכות?
+            </h3>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              סוכן נתב"ג החכם משווה את כל הטיסות הזולות מחברות ישראליות וזרות, בודק מועדי שבת וחג שבהם אל על וישראייר אינן טסות, מנרמל את עלויות הכבודה המלאות ובונה לוח המראות חי.
+            </p>
+          </div>
+
+          <a
+            href="/flights"
+            className="shrink-0 px-7 py-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-3 cursor-pointer"
+          >
+            <Plane className="w-4 h-4" />
+            <span>פתח את לוח המראות החגים ✈️</span>
+          </a>
+        </div>
+      </section>
 
       {/* ========================================================
           MULTI-AGENT EXECUTION & TELEMETRY STREAM SECTION

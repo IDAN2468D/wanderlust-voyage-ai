@@ -151,3 +151,78 @@ class TokenData(BaseModel):
 
     sub: Optional[str] = None
     role: Optional[str] = None
+
+
+# ==============================================================================
+# TLV Holiday Flight Board Schemas (Skill: tlv-holiday-flight-board)
+# ==============================================================================
+
+class TLVHolidayFlightBoardRequest(BaseModel):
+    """Payload for generating a live Ben Gurion departure flight board for holidays."""
+
+    holiday_name_or_key: Optional[str] = Field(
+        default=None,
+        description="Holiday name ('pesach', 'sukkot', 'summer', 'shavuot', 'hanukkah') or None for custom dates",
+    )
+    destination: Optional[str] = Field(
+        default="anywhere",
+        description="Target destination (city, IATA code, or 'anywhere' / 'לכל יעד זול')",
+    )
+    depart_date: Optional[str] = Field(
+        default=None,
+        description="Departure date YYYY-MM-DD (overrides canonical holiday window if provided)",
+    )
+    return_date: Optional[str] = Field(
+        default=None,
+        description="Return date YYYY-MM-DD (overrides canonical holiday window if provided)",
+    )
+    adults: int = Field(default=1, ge=1, le=10, description="Number of adult passengers")
+    children: int = Field(default=0, ge=0, le=10, description="Number of children passengers")
+    infants: int = Field(default=0, ge=0, le=5, description="Number of infants (under 2 years)")
+    checked_bag_needed: bool = Field(default=True, description="Whether checked baggage is required")
+    nonstop_only: bool = Field(default=False, description="Filter for direct / nonstop flights only")
+    budget_ceiling_nis: Optional[float] = Field(default=None, ge=0, description="Optional maximum budget per person in NIS")
+    session_id: Optional[str] = Field(default=None, description="Optional session tracking ID")
+
+
+class TLVHolidayFlightOption(BaseModel):
+    """Individual flight option in the departure board."""
+
+    rank: int
+    airline: str
+    tier_name: str
+    flight_number: str
+    route: str
+    destination_name: str
+    destination_code: str
+    stops: int
+    stops_text: str
+    depart_time: str
+    return_time: str
+    depart_date: str
+    return_date: str
+    duration: str
+    base_fare_usd: float
+    base_fare_nis: int
+    bag_fee_nis: int
+    bag_included: bool
+    true_total_nis: int
+    family_total_nis: int
+    cost_math: Dict[str, Any]
+    source: str
+    booking_url: str
+    shabbat_compliant: bool
+
+
+class TLVHolidayFlightBoardResponse(BaseModel):
+    """Full flight departure board response for a holiday period."""
+
+    holiday: Dict[str, Any]
+    shabbat_audit: Dict[str, Any]
+    search_links: Dict[str, str]
+    passengers: Dict[str, Any]
+    rates_disclaimer: Dict[str, Any]
+    top_picks: Dict[str, Optional[TLVHolidayFlightOption]]
+    board_flights: List[TLVHolidayFlightOption]
+    holiday_warnings: List[str]
+

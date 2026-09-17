@@ -15,11 +15,18 @@ from app.api.schemas import (
     WorkspaceGmailBriefingResponse,
     WorkspaceDocExportRequest,
     WorkspaceDocExportResponse,
+    TLVHolidayFlightBoardRequest,
+    TLVHolidayFlightBoardResponse,
 )
 from app.core.security import get_current_user
 from app.agents.orchestrator import (
     synthesize_deterministic_plan,
     stream_multi_agent_execution,
+)
+from app.tools.tlv_flight_board_tools import ISRAELI_HOLIDAYS_2026
+from app.agents.tlv_flight_agent import (
+    synthesize_tlv_flight_board,
+    stream_tlv_flight_board_execution,
 )
 
 logger = logging.getLogger("api_routes")
@@ -248,3 +255,76 @@ async def export_google_doc(request: WorkspaceDocExportRequest):
         google_docs_url=google_docs_url,
         formatted_content=request.markdown_plan,
     )
+
+
+# 4. TLV Holiday Flight Board Endpoints (Skill: tlv-holiday-flight-board)
+@router.get("/flights/holidays")
+async def get_israeli_holidays():
+    """
+    Returns canonical Israeli school-break and holiday dates for 2026.
+    """
+    holidays_list = []
+    for key, val in ISRAELI_HOLIDAYS_2026.items():
+        holidays_list.append({
+            "key": key,
+            "name_he": val["name_he"],
+            "name_en": val["name_en"],
+            "depart_window": val["depart_window"],
+            "return_window": val["return_window"],
+            "school_break": val["school_break"],
+            "peak_season": val["peak_season"],
+            "peak_surcharge_window": val["peak_surcharge_window"],
+            "airport_arrival_recommendation": val["airport_arrival_recommendation"],
+        })
+    return {"status": "SUCCESS", "holidays": holidays_list}
+
+
+@router.post("/flights/tlv-holiday-board", response_model=TLVHolidayFlightBoardResponse)
+async def generate_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
+    """
+    Synchronously generates a ranked Ben Gurion holiday departure board with baggage normalization,
+    Shabbat constraints, Bank of Israel FX conversion, and search deep-links.
+    """
+    result = synthesize_tlv_flight_board(
+        holiday_name_or_key=request.holiday_name_or_key,
+        destination=request.destination,
+        depart_date=request.depart_date,
+        return_date=request.return_date,
+        adults=request.adults,
+        children=request.children,
+        infants=request.infants,
+        checked_bag_needed=request.checked_bag_needed,
+        nonstop_only=request.nonstop_only,
+        budget_ceiling_nis=request.budget_ceiling_nis,
+    )
+    return result
+
+
+@router.post("/flights/tlv-holiday-board/stream")
+async def stream_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
+    """
+    Streams multi-stage deliberation and live thought processes for the TLV Holiday Flight Board
+    via Server-Sent Events (SSE).
+    """
+    return StreamingResponse(
+        stream_tlv_flight_board_execution(
+            holiday_name_or_key=request.holiday_name_or_key,
+            destination=request.destination,
+            depart_date=request.depart_date,
+            return_date=request.return_date,
+            adults=request.adults,
+            children=request.children,
+            infants=request.infants,
+            checked_bag_needed=request.checked_bag_needed,
+            nonstop_only=request.nonstop_only,
+            budget_ceiling_nis=request.budget_ceiling_nis,
+            session_id=request.session_id,
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
