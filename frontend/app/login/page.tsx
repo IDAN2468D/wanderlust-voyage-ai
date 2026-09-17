@@ -23,13 +23,13 @@ const SCENIC_SLIDES = [
   {
     id: 1,
     title: "צאו מהשגרה, אמצו את המסע!",
-    subtitle: "לחוות את העולם בדרך שלכם",
+    subtitle: "AI Travel Planner over Alps (Google Flow)",
     cardTitle: "לטייל, לגלות, לחוות.",
     cardDesc:
       "גלו מקומות עוצרי נשימה, צאו להרפתקאות מסעירות וצרו זיכרונות בלתי נשכחים בכל רחבי העולם.",
     imageUrl:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1400&auto=format&fit=crop&q=85",
-    location: "אגם בראייס, הרי הדולומיטים, איטליה",
+      "/demo_preview.jpg",
+    location: "פסגות האלפים המושלגות (Google Flow & Veo)",
   },
   {
     id: 2,
@@ -209,7 +209,7 @@ function LoginForm() {
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 bg-slate-900 selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
+      className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
       dir="rtl"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDropVideo}
@@ -218,7 +218,7 @@ function LoginForm() {
       {/* GOOGLE FLOW (flow.google.com) LIVE AMBIENT VIDEO BACKGROUND             */}
       {/* ====================================================================== */}
       <div
-        className="absolute inset-0 overflow-hidden pointer-events-none -z-30 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/demo_preview.jpg')" }}
       >
         <video
@@ -235,12 +235,12 @@ function LoginForm() {
           <source src={customVideoUrl || "/videos/demo.mp4"} type="video/mp4" />
         </video>
         {/* Soft, minimal cinematic tint so the card pops while the background remains 100% visible and vivid */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/25 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/20 pointer-events-none" />
       </div>
 
       {/* Subtle Luminous Aurora Glows around edges */}
-      <div className="absolute w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-indigo-500/20 via-cyan-400/15 to-transparent blur-[140px] pointer-events-none -top-36 -right-20 -z-10 mix-blend-screen" />
-      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-teal-400/20 via-emerald-500/15 to-transparent blur-[130px] pointer-events-none -bottom-36 -left-20 -z-10 mix-blend-screen" />
+      <div className="absolute w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-indigo-500/20 via-cyan-400/15 to-transparent blur-[140px] pointer-events-none -top-36 -right-20 z-0 mix-blend-screen" />
+      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-teal-400/20 via-emerald-500/15 to-transparent blur-[130px] pointer-events-none -bottom-36 -left-20 z-0 mix-blend-screen" />
 
       {/* ====================================================================== */}
       {/* CENTER MASTER CARD (SPLIT SCREEN ACCORDING TO USER REFERENCE IMAGE)     */}
