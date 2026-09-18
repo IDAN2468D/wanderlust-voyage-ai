@@ -231,6 +231,32 @@ export const Navbar: React.FC = () => {
                         type="button"
                         onClick={() => {
                           setIsUserMenuOpen(false);
+                          router.push("/profile");
+                        }}
+                        className="w-full px-3 py-2 rounded-xl text-right text-xs font-semibold hover:bg-mint-500/15 text-mint-300 transition flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="w-3.5 h-3.5 text-mint-400" />
+                          <span>הפרופיל שלי והגדרות</span>
+                        </div>
+                        <span className="text-[10px] bg-mint-500/20 px-1.5 py-0.5 rounded text-mint-300">חדש</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          router.push("/profile?tab=bookings");
+                        }}
+                        className="w-full px-3 py-2 rounded-xl text-right text-xs font-medium hover:bg-white/10 text-slate-200 transition flex items-center justify-between"
+                      >
+                        <span>ההזמנות והכרטיסים שלי</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
                           router.push("/trips");
                         }}
                         className="w-full px-3 py-2 rounded-xl text-right text-xs font-medium hover:bg-white/10 text-slate-200 transition flex items-center justify-between"
@@ -317,7 +343,14 @@ export const Navbar: React.FC = () => {
                       {(user.full_name || user.email)[0].toUpperCase()}
                     </div>
                   )}
-                  <div className="text-right">
+                  <div
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push("/profile");
+                  }}
+                  className="flex items-center gap-3 cursor-pointer p-1 rounded-xl hover:bg-white/5"
+                  title="עבור לפרופיל שלי"
+                >
                     <span className="block text-white text-xs font-bold truncate max-w-[160px]">
                       {user.full_name || user.email}
                     </span>

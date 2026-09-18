@@ -349,6 +349,27 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     } catch (err) {
       console.warn("Could not dispatch confirmation email:", err);
     } finally {
+      // Save confirmed booking to localStorage for user profile
+      try {
+        const existing = JSON.parse(localStorage.getItem("wanderlust_user_bookings") || "[]");
+        const record = {
+          booking_ref: generatedRef,
+          destination: tripDetails.destination,
+          duration_days: tripDetails.durationDays,
+          total_amount: totalInSelectedCurrency,
+          currency: currency,
+          recipient_email: targetEmail,
+          customer_name: targetName,
+          payment_method: paymentMethod,
+          installments: installments > 1 ? installments : 1,
+          booking_date: new Date().toISOString(),
+          status: "CONFIRMED",
+          flight_portion: flightInSelected,
+          hotel_portion: hotelInSelected,
+        };
+        localStorage.setItem("wanderlust_user_bookings", JSON.stringify([record, ...existing]));
+      } catch (e) {}
+
       setIsProcessing(false);
       setIsSuccess(true);
     }

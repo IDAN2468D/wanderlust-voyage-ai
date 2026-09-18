@@ -31,6 +31,7 @@ import {
   Zap,
   Info,
   Layers,
+  X,
 } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
@@ -117,6 +118,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   const [activeTab, setActiveTab] = useState<"itinerary" | "weather" | "safety" | "events" | "budget" | "raw">("itinerary");
   const [copied, setCopied] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isStickyDockDismissed, setIsStickyDockDismissed] = useState(false);
   const [openDays, setOpenDays] = useState<Record<number, boolean>>({ 1: true, 2: true });
 
   const { user } = useAuth();
@@ -1045,30 +1047,106 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           </div>
         )}
 
-        {/* Bottom Checkout Callout Banner */}
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-mint-500/15 via-indigo-500/10 to-transparent border border-mint-400/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1 text-right">
-            <div className="flex items-center gap-2 text-mint-400 text-xs font-bold">
-              <Lock className="w-4 h-4" />
-              <span>הבטחת מחיר ותשלום מאובטח בתקן מחמיר</span>
+        {/* =========================================================================
+            EXPRESS BOOKING & CHECKOUT RUNWAY (Productive High-Velocity Transition)
+        ========================================================================= */}
+        <div className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-mint-400/40 shadow-2xl space-y-6 text-right relative overflow-hidden bg-gradient-to-b from-[#0e1726]/95 to-[#080d16]/95">
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-mint-500/10 blur-3xl pointer-events-none" />
+
+          {/* Header Strip with 3-Step Milestone */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
+            <div>
+              <div className="flex items-center gap-2 text-mint-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>מוכן לכרטוס מיידי • נעילת מחיר מובטחת</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+                מעבר ישיר להזמנת החופשה ל-{destination}
+              </h3>
+              <p className="text-xs text-slate-300">
+                כל הטיסות, המלונות ותוכנית הימים סונכרנו ע״י 7 הסוכנים ומוכנים לכרטוס.
+              </p>
             </div>
-            <div className="text-white font-bold text-base">
-              מוכנים לצאת להרפתקה ב-{destination}?
-            </div>
-            <div className="text-xs text-slate-300">
-              הזמינו את כל הטיסות והמלונות במחיר של{" "}
-              <strong className="text-mint-400 font-black">{formatPrice(totalEstimated)}</strong> ({currencyConfig.hebrewName})
+
+            {/* 3 Step Visual Flow */}
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>1. תוכנית הושלמה</span>
+              </div>
+              <span className="text-slate-500">←</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-500/20 text-mint-300 border border-mint-500/40">
+                <Lock className="w-3.5 h-3.5" />
+                <span>2. מחיר נעול</span>
+              </div>
+              <span className="text-slate-500">←</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white border border-white/15">
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>3. שובר למייל</span>
+              </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsPaymentModalOpen(true)}
-            className="btn-mint px-6 py-3 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xl whitespace-nowrap hover:scale-105 transition"
-          >
-            <span>מעבר להזמנה ותשלום</span>
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+          {/* Key Items Included Breakdown */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-400">
+                <Plane className="w-5 h-5" />
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-white block">טיסות הלוך ושוב</span>
+                <span className="text-[11px] text-slate-400">כולל כבודה 23 ק״ג והושבה</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-400">
+                <BedDouble className="w-5 h-5" />
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-white block">מלון בוטיק נבחר ({durationDays} לילות)</span>
+                <span className="text-[11px] text-slate-400">דירוג 8.8+ ומיקום מרכזי</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-mint-500/15 text-mint-400">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-white block">שובר וכרטיסים במייל</span>
+                <span className="text-[11px] text-slate-400">משלוח מיידי עם Resend</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Row & Supported Payment Badges */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+              <span>תשלום מאובטח ב:</span>
+              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white font-medium text-[11px]">
+                💳 כרטיס אשראי (עד 12 תשלומים)
+              </span>
+              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white font-medium text-[11px]">
+                 Apple Pay
+              </span>
+              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white font-medium text-[11px]">
+                G Pay
+              </span>
+              <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white font-medium text-[11px]">
+                ⚡ ביט bit
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="w-full sm:w-auto btn-mint px-8 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition whitespace-nowrap"
+            >
+              <span>המשך להזמנה ולסליקה מאובטחת ({formatPrice(totalEstimated)})</span>
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1135,6 +1213,50 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          FLOATING SPEED-CHECKOUT DOCK (Always accessible while reading plan)
+      ========================================================================= */}
+      {totalEstimated !== null && !isStickyDockDismissed && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-xl animate-fade-in" dir="rtl">
+          <div className="wanderlust-glass rounded-2xl p-3 sm:px-5 sm:py-2.5 border border-mint-400/50 shadow-2xl shadow-black/90 flex items-center justify-between gap-3 bg-[#0a101b]/95 backdrop-blur-2xl">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-xl bg-mint-500/20 border border-mint-400/40 text-mint-300 flex items-center justify-center shrink-0">
+                <Plane className="w-4 h-4" />
+              </div>
+              <div className="leading-tight truncate text-right">
+                <div className="font-bold text-xs text-white truncate">
+                  {destination} ({durationDays} ימים)
+                </div>
+                <div className="text-[11px] text-mint-300 font-bold font-mono">
+                  {formatPrice(totalEstimated)} • מחיר נעול
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="btn-mint px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-lg hover:scale-105 transition"
+              >
+                <span>הזמן עכשיו</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsStickyDockDismissed(true)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+                title="סגור פס צף"
+                aria-label="סגור פס צף"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}
