@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useId } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   ShieldCheck,
@@ -16,12 +16,11 @@ import {
   Mail,
   AlertCircle,
   Check,
-  Info,
+  RotateCw,
   Smartphone,
   Zap,
-  RotateCw,
-  User,
-  Fingerprint,
+  Info,
+  ExternalLink,
 } from "lucide-react";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
@@ -84,6 +83,30 @@ function isValidIsraeliId(idStr: string): boolean {
     sum += num > 9 ? num - 9 : num;
   }
   return sum % 10 === 0;
+}
+
+// Helper to retrieve contextual destination photo
+function getDestinationImage(dest: string): string {
+  const d = dest.toLowerCase();
+  if (d.includes("רומא") || d.includes("rome") || d.includes("איטליה")) {
+    return "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=800&auto=format&fit=crop";
+  }
+  if (d.includes("טוקיו") || d.includes("tokyo") || d.includes("יפן")) {
+    return "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop";
+  }
+  if (d.includes("סנטוריני") || d.includes("santorini") || d.includes("יוון")) {
+    return "/images/santorini.jpg";
+  }
+  if (d.includes("באלי") || d.includes("bali")) {
+    return "/images/bali.jpg";
+  }
+  if (d.includes("מלדיביים") || d.includes("maldives")) {
+    return "/images/maldives.jpg";
+  }
+  if (d.includes("אלפים") || d.includes("swiss") || d.includes("שוויץ")) {
+    return "/images/swiss_alps.jpg";
+  }
+  return "/images/hero-bg.jpg";
 }
 
 export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
@@ -149,6 +172,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
   const installmentAmount = Math.round(totalInSelectedCurrency / installments);
 
   const cardBrand = detectCardBrand(cardNumber);
+  const destinationImage = getDestinationImage(tripDetails.destination);
 
   // --- REAL-TIME FIELD VALIDATORS ---
   const validateField = (field: string, val: string): string => {
@@ -385,15 +409,15 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto"
       dir="rtl"
     >
-      <div className="relative w-full max-w-2xl wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-5 sm:p-8 text-white max-h-[94vh] overflow-y-auto bg-[#0a101b]/95 my-auto">
+      <div className="relative w-full max-w-5xl wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-5 sm:p-7 text-white max-h-[92vh] overflow-y-auto bg-[#0a101b]/95 my-auto">
         {/* Close Button */}
         <button
           type="button"
           onClick={handleResetAndClose}
-          className="absolute top-5 left-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition shadow-sm"
+          className="absolute top-5 left-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition shadow-sm z-20"
           aria-label="סגור חלון"
         >
           <X className="w-5 h-5" />
@@ -401,7 +425,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
 
         {isSuccess ? (
           /* ================= SUCCESS CONFIRMATION SCREEN ================= */
-          <div className="text-center py-6 space-y-6 animate-fade-in">
+          <div className="text-center py-8 space-y-6 animate-fade-in max-w-2xl mx-auto">
             <div className="relative w-24 h-24 mx-auto">
               <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
               <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-600/30 to-mint-400/20 border-2 border-emerald-400/50 text-emerald-400 flex items-center justify-center shadow-2xl shadow-emerald-500/30">
@@ -419,14 +443,14 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
                 אישור ההזמנה המלא, כרטיסי הטיסה ושובר המלון נשלחו ישירות לתיבת הדואר שלך:{" "}
-                <strong className="text-mint-300 font-mono underline block mt-1">
+                <strong className="text-mint-300 font-mono underline block mt-1" dir="ltr">
                   {customerEmail || user?.email || "האימייל שהזנת"}
                 </strong>
               </p>
             </div>
 
             {/* Official Receipt Card */}
-            <div className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-white/15 rounded-2xl p-5 max-w-md mx-auto text-right space-y-3 shadow-inner">
+            <div className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-white/15 rounded-2xl p-5 text-right space-y-3 shadow-inner">
               <div className="flex justify-between items-center text-xs pb-2.5 border-b border-white/10">
                 <span className="text-slate-400">מספר סימוכין בינלאומי:</span>
                 <span className="font-mono font-bold text-mint-300 bg-mint-500/10 px-2.5 py-1 rounded-lg border border-mint-500/20 text-sm">
@@ -464,862 +488,721 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleResetAndClose}
-              className="btn-mint px-8 py-3.5 rounded-full text-xs font-bold tracking-wide shadow-xl"
-            >
-              סגור וחזור לאתר
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleResetAndClose}
+                className="btn-mint px-8 py-3.5 rounded-full text-xs font-bold tracking-wide shadow-xl"
+              >
+                סגור וחזור לאתר
+              </button>
+            </div>
           </div>
         ) : (
-          /* ================= MAIN CHECKOUT & PAYMENT FORM ================= */
-          <div className="space-y-5">
-            {/* Header with Security Badge */}
-            <div className="text-right space-y-1 pr-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-mint-400">
-                <ShieldCheck className="w-4 h-4 text-mint-400" />
-                <span>סליקה מאובטחת בתקן בנקאי מחמיר (PCI-DSS Level 1)</span>
+          /* ================= MODERN PRODUCTIVE 2-COLUMN CHECKOUT COCKPIT ================= */
+          <div className="space-y-4">
+            {/* Modal Header Bar */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3 pl-10 text-right">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-bold text-mint-400">
+                  <ShieldCheck className="w-4 h-4 text-mint-400" />
+                  <span>סליקה מאובטחת בתקן PCI-DSS Level 1 • הצפנת SSL 256-Bit</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+                  אישור הזמנה ותשלום • {tripDetails.destination}
+                </h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
-                אישור הזמנה ותשלום • {tripDetails.destination}
-              </h2>
-              <p className="text-xs text-slate-400">
-                בחר את אמצעי התשלום הנוח לך, הזן את פרטי החיוב וקבל את כרטיסי הטיסה והשובר ישירות למייל.
-              </p>
             </div>
 
-            {/* CURRENCY SELECTOR (ILS, USD, EUR) */}
-            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/15 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-200">מטבע חיוב מועדף:</span>
-                <span className="text-[11px] text-mint-400 font-medium">
-                  {currencyConfig.flag} {currencyConfig.hebrewName} ({currencyConfig.label})
-                </span>
-              </div>
+            {/* Split 2-Column Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* ========================================================
+                  COLUMN 1 (lg:col-span-5): ORDER & PRICE BREAKDOWN (RIGHT IN RTL)
+              ======================================================== */}
+              <div className="lg:col-span-5 space-y-4 text-right">
+                {/* Destination Hero Card */}
+                <div className="relative rounded-2xl overflow-hidden border border-white/15 h-36 w-full shadow-lg">
+                  <img
+                    src={destinationImage}
+                    alt={tripDetails.destination}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a101b] via-[#0a101b]/40 to-transparent" />
+                  <div className="absolute bottom-3 right-3 left-3 flex items-end justify-between">
+                    <div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-mint-500/20 text-mint-300 font-bold border border-mint-500/30">
+                        חבילת נופש מאומתת
+                      </span>
+                      <h3 className="text-lg font-serif font-bold text-white mt-1">
+                        {tripDetails.destination}
+                      </h3>
+                    </div>
+                    <span className="text-xs font-bold text-slate-300 bg-black/60 px-2 py-1 rounded-lg border border-white/10 font-mono">
+                      {tripDetails.durationDays} ימים
+                    </span>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                {(["ILS", "USD", "EUR"] as CurrencyCode[]).map((code) => {
-                  const item = CURRENCIES[code];
-                  const isCurrent = currency === code;
-                  return (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => setCurrency(code)}
-                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
-                        isCurrent
-                          ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-lg shadow-mint-500/10 scale-[1.02]"
-                          : "bg-black/30 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      <span className="text-base">{item.flag}</span>
-                      <div className="text-right leading-tight">
-                        <div className="font-bold">{item.label}</div>
-                        <div className="text-[9px] opacity-80">{item.hebrewName}</div>
+                {/* Passenger / Contact Information Inputs */}
+                <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/15 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-mint-400">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>כתובת לשליחת הכרטיסים והשובר (Resend):</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={customerEmail}
+                          onChange={(e) => {
+                            setCustomerEmail(e.target.value);
+                            if (touched.customerEmail) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                customerEmail: validateField("customerEmail", e.target.value),
+                              }));
+                            }
+                          }}
+                          onBlur={() => handleBlur("customerEmail", customerEmail)}
+                          placeholder="traveler@example.com"
+                          className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/50 border text-white text-xs focus:outline-none transition ${
+                            touched.customerEmail && errors.customerEmail
+                              ? "border-rose-500/80 bg-rose-950/10"
+                              : touched.customerEmail && !errors.customerEmail
+                              ? "border-emerald-500/60"
+                              : "border-white/15 focus:border-mint-400"
+                          }`}
+                          dir="ltr"
+                        />
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {touched.customerEmail && errors.customerEmail ? (
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                          ) : touched.customerEmail && !errors.customerEmail ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : null}
+                        </div>
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      {touched.customerEmail && errors.customerEmail && (
+                        <p className="text-[10px] text-rose-400 mt-0.5">{errors.customerEmail}</p>
+                      )}
+                    </div>
 
-            {/* Price Breakdown Banner */}
-            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2 text-xs">
-              <div className="font-bold text-slate-200 pb-1.5 border-b border-white/10 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-mint-400" />
-                  חבילת נופש מלאה ({tripDetails.durationDays} ימים)
-                </span>
-                <span className="text-mint-400 font-semibold">{tripDetails.destination}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-300 py-0.5">
-                <div className="flex items-center gap-1">
-                  <Plane className="w-3 h-3 text-blue-400" />
-                  <span>טיסות: {formatRaw(flightInSelected)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Building2 className="w-3 h-3 text-cyan-400" />
-                  <span>מלון: {formatRaw(hotelInSelected)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-400" />
-                  <span>מיסים: {formatRaw(feesInSelected)}</span>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-sm font-bold">
-                <span className="text-white">סה״כ לתשלום סופי:</span>
-                <span className="text-xl font-heading font-black text-mint-400">
-                  {formatRaw(totalInSelectedCurrency, true)}
-                </span>
-              </div>
-            </div>
-
-            {/* Passenger / Contact Information for Ticket & Voucher Dispatch */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/15 space-y-2.5 text-right">
-              <div className="flex items-center gap-2 text-xs font-bold text-mint-400">
-                <Mail className="w-3.5 h-3.5" />
-                <span>פרטי הנוסע הראשי לקבלת השובר והכרטיסים (Resend):</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                    כתובת אימייל לקבלת ההזמנה: <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      value={customerEmail}
-                      onChange={(e) => {
-                        setCustomerEmail(e.target.value);
-                        if (touched.customerEmail) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            customerEmail: validateField("customerEmail", e.target.value),
-                          }));
-                        }
-                      }}
-                      onBlur={() => handleBlur("customerEmail", customerEmail)}
-                      placeholder="traveler@example.com"
-                      className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/50 border text-white text-xs focus:outline-none transition ${
-                        touched.customerEmail && errors.customerEmail
-                          ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                          : touched.customerEmail && !errors.customerEmail
-                          ? "border-emerald-500/60 focus:border-emerald-400"
-                          : "border-white/15 focus:border-mint-400"
-                      }`}
-                      dir="ltr"
-                    />
-                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                      {touched.customerEmail && errors.customerEmail ? (
-                        <AlertCircle className="w-4 h-4 text-rose-400" />
-                      ) : touched.customerEmail && !errors.customerEmail ? (
-                        <Check className="w-4 h-4 text-emerald-400" />
-                      ) : null}
+                    <div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => {
+                            setCustomerName(e.target.value);
+                            if (!cardHolder) setCardHolder(e.target.value);
+                            if (touched.customerName) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                customerName: validateField("customerName", e.target.value),
+                              }));
+                            }
+                          }}
+                          onBlur={() => handleBlur("customerName", customerName)}
+                          placeholder="שם הנוסע הראשי (ישראל ישראלי)"
+                          className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/50 border text-white text-xs focus:outline-none transition ${
+                            touched.customerName && errors.customerName
+                              ? "border-rose-500/80 bg-rose-950/10"
+                              : touched.customerName && !errors.customerName
+                              ? "border-emerald-500/60"
+                              : "border-white/15 focus:border-mint-400"
+                          }`}
+                        />
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {touched.customerName && errors.customerName ? (
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                          ) : touched.customerName && !errors.customerName ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : null}
+                        </div>
+                      </div>
+                      {touched.customerName && errors.customerName && (
+                        <p className="text-[10px] text-rose-400 mt-0.5">{errors.customerName}</p>
+                      )}
                     </div>
                   </div>
-                  {touched.customerEmail && errors.customerEmail && (
-                    <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      {errors.customerEmail}
-                    </p>
-                  )}
                 </div>
 
-                <div>
-                  <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                    שם הנוסע / המזמין: <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => {
-                        setCustomerName(e.target.value);
-                        if (!cardHolder) setCardHolder(e.target.value);
-                        if (touched.customerName) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            customerName: validateField("customerName", e.target.value),
-                          }));
-                        }
-                      }}
-                      onBlur={() => handleBlur("customerName", customerName)}
-                      placeholder="ישראל ישראלי"
-                      className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/50 border text-white text-xs focus:outline-none transition ${
-                        touched.customerName && errors.customerName
-                          ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                          : touched.customerName && !errors.customerName
-                          ? "border-emerald-500/60 focus:border-emerald-400"
-                          : "border-white/15 focus:border-mint-400"
-                      }`}
-                    />
-                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                      {touched.customerName && errors.customerName ? (
-                        <AlertCircle className="w-4 h-4 text-rose-400" />
-                      ) : touched.customerName && !errors.customerName ? (
-                        <Check className="w-4 h-4 text-emerald-400" />
-                      ) : null}
-                    </div>
+                {/* Currency Switcher Buttons */}
+                <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-300">בחר מטבע חיוב:</span>
+                    <span className="text-mint-400 font-medium text-[11px]">
+                      {currencyConfig.flag} {currencyConfig.hebrewName} ({currencyConfig.label})
+                    </span>
                   </div>
-                  {touched.customerName && errors.customerName && (
-                    <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      {errors.customerName}
-                    </p>
-                  )}
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["ILS", "USD", "EUR"] as CurrencyCode[]).map((code) => {
+                      const item = CURRENCIES[code];
+                      const isCurrent = currency === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setCurrency(code)}
+                          className={`py-1.5 px-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                            isCurrent
+                              ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-sm"
+                              : "bg-black/30 text-slate-300 border-white/10 hover:bg-white/10"
+                          }`}
+                        >
+                          <span className="text-sm">{item.flag}</span>
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Itemized Price Breakdown */}
+                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="flex items-center gap-1.5">
+                      <Plane className="w-3.5 h-3.5 text-blue-400" />
+                      טיסות הלוך ושוב (כולל כבודה):
+                    </span>
+                    <span className="font-semibold text-white">{formatRaw(flightInSelected)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+                      לינה במלון נבחר ({tripDetails.durationDays} לילות):
+                    </span>
+                    <span className="font-semibold text-white">{formatRaw(hotelInSelected)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      דמי טיפול וסנכרון סוכנים:
+                    </span>
+                    <span className="font-semibold text-white">{formatRaw(feesInSelected)}</span>
+                  </div>
+
+                  <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-sm font-bold">
+                    <span className="text-white">סה״כ לתשלום סופי:</span>
+                    <span className="text-xl font-heading font-black text-mint-400">
+                      {formatRaw(totalInSelectedCurrency, true)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* ================= PAYMENT METHODS NAVIGATION TABS ================= */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-200 block">בחר אמצעי תשלום:</span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {/* 1. Credit Card */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("card")}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all duration-200 ${
-                    paymentMethod === "card"
-                      ? "bg-gradient-to-b from-indigo-600/30 to-mint-600/20 border-mint-400 text-white shadow-lg shadow-mint-500/15 scale-[1.02]"
-                      : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <CreditCard
-                    className={`w-5 h-5 ${
-                      paymentMethod === "card" ? "text-mint-300" : "text-slate-400"
-                    }`}
-                  />
-                  <span>כרטיס אשראי</span>
-                  <span className="text-[9px] font-normal text-slate-400">ויזה / מאסטרקארד</span>
-                </button>
-
-                {/* 2. Apple Pay */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("apple_pay")}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all duration-200 ${
-                    paymentMethod === "apple_pay"
-                      ? "bg-white/15 border-white text-white shadow-lg shadow-white/10 scale-[1.02]"
-                      : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <span className="text-lg leading-none"></span>
-                  <span>Apple Pay</span>
-                  <span className="text-[9px] font-normal text-slate-400">תשלום מהיר בנגיעה</span>
-                </button>
-
-                {/* 3. Google Pay */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("google_pay")}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all duration-200 ${
-                    paymentMethod === "google_pay"
-                      ? "bg-gradient-to-b from-blue-600/20 to-blue-500/10 border-blue-400 text-white shadow-lg shadow-blue-500/15 scale-[1.02]"
-                      : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-0.5 font-black text-sm">
-                    <span className="text-blue-400">G</span>
-                    <span className="text-red-400">P</span>
-                    <span className="text-yellow-400">a</span>
-                    <span className="text-green-400">y</span>
-                  </div>
-                  <span>Google Pay</span>
-                  <span className="text-[9px] font-normal text-slate-400">ארנק דיגיטלי</span>
-                </button>
-
-                {/* 4. Israeli Bit */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("bit")}
-                  className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all duration-200 ${
-                    paymentMethod === "bit"
-                      ? "bg-gradient-to-b from-cyan-600/30 to-blue-600/20 border-cyan-400 text-white shadow-lg shadow-cyan-500/15 scale-[1.02]"
-                      : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Zap
-                    className={`w-5 h-5 ${
-                      paymentMethod === "bit" ? "text-cyan-400" : "text-slate-400"
-                    }`}
-                  />
-                  <span>ביט bit</span>
-                  <span className="text-[9px] font-normal text-slate-400">אישור מיידי בנייד</span>
-                </button>
-              </div>
-            </div>
-
-            {/* ================= CREDIT CARD TAB & 3D VIRTUAL CARD ================= */}
-            {paymentMethod === "card" && (
-              <form onSubmit={handlePay} className="space-y-4 pt-1">
-                {/* INTERACTIVE VIRTUAL CREDIT CARD PREVIEW */}
-                <div className="relative mx-auto w-full max-w-sm sm:max-w-md perspective-1000 select-none">
-                  <div
-                    className={`relative w-full aspect-[1.586/1] rounded-2xl p-5 sm:p-6 transition-all duration-500 shadow-2xl border overflow-hidden flex flex-col justify-between ${
-                      showCardBack
-                        ? "bg-gradient-to-br from-[#121c2c] via-[#0d1522] to-[#080d15] border-white/20"
-                        : "bg-gradient-to-br from-[#17253b] via-[#101b2b] to-[#090f19] border-white/25 shadow-mint-500/5"
+              {/* ========================================================
+                  COLUMN 2 (lg:col-span-7): PAYMENT EXECUTION COCKPIT (LEFT IN RTL)
+              ======================================================== */}
+              <div className="lg:col-span-7 space-y-4 text-right">
+                {/* Horizontal Payment Method Tabs */}
+                <div className="grid grid-cols-4 gap-2">
+                  {/* 1. Credit Card */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("card")}
+                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
+                      paymentMethod === "card"
+                        ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-lg shadow-mint-500/10"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
                     }`}
                   >
-                    {/* Metallic Glow Overlay */}
-                    <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-mint-500/15 blur-2xl pointer-events-none" />
-                    <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-indigo-500/15 blur-2xl pointer-events-none" />
+                    <CreditCard className="w-4 h-4" />
+                    <span>כרטיס אשראי</span>
+                  </button>
 
-                    {!showCardBack ? (
-                      /* FRONT OF CARD */
-                      <>
-                        {/* Top row: Chip & Brand */}
-                        <div className="flex items-center justify-between z-10">
-                          <div className="flex items-center gap-3">
-                            {/* Metallic Gold EMV Chip */}
-                            <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 border border-amber-200/60 shadow-inner flex flex-col justify-around p-1">
-                              <div className="w-full h-px bg-amber-800/40" />
-                              <div className="w-full h-px bg-amber-800/40" />
-                              <div className="w-full h-px bg-amber-800/40" />
-                            </div>
-                            {/* Contactless Wave */}
-                            <div className="text-slate-400">
-                              <svg className="w-5 h-5 fill-current opacity-80" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-8c0-2.76 2.24-5 5-5s5 2.24 5 5-2.24 5-5 5-5-2.24-5-5z" />
-                              </svg>
-                            </div>
-                          </div>
+                  {/* 2. Apple Pay */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("apple_pay")}
+                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
+                      paymentMethod === "apple_pay"
+                        ? "bg-white/20 border-white text-white shadow-md"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm leading-none"></span>
+                    <span dir="ltr">Apple Pay</span>
+                  </button>
 
-                          {/* Brand Logo */}
-                          <div className="font-black text-sm tracking-wider uppercase">
-                            {cardBrand === "visa" && (
-                              <span className="font-serif italic font-extrabold text-lg text-white tracking-widest drop-shadow">
-                                VISA
-                              </span>
-                            )}
-                            {cardBrand === "mastercard" && (
-                              <div className="flex items-center -space-x-2">
-                                <div className="w-6 h-6 rounded-full bg-red-500/90 shadow" />
-                                <div className="w-6 h-6 rounded-full bg-amber-400/90 shadow" />
-                              </div>
-                            )}
-                            {cardBrand === "amex" && (
-                              <span className="text-xs bg-blue-600 px-2 py-0.5 rounded font-mono font-bold">
-                                AMEX
-                              </span>
-                            )}
-                            {cardBrand === "isracard" && (
-                              <span className="text-xs text-blue-300 font-bold tracking-tight">
-                                ישראכרט
-                              </span>
-                            )}
-                            {cardBrand === "generic" && (
-                              <span className="text-[11px] text-mint-300 flex items-center gap-1 font-mono tracking-widest">
-                                <Sparkles className="w-3.5 h-3.5 text-mint-400" />
-                                WANDERLUST
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                  {/* 3. Google Pay (Fixed LTR order, no yaPG) */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("google_pay")}
+                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
+                      paymentMethod === "google_pay"
+                        ? "bg-blue-600/20 border-blue-400 text-white shadow-md"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-xs font-extrabold" dir="ltr">
+                      GPay
+                    </span>
+                    <span dir="ltr">Google Pay</span>
+                  </button>
 
-                        {/* Card Number display */}
-                        <div className="my-auto py-2 z-10">
-                          <div className="font-mono text-base sm:text-lg tracking-[0.2em] text-white/95 font-semibold text-center drop-shadow" dir="ltr">
-                            {cardNumber || "•••• •••• •••• ••••"}
-                          </div>
-                        </div>
-
-                        {/* Bottom row: Cardholder, Expiry, and CVV toggle */}
-                        <div className="flex items-end justify-between text-xs z-10 pt-1" dir="ltr">
-                          <div className="text-left max-w-[55%]">
-                            <span className="text-[9px] uppercase tracking-wider text-slate-400 block font-mono">
-                              Cardholder Name
-                            </span>
-                            <span className="font-semibold text-white tracking-wide truncate block">
-                              {cardHolder.toUpperCase() || "ISRAEL ISRAELI"}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <div className="text-center">
-                              <span className="text-[9px] uppercase tracking-wider text-slate-400 block font-mono">
-                                Expires
-                              </span>
-                              <span className="font-mono font-semibold text-white">
-                                {expiry || "MM/YY"}
-                              </span>
-                            </div>
-
-                            {/* Flip to view CVV */}
-                            <button
-                              type="button"
-                              onClick={() => setShowCardBack(true)}
-                              className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] text-mint-300 flex items-center gap-1 transition"
-                              title="הפוך כרטיס לבדיקת CVV"
-                            >
-                              <RotateCw className="w-3 h-3" />
-                              <span>CVV</span>
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      /* BACK OF CARD */
-                      <div className="h-full flex flex-col justify-between py-1 z-10">
-                        {/* Magnetic Strip */}
-                        <div className="-mx-5 sm:-mx-6 h-10 bg-black/90 mt-2 shadow-inner" />
-
-                        {/* Signature & 3-Digit CVV Strip */}
-                        <div className="px-2 space-y-1.5">
-                          <div className="flex items-center justify-end gap-2" dir="ltr">
-                            <div className="h-8 flex-1 bg-white/20 rounded-md flex items-center justify-end px-2 italic text-[10px] text-slate-300 line-through">
-                              Authorized Signature
-                            </div>
-                            <div className="h-8 w-14 bg-white text-slate-900 rounded-md font-mono font-bold flex items-center justify-center text-sm shadow tracking-widest border border-amber-400">
-                              {cvv || "•••"}
-                            </div>
-                          </div>
-                          <p className="text-[9px] text-slate-400 text-right">
-                            קוד אבטחה CVV: 3 ספרות המודפסות בגב הכרטיס
-                          </p>
-                        </div>
-
-                        {/* Flip back button */}
-                        <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
-                          <span>PCI-DSS Secured Virtual Card</span>
-                          <button
-                            type="button"
-                            onClick={() => setShowCardBack(false)}
-                            className="px-2.5 py-1 rounded-lg bg-mint-500/20 text-mint-300 flex items-center gap-1 border border-mint-500/30 hover:bg-mint-500/30 transition"
-                          >
-                            <RotateCw className="w-3 h-3" />
-                            <span>חזור לחזית הכרטיס</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* 4. Bit */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("bit")}
+                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
+                      paymentMethod === "bit"
+                        ? "bg-cyan-600/25 border-cyan-400 text-cyan-300 shadow-md"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <Zap className="w-4 h-4 text-cyan-400" />
+                    <span>ביט bit</span>
+                  </button>
                 </div>
 
-                {/* INPUT FIELDS */}
-                <div className="space-y-3 pt-1">
-                  {/* Field 1: Cardholder Name */}
-                  <div>
-                    <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                      שם מלא כפי שמופיע על הכרטיס: <span className="text-rose-400">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={cardHolder}
-                        onChange={(e) => {
-                          setCardHolder(e.target.value);
-                          if (touched.cardHolder) {
-                            setErrors((prev) => ({
-                              ...prev,
-                              cardHolder: validateField("cardHolder", e.target.value),
-                            }));
-                          }
-                        }}
-                        onBlur={() => handleBlur("cardHolder", cardHolder)}
-                        placeholder="ישראל ישראלי / ISRAEL ISRAELI"
-                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/40 border text-white text-xs focus:outline-none transition ${
-                          touched.cardHolder && errors.cardHolder
-                            ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                            : touched.cardHolder && !errors.cardHolder
-                            ? "border-emerald-500/60 focus:border-emerald-400"
-                            : "border-white/10 focus:border-mint-400"
+                {/* ================= CREDIT CARD INPUT FORM ================= */}
+                {paymentMethod === "card" && (
+                  <form onSubmit={handlePay} className="space-y-3.5">
+                    {/* Compact Interactive Virtual Credit Card Preview */}
+                    <div className="relative mx-auto w-full select-none">
+                      <div
+                        className={`relative w-full aspect-[2.7/1] rounded-2xl p-4 transition-all duration-300 shadow-xl border overflow-hidden flex flex-col justify-between ${
+                          showCardBack
+                            ? "bg-gradient-to-br from-[#121c2c] to-[#080d15] border-white/20"
+                            : "bg-gradient-to-br from-[#162438] via-[#101b2a] to-[#090f19] border-white/25 shadow-mint-500/5"
                         }`}
-                      />
-                      <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                        {touched.cardHolder && errors.cardHolder ? (
-                          <AlertCircle className="w-4 h-4 text-rose-400" />
-                        ) : touched.cardHolder && !errors.cardHolder ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        ) : null}
+                      >
+                        {/* Foil Ambient Glow */}
+                        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-mint-500/10 blur-xl pointer-events-none" />
+
+                        {!showCardBack ? (
+                          /* FRONT OF CARD */
+                          <>
+                            <div className="flex items-center justify-between z-10">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-6 rounded bg-gradient-to-br from-amber-300 to-amber-600 border border-amber-200/50 shadow-inner flex flex-col justify-around p-0.5">
+                                  <div className="w-full h-px bg-amber-800/40" />
+                                  <div className="w-full h-px bg-amber-800/40" />
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono tracking-widest">WANDERLUST</span>
+                              </div>
+
+                              <div className="font-bold text-xs uppercase tracking-wider text-white">
+                                {cardBrand === "visa" && <span className="font-serif italic font-extrabold text-sm">VISA</span>}
+                                {cardBrand === "mastercard" && (
+                                  <div className="flex items-center -space-x-1">
+                                    <div className="w-4 h-4 rounded-full bg-red-500/90" />
+                                    <div className="w-4 h-4 rounded-full bg-amber-400/90" />
+                                  </div>
+                                )}
+                                {cardBrand === "isracard" && <span className="text-[11px] text-blue-300">ישראכרט</span>}
+                                {cardBrand === "amex" && <span className="text-[10px] bg-blue-600 px-1.5 py-0.5 rounded">AMEX</span>}
+                                {cardBrand === "generic" && <span className="text-[10px] text-mint-400">LUXE CARD</span>}
+                              </div>
+                            </div>
+
+                            <div className="font-mono text-sm sm:text-base tracking-[0.2em] text-white/95 font-semibold text-center z-10" dir="ltr">
+                              {cardNumber || "•••• •••• •••• ••••"}
+                            </div>
+
+                            <div className="flex items-end justify-between text-[11px] z-10" dir="ltr">
+                              <span className="font-semibold text-white tracking-wide truncate max-w-[60%]">
+                                {cardHolder.toUpperCase() || "ISRAEL ISRAELI"}
+                              </span>
+
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono font-semibold text-white">
+                                  {expiry || "MM/YY"}
+                                </span>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setShowCardBack(true)}
+                                  className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[10px] text-mint-300 flex items-center gap-1 transition"
+                                >
+                                  <RotateCw className="w-2.5 h-2.5" />
+                                  <span>CVV</span>
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          /* BACK OF CARD */
+                          <div className="h-full flex flex-col justify-between py-1 z-10">
+                            <div className="-mx-4 h-7 bg-black/90 shadow-inner" />
+                            <div className="flex items-center justify-end gap-2 px-2" dir="ltr">
+                              <span className="text-[10px] text-slate-400">CVV (3 ספרות):</span>
+                              <div className="h-6 w-12 bg-white text-slate-900 rounded font-mono font-bold flex items-center justify-center text-xs tracking-widest border border-amber-400">
+                                {cvv || "•••"}
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center text-[9px] text-slate-400">
+                              <span>PCI-DSS Secured</span>
+                              <button
+                                type="button"
+                                onClick={() => setShowCardBack(false)}
+                                className="px-2 py-0.5 rounded bg-mint-500/20 text-mint-300 flex items-center gap-1 border border-mint-500/30"
+                              >
+                                <RotateCw className="w-2.5 h-2.5" />
+                                <span>חזור לחזית</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {touched.cardHolder && errors.cardHolder && (
-                      <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 shrink-0" />
-                        {errors.cardHolder}
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Field 2: Card Number */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] text-slate-300 font-medium">
-                        מספר כרטיס אשראי (16 ספרות): <span className="text-rose-400">*</span>
-                      </label>
-                      {cardBrand !== "generic" && (
-                        <span className="text-[10px] font-bold text-mint-400 uppercase tracking-wider">
-                          זוהה: {cardBrand}
-                        </span>
-                      )}
+                    {/* Inputs Grid */}
+                    <div className="space-y-2.5 pt-1">
+                      {/* Cardholder Name */}
+                      <div>
+                        <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                          שם מלא כפי שמופיע על גבי הכרטיס: <span className="text-rose-400">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={cardHolder}
+                            onChange={(e) => {
+                              setCardHolder(e.target.value);
+                              if (touched.cardHolder) {
+                                setErrors((prev) => ({
+                                  ...prev,
+                                  cardHolder: validateField("cardHolder", e.target.value),
+                                }));
+                              }
+                            }}
+                            onBlur={() => handleBlur("cardHolder", cardHolder)}
+                            placeholder="ישראל ישראלי / ISRAEL ISRAELI"
+                            className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs focus:outline-none transition ${
+                              touched.cardHolder && errors.cardHolder
+                                ? "border-rose-500/80 bg-rose-950/10"
+                                : touched.cardHolder && !errors.cardHolder
+                                ? "border-emerald-500/60"
+                                : "border-white/10 focus:border-mint-400"
+                            }`}
+                          />
+                          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                            {touched.cardHolder && errors.cardHolder ? (
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                            ) : touched.cardHolder && !errors.cardHolder ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : null}
+                          </div>
+                        </div>
+                        {touched.cardHolder && errors.cardHolder && (
+                          <p className="text-[10px] text-rose-400 mt-0.5">{errors.cardHolder}</p>
+                        )}
+                      </div>
+
+                      {/* Card Number */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] text-slate-300 font-medium">
+                            מספר כרטיס אשראי (16 ספרות): <span className="text-rose-400">*</span>
+                          </label>
+                          {cardBrand !== "generic" && (
+                            <span className="text-[10px] font-bold text-mint-400 uppercase">
+                              {cardBrand}
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={19}
+                            value={cardNumber}
+                            onChange={handleCardNumberChange}
+                            onBlur={() => handleBlur("cardNumber", cardNumber)}
+                            placeholder="4580 •••• •••• ••••"
+                            className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
+                              touched.cardNumber && errors.cardNumber
+                                ? "border-rose-500/80 bg-rose-950/10"
+                                : touched.cardNumber && !errors.cardNumber
+                                ? "border-emerald-500/60"
+                                : "border-white/10 focus:border-mint-400"
+                            }`}
+                            dir="ltr"
+                          />
+                          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                            {touched.cardNumber && errors.cardNumber ? (
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                            ) : touched.cardNumber && !errors.cardNumber ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : null}
+                          </div>
+                        </div>
+                        {touched.cardNumber && errors.cardNumber && (
+                          <p className="text-[10px] text-rose-400 mt-0.5">{errors.cardNumber}</p>
+                        )}
+                      </div>
+
+                      {/* Expiry & CVV (strictly 3 digits) in 2 columns */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Expiry */}
+                        <div>
+                          <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                            תוקף (MM/YY): <span className="text-rose-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={5}
+                              value={expiry}
+                              onChange={handleExpiryChange}
+                              onBlur={() => handleBlur("expiry", expiry)}
+                              placeholder="12/28"
+                              className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
+                                touched.expiry && errors.expiry
+                                  ? "border-rose-500/80 bg-rose-950/10"
+                                  : touched.expiry && !errors.expiry
+                                  ? "border-emerald-500/60"
+                                  : "border-white/10 focus:border-mint-400"
+                              }`}
+                              dir="ltr"
+                            />
+                            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                              {touched.expiry && errors.expiry ? (
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                              ) : touched.expiry && !errors.expiry ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              ) : null}
+                            </div>
+                          </div>
+                          {touched.expiry && errors.expiry && (
+                            <p className="text-[10px] text-rose-400 mt-0.5">{errors.expiry}</p>
+                          )}
+                        </div>
+
+                        {/* CVV (strictly 3 digits) */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px] text-slate-300 font-medium">
+                              קוד CVV: <span className="text-rose-400">*</span>
+                            </label>
+                            <span className="text-[10px] text-slate-400">3 ספרות בגב</span>
+                          </div>
+                          <div className="relative">
+                            <input
+                              type="password"
+                              inputMode="numeric"
+                              maxLength={3}
+                              value={cvv}
+                              onChange={handleCvvChange}
+                              onBlur={() => handleBlur("cvv", cvv)}
+                              placeholder="•••"
+                              className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs font-mono tracking-widest focus:outline-none transition ${
+                                touched.cvv && errors.cvv
+                                  ? "border-rose-500/80 bg-rose-950/10"
+                                  : touched.cvv && !errors.cvv
+                                  ? "border-emerald-500/60"
+                                  : "border-white/10 focus:border-mint-400"
+                              }`}
+                              dir="ltr"
+                            />
+                            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                              {touched.cvv && errors.cvv ? (
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                              ) : touched.cvv && !errors.cvv ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              ) : null}
+                            </div>
+                          </div>
+                          {touched.cvv && errors.cvv && (
+                            <p className="text-[10px] text-rose-400 mt-0.5">{errors.cvv}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* ID & Installments in 2 columns */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Israeli ID */}
+                        <div>
+                          <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                            ת.ז. בעל הכרטיס (אופציונלי):
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={9}
+                            value={idNumber}
+                            onChange={handleIdChange}
+                            onBlur={() => handleBlur("idNumber", idNumber)}
+                            placeholder="012345678"
+                            className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-mint-400 transition"
+                            dir="ltr"
+                          />
+                        </div>
+
+                        {/* Installments */}
+                        <div>
+                          <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                            פריסה לתשלומים:
+                          </label>
+                          <select
+                            value={installments}
+                            onChange={(e) => setInstallments(Number(e.target.value))}
+                            className="w-full px-2.5 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-mint-400 transition"
+                          >
+                            <option value={1} className="bg-slate-900">1 תשלום (ללא ריבית)</option>
+                            <option value={2} className="bg-slate-900">2 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 2))}/חודש)</option>
+                            <option value={3} className="bg-slate-900">3 תשלומים שווים ללא ריבית ({formatRaw(Math.round(totalInSelectedCurrency / 3))}/חודש)</option>
+                            <option value={6} className="bg-slate-900">6 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 6))}/חודש)</option>
+                            <option value={12} className="bg-slate-900">12 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 12))}/חודש)</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
-                    <div className="relative">
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="w-full py-3.5 rounded-2xl btn-mint text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition disabled:opacity-50 mt-3"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                          <span>מבצע סליקה מאובטחת והפקת שובר...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            אישור ותשלום סופי בסך{" "}
+                            {installments > 1
+                              ? `${installments} תשלומים של ${formatRaw(installmentAmount)} (${formatRaw(totalInSelectedCurrency, true)})`
+                              : formatRaw(totalInSelectedCurrency, true)}
+                          </span>
+                          <Lock className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* ================= APPLE PAY TAB ================= */}
+                {paymentMethod === "apple_pay" && (
+                  <div className="space-y-4 pt-2 text-center animate-fade-in">
+                    <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+                      <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mx-auto text-2xl">
+                        
+                      </div>
+                      <h3 className="text-base font-bold text-white">תשלום מאובטח עם Apple Pay</h3>
+                      <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                        אימות ביומטרי בלחיצה אחת ב-Touch ID / Face ID. השובר והכרטיסים יישלחו מיד לכתובת הדואר שלך.
+                      </p>
+                      <div className="text-xl font-heading font-black text-mint-400 pt-1">
+                        {formatRaw(totalInSelectedCurrency, true)}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handlePay}
+                      disabled={isProcessing}
+                      className="w-full py-3.5 rounded-2xl bg-white text-black font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-200 transition disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span className="text-base"></span>
+                          <span dir="ltr">Pay with Apple Pay</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* ================= GOOGLE PAY TAB ================= */}
+                {paymentMethod === "google_pay" && (
+                  <div className="space-y-4 pt-2 text-center animate-fade-in">
+                    <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+                      <div className="w-14 h-14 rounded-full bg-white text-slate-900 flex items-center justify-center mx-auto font-black text-lg shadow">
+                        <span dir="ltr">GPay</span>
+                      </div>
+                      <h3 className="text-base font-bold text-white">חיוב ישיר מ-Google Wallet</h3>
+                      <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                        תשלום מהיר ומאובטח באמצעות כרטיסי האשראי המוגדרים בחשבון ה-Google שלך.
+                      </p>
+                      <div className="text-xl font-heading font-black text-mint-400 pt-1">
+                        {formatRaw(totalInSelectedCurrency, true)}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handlePay}
+                      disabled={isProcessing}
+                      className="w-full py-3.5 rounded-2xl bg-slate-900 text-white border border-white/20 hover:border-white/40 font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-800 transition disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <span dir="ltr">Pay with Google Pay</span>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* ================= BIT TAB ================= */}
+                {paymentMethod === "bit" && (
+                  <div className="space-y-4 pt-2 text-center animate-fade-in">
+                    <div className="p-6 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-3">
+                      <div className="w-14 h-14 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center mx-auto text-cyan-300">
+                        <Zap className="w-7 h-7" />
+                      </div>
+                      <h3 className="text-base font-bold text-white">תשלום מהיר באפליקציית ביט (bit)</h3>
+                      <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                        הזן מספר טלפון נייד לקבלת בקשת אישור תשלום מיידית באפליקציית bit.
+                      </p>
+                      <div className="text-xl font-heading font-black text-cyan-400 pt-1">
+                        {formatRaw(totalInSelectedCurrency, true)}
+                      </div>
+                    </div>
+
+                    <div className="max-w-xs mx-auto text-right">
+                      <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                        מספר נייד הרשום ב-bit: <span className="text-rose-400">*</span>
+                      </label>
                       <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={19}
-                        value={cardNumber}
-                        onChange={handleCardNumberChange}
-                        onBlur={() => handleBlur("cardNumber", cardNumber)}
-                        placeholder="4580 •••• •••• ••••"
-                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
-                          touched.cardNumber && errors.cardNumber
-                            ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                            : touched.cardNumber && !errors.cardNumber
-                            ? "border-emerald-500/60 focus:border-emerald-400"
-                            : "border-white/10 focus:border-mint-400"
-                        }`}
+                        type="tel"
+                        inputMode="tel"
+                        maxLength={10}
+                        value={bitPhone}
+                        onChange={handleBitPhoneChange}
+                        onBlur={() => handleBlur("bitPhone", bitPhone)}
+                        placeholder="0501234567"
+                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-cyan-400"
                         dir="ltr"
                       />
-                      <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                        {touched.cardNumber && errors.cardNumber ? (
-                          <AlertCircle className="w-4 h-4 text-rose-400" />
-                        ) : touched.cardNumber && !errors.cardNumber ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        ) : null}
-                      </div>
-                    </div>
-                    {touched.cardNumber && errors.cardNumber && (
-                      <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 shrink-0" />
-                        {errors.cardNumber}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Field 3 & 4: Expiry (MM/YY) and CVV (EXACTLY 3 DIGITS) */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Expiry */}
-                    <div>
-                      <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                        תוקף (MM/YY): <span className="text-rose-400">*</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={5}
-                          value={expiry}
-                          onChange={handleExpiryChange}
-                          onBlur={() => handleBlur("expiry", expiry)}
-                          placeholder="12/28"
-                          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
-                            touched.expiry && errors.expiry
-                              ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                              : touched.expiry && !errors.expiry
-                              ? "border-emerald-500/60 focus:border-emerald-400"
-                              : "border-white/10 focus:border-mint-400"
-                          }`}
-                          dir="ltr"
-                        />
-                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {touched.expiry && errors.expiry ? (
-                            <AlertCircle className="w-4 h-4 text-rose-400" />
-                          ) : touched.expiry && !errors.expiry ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
-                          ) : null}
-                        </div>
-                      </div>
-                      {touched.expiry && errors.expiry && (
-                        <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3 shrink-0" />
-                          {errors.expiry}
-                        </p>
+                      {touched.bitPhone && errors.bitPhone && (
+                        <p className="text-[10px] text-rose-400 mt-1">{errors.bitPhone}</p>
                       )}
                     </div>
 
-                    {/* CVV (3 DIGITS STRICT) */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px] text-slate-300 font-medium">
-                          קוד אבטחה (CVV): <span className="text-rose-400">*</span>
-                        </label>
-                        <span className="text-[10px] text-slate-400">3 ספרות</span>
-                      </div>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          inputMode="numeric"
-                          maxLength={3}
-                          value={cvv}
-                          onChange={handleCvvChange}
-                          onBlur={() => handleBlur("cvv", cvv)}
-                          placeholder="•••"
-                          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/40 border text-white text-xs font-mono tracking-widest focus:outline-none transition ${
-                            touched.cvv && errors.cvv
-                              ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                              : touched.cvv && !errors.cvv
-                              ? "border-emerald-500/60 focus:border-emerald-400"
-                              : "border-white/10 focus:border-mint-400"
-                          }`}
-                          dir="ltr"
-                        />
-                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {touched.cvv && errors.cvv ? (
-                            <AlertCircle className="w-4 h-4 text-rose-400" />
-                          ) : touched.cvv && !errors.cvv ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
-                          ) : null}
-                        </div>
-                      </div>
-                      {touched.cvv && errors.cvv && (
-                        <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3 shrink-0" />
-                          {errors.cvv}
-                        </p>
+                    <button
+                      type="button"
+                      onClick={handlePay}
+                      disabled={isProcessing}
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/20 hover:brightness-110 transition disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Smartphone className="w-4 h-4" />
+                          <span>שלח בקשת אישור ב-bit</span>
+                        </>
                       )}
-                    </div>
+                    </button>
                   </div>
-
-                  {/* Field 5 & 6: Israeli ID (Optional/Standard) & Installments (תשלומים) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    {/* Israeli ID */}
-                    <div>
-                      <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                        ת.ז. בעל הכרטיס (אופציונלי לאבטחה):
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={9}
-                          value={idNumber}
-                          onChange={handleIdChange}
-                          onBlur={() => handleBlur("idNumber", idNumber)}
-                          placeholder="012345678"
-                          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
-                            touched.idNumber && errors.idNumber
-                              ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                              : touched.idNumber && !errors.idNumber && idNumber
-                              ? "border-emerald-500/60 focus:border-emerald-400"
-                              : "border-white/10 focus:border-mint-400"
-                          }`}
-                          dir="ltr"
-                        />
-                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {touched.idNumber && errors.idNumber ? (
-                            <AlertCircle className="w-4 h-4 text-rose-400" />
-                          ) : touched.idNumber && !errors.idNumber && idNumber ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
-                          ) : null}
-                        </div>
-                      </div>
-                      {touched.idNumber && errors.idNumber && (
-                        <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3 shrink-0" />
-                          {errors.idNumber}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Israeli Installments (תשלומים) */}
-                    <div>
-                      <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                        פריסה לתשלומים:
-                      </label>
-                      <select
-                        value={installments}
-                        onChange={(e) => setInstallments(Number(e.target.value))}
-                        className="w-full px-3 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-mint-400 transition"
-                      >
-                        <option value={1} className="bg-slate-900 text-white">
-                          תשלום 1 רגיל (ללא ריבית)
-                        </option>
-                        <option value={2} className="bg-slate-900 text-white">
-                          2 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 2))} לחודש)
-                        </option>
-                        <option value={3} className="bg-slate-900 text-white">
-                          3 תשלומים שווים ללא ריבית ({formatRaw(Math.round(totalInSelectedCurrency / 3))} לחודש)
-                        </option>
-                        <option value={6} className="bg-slate-900 text-white">
-                          6 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 6))} לחודש)
-                        </option>
-                        <option value={12} className="bg-slate-900 text-white">
-                          12 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 12))} לחודש)
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Trust Badges */}
-                <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 border-t border-white/10">
-                  <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-mint-400" />
-                    תקן בינלאומי PCI-DSS Level 1
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5 text-mint-400" />
-                    הצפנת SSL/TLS 256-Bit
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-mint-400" />
-                    אישור 3D Secure 2.0
-                  </span>
-                </div>
-
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl btn-mint text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-xl hover:scale-[1.01] transition-all disabled:opacity-50 mt-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                      <span>מבצע סליקה מאובטחת והפקת כרטיסים...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>
-                        בצע תשלום סופי בסך{" "}
-                        {installments > 1
-                          ? `${installments} תשלומים של ${formatRaw(installmentAmount)} (סה״כ ${formatRaw(totalInSelectedCurrency, true)})`
-                          : formatRaw(totalInSelectedCurrency, true)}
-                      </span>
-                      <ArrowLeft className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
-
-            {/* ================= APPLE PAY TAB ================= */}
-            {paymentMethod === "apple_pay" && (
-              <div className="space-y-4 pt-3 animate-fade-in text-center">
-                <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/15 space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto text-3xl">
-                    
-                  </div>
-                  <h3 className="text-lg font-bold text-white">תשלום מהיר ומאובטח באמצעות Apple Pay</h3>
-                  <p className="text-xs text-slate-300 max-w-sm mx-auto">
-                    לחיצה על הכפתור למטה תפעיל את מנגנון האימות הביומטרי (Face ID / Touch ID) במכשיר שלך. שובר ההזמנה וכרטיסי הטיסה יישלחו מיד לכתובת המייל:{" "}
-                    <strong className="text-mint-300 font-mono underline">{customerEmail || user?.email || "שלך"}</strong>
-                  </p>
-                  <div className="text-xl font-heading font-black text-mint-400 pt-2">
-                    {formatRaw(totalInSelectedCurrency, true)}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-white text-black font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-200 transition disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span className="text-base"></span>
-                      <span>שלם עכשיו באמצעות Apple Pay</span>
-                    </>
-                  )}
-                </button>
+                )}
               </div>
-            )}
-
-            {/* ================= GOOGLE PAY TAB ================= */}
-            {paymentMethod === "google_pay" && (
-              <div className="space-y-4 pt-3 animate-fade-in text-center">
-                <div className="p-6 rounded-2xl bg-gradient-to-b from-blue-600/10 to-transparent border border-blue-500/20 space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-white border border-white/30 flex items-center justify-center mx-auto shadow-lg">
-                    <div className="flex items-center gap-0.5 font-black text-lg">
-                      <span className="text-blue-500">G</span>
-                      <span className="text-red-500">P</span>
-                      <span className="text-yellow-500">a</span>
-                      <span className="text-green-500">y</span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-white">חיוב ישיר באמצעות Google Pay</h3>
-                  <p className="text-xs text-slate-300 max-w-sm mx-auto">
-                    תשלום בלחיצה אחת מתוך כרטיסי האשראי השמורים בחשבון ה-Google שלך. השובר והכרטיסים יישלחו מיד לכתובת המייל:{" "}
-                    <strong className="text-mint-300 font-mono underline">{customerEmail || user?.email || "שלך"}</strong>
-                  </p>
-                  <div className="text-xl font-heading font-black text-mint-400 pt-2">
-                    {formatRaw(totalInSelectedCurrency, true)}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-slate-900 text-white border border-white/20 hover:border-white/40 font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-800 transition disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-0.5 font-black text-sm">
-                        <span className="text-blue-400">G</span>
-                        <span className="text-red-400">P</span>
-                        <span className="text-yellow-400">a</span>
-                        <span className="text-green-400">y</span>
-                      </div>
-                      <span>שלם עכשיו עם Google Pay</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-
-            {/* ================= BIT TAB (ISRAELI INSTANT PAY) ================= */}
-            {paymentMethod === "bit" && (
-              <div className="space-y-4 pt-3 animate-fade-in text-center">
-                <div className="p-6 rounded-2xl bg-gradient-to-b from-cyan-600/15 to-blue-600/05 border border-cyan-500/25 space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/20 text-cyan-300">
-                    <Zap className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white">תשלום מהיר באפליקציית ביט (bit)</h3>
-                  <p className="text-xs text-slate-300 max-w-sm mx-auto">
-                    הזן את מספר הטלפון הנייד שלך לקבלת בקשת תשלום ישירה באפליקציית bit. לאחר אישור הבקשה, השובר וכרטיסי הטיסה יישלחו מיד למייל שלך.
-                  </p>
-                  <div className="text-xl font-heading font-black text-cyan-400 pt-2">
-                    {formatRaw(totalInSelectedCurrency, true)}
-                  </div>
-                </div>
-
-                <div className="max-w-xs mx-auto text-right">
-                  <label className="block text-[11px] text-slate-300 mb-1 font-medium">
-                    מספר טלפון נייד הרשום ב-bit: <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      inputMode="tel"
-                      maxLength={10}
-                      value={bitPhone}
-                      onChange={handleBitPhoneChange}
-                      onBlur={() => handleBlur("bitPhone", bitPhone)}
-                      placeholder="0501234567"
-                      className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/50 border text-white text-xs font-mono focus:outline-none transition ${
-                        touched.bitPhone && errors.bitPhone
-                          ? "border-rose-500/80 focus:border-rose-400 bg-rose-950/10"
-                          : touched.bitPhone && !errors.bitPhone && bitPhone
-                          ? "border-cyan-500/60 focus:border-cyan-400"
-                          : "border-white/15 focus:border-cyan-400"
-                      }`}
-                      dir="ltr"
-                    />
-                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                      {touched.bitPhone && errors.bitPhone ? (
-                        <AlertCircle className="w-4 h-4 text-rose-400" />
-                      ) : touched.bitPhone && !errors.bitPhone && bitPhone ? (
-                        <Check className="w-4 h-4 text-cyan-400" />
-                      ) : null}
-                    </div>
-                  </div>
-                  {touched.bitPhone && errors.bitPhone && (
-                    <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      {errors.bitPhone}
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/20 hover:brightness-110 transition disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Smartphone className="w-4 h-4" />
-                      <span>שלח בקשת אישור ב-bit ({formatRaw(totalInSelectedCurrency, true)})</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         )}
       </div>
