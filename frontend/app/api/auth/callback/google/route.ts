@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function getPublicOrigin(request: NextRequest): string {
+  // If explicitly configured in env, respect that first
+  if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("0.0.0.0")) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost || request.headers.get("host") || "";
+
+  // If host is missing or 0.0.0.0, fallback to localhost:3000
+  if (!host || host.includes("0.0.0.0")) {
+    return "http://localhost:3000";
+  }
+
+  const proto = forwardedProto || (request.nextUrl.protocol.replace(":", "") || "http");
+  return `${proto}://${host}`;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   const state = searchParams.get("state");
 
-  const baseUrl = request.nextUrl.origin;
+  const baseUrl = getPublicOrigin(request);
   const redirectTarget = state ? decodeURIComponent(state) : "/";
 
   if (error) {
@@ -25,7 +44,12 @@ export async function GET(request: NextRequest) {
   try {
     const apiBase =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const redirectUri = `${baseUrl}/api/auth/callback/google`;
+
+    // Exact redirectUri matching Google Cloud Console authorization
+    const redirectUri =
+      (process.env.GOOGLE_REDIRECT_URI && !process.env.GOOGLE_REDIRECT_URI.includes("0.0.0.0"))
+        ? process.env.GOOGLE_REDIRECT_URI
+        : `${baseUrl}/api/auth/callback/google`;
 
     const backendRes = await fetch(`${apiBase}/api/auth/google`, {
       method: "POST",
@@ -55,14 +79,14 @@ export async function GET(request: NextRequest) {
       path: "/",
       maxAge,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" && baseUrl.startsWith("https"),
     });
 
     response.cookies.set("wanderlust_user", JSON.stringify(data.user), {
       path: "/",
       maxAge,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" && baseUrl.startsWith("https"),
     });
 
     return response;

@@ -198,7 +198,13 @@ function LoginForm() {
     const clientId =
       (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID.trim()) ||
       "239218305388-1uebns92vqun03dg2k60toe2iatukuqm.apps.googleusercontent.com";
-    const callbackUrl = `${window.location.origin}/api/auth/callback/google`;
+    // מניעת כתובות 0.0.0.0 (חייב להתאים בדיוק למה שהוגדר ב-Google Cloud Console)
+    const rawOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const origin = (!rawOrigin || rawOrigin.includes("0.0.0.0"))
+      ? "http://localhost:3000"
+      : rawOrigin;
+
+    const callbackUrl = `${origin}/api/auth/callback/google`;
     const state = encodeURIComponent(redirectTarget);
 
     const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(

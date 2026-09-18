@@ -146,7 +146,10 @@ async def google_login(payload: GoogleAuthRequest):
     # Option 1: Authorization Code Exchange (Google OAuth 2.0 Redirect flow)
     if payload.code:
         try:
-            target_redirect = payload.redirect_uri or settings.GOOGLE_REDIRECT_URI
+            target_redirect = settings.GOOGLE_REDIRECT_URI
+            if payload.redirect_uri and "0.0.0.0" not in payload.redirect_uri:
+                target_redirect = payload.redirect_uri
+
             async with httpx.AsyncClient(timeout=10.0) as client:
                 token_res = await client.post(
                     "https://oauth2.googleapis.com/token",
@@ -160,16 +163,25 @@ async def google_login(payload: GoogleAuthRequest):
                 )
 
                 if token_res.status_code != 200:
-                    logger.error(f"Google code exchange failed ({token_res.status_code}): {token_res.text}")
+                    logger.error(f"Google code exchange failed ({token_res.status_code}): {token_res.text} | redirect_uri={target_redirect}")
                     # If development and code failed, fallback to payload email if available
                     if payload.email:
                         email = str(payload.email).lower().strip()
                         full_name = payload.name or email.split("@")[0].title()
                         picture = payload.picture or ""
                     else:
+                        err_detail = "אימות קוד ההרשאה מול Google נכשל."
+                        try:
+                            t_json = token_res.json()
+                            if "error_description" in t_json:
+                                err_detail += f" ({t_json['error_description']})"
+                            elif "error" in t_json:
+                                err_detail += f" ({t_json['error']})"
+                        except Exception:
+                            pass
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="אימות קוד ההרשאה מול Google נכשל. ודא שה-GOOGLE_CLIENT_SECRET וה-REDIRECT_URI מוגדרים כראוי.",
+                            detail=err_detail,
                         )
                 else:
                     token_data = token_res.json()
