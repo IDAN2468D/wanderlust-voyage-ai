@@ -186,3 +186,41 @@ def test_endpoint_forgot_and_reset_password_flow():
     )
     assert login_res.status_code == 200
     assert "access_token" in login_res.json()
+
+
+def test_endpoint_booking_confirmation():
+    """Verify POST /api/v1/workspace/booking-confirmation sends official booking voucher."""
+    from app.services.email_templates import render_booking_confirmation_html
+
+    # Test template rendering
+    html_out = render_booking_confirmation_html(
+        booking_ref="WNDR-998877",
+        destination="Rome, Italy",
+        duration_days=6,
+        total_amount=1850.0,
+        currency="USD",
+        customer_name="שירה כהן",
+    )
+    assert "WNDR-998877" in html_out
+    assert "Rome, Italy" in html_out
+    assert "שירה כהן" in html_out
+    assert "$1,850" in html_out
+
+    # Test API endpoint
+    payload = {
+        "booking_ref": "WNDR-998877",
+        "destination": "Rome, Italy",
+        "duration_days": 6,
+        "total_amount": 1850.0,
+        "currency": "USD",
+        "recipient_email": "shira@example.com",
+        "customer_name": "שירה כהן",
+        "flight_portion": 850.0,
+        "hotel_portion": 800.0,
+    }
+    response = client.post("/api/v1/workspace/booking-confirmation", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "SUCCESS"
+    assert "shira@example.com" in data["recipient"]
+

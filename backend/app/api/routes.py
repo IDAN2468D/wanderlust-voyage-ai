@@ -20,6 +20,7 @@ from app.api.schemas import (
     SendFlightBoardEmailRequest,
     ContactInquiryRequest,
     EmailDispatchResponse,
+    BookingConfirmationRequest,
 )
 from app.core.security import get_current_user
 from app.services.email_service import email_service
@@ -366,5 +367,33 @@ async def submit_contact_inquiry(payload: ContactInquiryRequest):
         id=res.get("id"),
         recipient=str(payload.email),
     )
+
+
+@router.post("/workspace/booking-confirmation", response_model=EmailDispatchResponse)
+@router.post("/bookings/confirm", response_model=EmailDispatchResponse)
+async def send_booking_confirmation(payload: BookingConfirmationRequest):
+    """
+    Emails the official trip booking confirmation and tickets voucher via Resend.
+    """
+    res = await email_service.send_booking_confirmation(
+        recipient_email=str(payload.recipient_email),
+        booking_ref=payload.booking_ref,
+        destination=payload.destination,
+        duration_days=payload.duration_days,
+        total_amount=payload.total_amount,
+        currency=payload.currency,
+        customer_name=payload.customer_name,
+        flight_portion=payload.flight_portion,
+        hotel_portion=payload.hotel_portion,
+    )
+    is_ok = res.get("status") in ["sent", "simulated"]
+    logger.info(f"Dispatched booking confirmation for #{payload.booking_ref} to {payload.recipient_email}")
+    return EmailDispatchResponse(
+        status="SUCCESS" if is_ok else "FAILED",
+        message="אישור ההזמנה וכרטיסי הטיסה נשלחו בהצלחה לכתובת המייל!" if is_ok else "שגיאה בשליחת אישור ההזמנה.",
+        id=res.get("id"),
+        recipient=str(payload.recipient_email),
+    )
+
 
 

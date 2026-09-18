@@ -274,6 +274,19 @@ export default function Home() {
                   timestamp: nowTime,
                 },
               ]);
+
+              // Store last planned trip for post-registration email delivery
+              try {
+                localStorage.setItem(
+                  "wanderlust_last_planned_trip",
+                  JSON.stringify({
+                    destination: formData.destination,
+                    duration_days: formData.durationDays,
+                    total_estimated_usd: data.total_estimated || 2400,
+                    markdown_plan: data.markdown_plan || "",
+                  })
+                );
+              } catch (e) {}
             }
           } catch (err) {
             console.error("שגיאה בפענוח בלוק SSE:", err);
@@ -313,6 +326,18 @@ export default function Home() {
           setRecommendedFlight(syncData.recommended_flight || null);
           setSelectedHotel(syncData.selected_hotel || null);
           setStartDateFormatted(syncData.start_date_formatted || "");
+
+          try {
+            localStorage.setItem(
+              "wanderlust_last_planned_trip",
+              JSON.stringify({
+                destination: formData.destination,
+                duration_days: formData.durationDays,
+                total_estimated_usd: syncData.total_estimated || 2400,
+                markdown_plan: syncData.markdown_plan || "",
+              })
+            );
+          } catch (e) {}
         }
       } catch (fallbackErr) {
         setLogs((prev) => [

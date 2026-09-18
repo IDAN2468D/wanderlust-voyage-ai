@@ -403,3 +403,107 @@ def render_contact_confirmation_html(
     </p>
     """
     return _base_email_wrapper(content, preview_text=f"פנייתך בנושא '{subject}' התקבלה ב-Wanderlust")
+
+
+def render_booking_confirmation_html(
+    booking_ref: str,
+    destination: str,
+    duration_days: int,
+    total_amount: float,
+    currency: str = "USD",
+    customer_name: Optional[str] = None,
+    flight_portion: Optional[float] = None,
+    hotel_portion: Optional[float] = None,
+    frontend_url: str = "http://localhost:3000",
+) -> str:
+    """Renders official trip order and flight/hotel booking confirmation receipt."""
+    safe_dest = html.escape(destination)
+    safe_name = html.escape(customer_name or "מטייל יקר")
+    currency_symbol = "₪" if currency == "ILS" else ("€" if currency == "EUR" else "$")
+
+    flights_val = flight_portion or round(total_amount * 0.48)
+    hotel_val = hotel_portion or round(total_amount * 0.45)
+    fees_val = max(0, round(total_amount - flights_val - hotel_val))
+
+    content = f"""
+    <div style="margin-bottom: 24px;">
+        <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; display: inline-block; margin-bottom: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">
+            ✓ אישור הזמנה סופי • שוריין בהצלחה
+        </span>
+        <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 800; color: #ffffff;">
+            החופשה שלך ל-{safe_dest} מוכנה! 🎉
+        </h1>
+        <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+            שלום {safe_name}, התשלום עבור חבילת הנופש שלך נקלט בהצלחה והכרטיסים הונפקו.
+        </p>
+    </div>
+
+    <!-- Booking Reference Hero Badge -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(45, 212, 191, 0.25); border-radius: 18px; margin-bottom: 24px;">
+        <tr>
+            <td style="padding: 20px; text-align: right;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td align="right" style="vertical-align: middle;">
+                            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">מספר אסמכתא להזמנה</div>
+                            <div style="font-family: monospace; font-size: 22px; font-weight: 800; color: #2dd4bf; letter-spacing: 1px; margin-top: 4px;">{html.escape(booking_ref)}</div>
+                        </td>
+                        <td align="left" style="vertical-align: middle;">
+                            <span style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.3); color: #2dd4bf; padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;">
+                                מאושר ומשולם
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Receipt Details Table -->
+    <div style="margin-bottom: 24px;">
+        <h3 style="margin: 0 0 12px; font-size: 15px; font-weight: 700; color: #f8fafc; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            פירוט חבילת הנופש:
+        </h3>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; overflow: hidden; font-size: 13px;">
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                <td style="padding: 12px 16px; color: #cbd5e1;">יעד ומסלול</td>
+                <td style="padding: 12px 16px; text-align: left; font-weight: 700; color: #ffffff;">{safe_dest} ({duration_days} ימים)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                <td style="padding: 12px 16px; color: #cbd5e1;">✈️ טיסות הלוך ושוב (כולל כבודה)</td>
+                <td style="padding: 12px 16px; text-align: left; font-weight: 600; color: #ffffff;">{currency_symbol}{flights_val:,.0f}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                <td style="padding: 12px 16px; color: #cbd5e1;">🏨 לינה במלון נבחר</td>
+                <td style="padding: 12px 16px; text-align: left; font-weight: 600; color: #ffffff;">{currency_symbol}{hotel_val:,.0f}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                <td style="padding: 12px 16px; color: #cbd5e1;">✦ דמי שירות ואבטחת סוכני AI</td>
+                <td style="padding: 12px 16px; text-align: left; font-weight: 600; color: #ffffff;">{currency_symbol}{fees_val:,.0f}</td>
+            </tr>
+            <tr style="background: rgba(45, 212, 191, 0.05);">
+                <td style="padding: 14px 16px; font-weight: 800; color: #2dd4bf; font-size: 14px;">סה״כ חויב בהצלחה:</td>
+                <td style="padding: 14px 16px; text-align: left; font-weight: 800; color: #2dd4bf; font-size: 16px;">{currency_symbol}{total_amount:,.0f} {currency}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Important Travel Advisory -->
+    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 14px; padding: 16px; margin-bottom: 24px; font-size: 12px; line-height: 1.7; color: #94a3b8;">
+        <strong style="color: #38bdf8;">מה הצעד הבא?</strong><br>
+        הכרטיסים האלקטרוניים, שוברי המלון ותוכנית הטיול המפורטת סונכרנו בחשבונך. תוכל לצפות בהם בכל עת דרך האתר או לייצא ליומן גוגל בלחיצה אחת.
+    </div>
+
+    <!-- CTA Button -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px;">
+        <tr>
+            <td align="center">
+                <a href="{frontend_url}/trips" target="_blank" style="background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%); color: #022c22; font-weight: 800; font-size: 14px; padding: 14px 30px; border-radius: 14px; display: inline-block; box-shadow: 0 10px 25px rgba(45, 212, 191, 0.3); text-decoration: none;">
+                    צפייה בשוברים ובמסמכי ההזמנה ←
+                </a>
+            </td>
+        </tr>
+    </table>
+    """
+    return _base_email_wrapper(content, preview_text=f"אישור הזמנה רשמי #{booking_ref} עבור {destination}")
+

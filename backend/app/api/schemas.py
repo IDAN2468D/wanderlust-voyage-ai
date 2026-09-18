@@ -284,3 +284,19 @@ class ContactInquiryRequest(BaseModel):
     message: str = Field(..., min_length=5, description="Message content")
 
 
+class BookingConfirmationRequest(BaseModel):
+    """Payload for dispatching an official booking confirmation email."""
+
+    booking_ref: str = Field(..., description="Unique booking reference code (e.g. 'WNDR-824192')")
+    destination: str = Field(..., description="Destination name")
+    duration_days: int = Field(..., ge=1, description="Duration of stay in days")
+    total_amount: float = Field(..., ge=0, description="Total amount charged")
+    currency: str = Field(default="USD", description="Currency of payment (ILS, USD, EUR)")
+    recipient_email: EmailStr = Field(..., description="Customer email address")
+    customer_name: Optional[str] = Field(default=None, description="Customer full name")
+    flight_portion: Optional[float] = Field(default=None, description="Flight cost portion")
+    hotel_portion: Optional[float] = Field(default=None, description="Hotel cost portion")
+    payment_method: Optional[str] = Field(default="card", description="Payment method used")
+
+
+

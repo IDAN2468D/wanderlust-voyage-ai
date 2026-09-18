@@ -233,10 +233,33 @@ function LoginForm() {
       } else {
         const res = await register(effectiveEmail, password, fullName.trim());
         if (res.success) {
-          setSuccessMessage("החשבון נוצר בהצלחה! ברוך הבא ל-Wanderlust...");
+          setSuccessMessage("החשבון נוצר בהצלחה! תוכנית הנסיעה ופרטי ההרשמה נשלחו למייל...");
+
+          // בדיקה האם המשתמש תכנן חופשה/מסלול לפני ההרשמה – ושליחתו אוטומטית למייל החדש
+          try {
+            const savedTripStr = localStorage.getItem("wanderlust_last_planned_trip");
+            if (savedTripStr) {
+              const savedTrip = JSON.parse(savedTripStr);
+              if (savedTrip && savedTrip.destination) {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+                fetch(`${apiBase}/api/v1/workspace/send-briefing`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    destination: savedTrip.destination,
+                    duration_days: savedTrip.duration_days || 7,
+                    recipient_email: effectiveEmail,
+                    markdown_plan: savedTrip.markdown_plan || `# מסלול חופשה מותאם אישית ב-${savedTrip.destination}`,
+                    total_estimated_usd: savedTrip.total_estimated_usd || 2400,
+                  }),
+                }).catch(() => {});
+              }
+            }
+          } catch (e) {}
+
           setTimeout(() => {
             router.replace(redirectTarget);
-          }, 350);
+          }, 450);
         } else {
           setErrorMessage(res.error || "שגיאה ביצירת החשבון במערכת");
         }

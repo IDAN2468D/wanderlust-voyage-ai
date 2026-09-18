@@ -13,8 +13,10 @@ import {
   Building2,
   Sparkles,
   ArrowLeft,
+  Mail,
 } from "lucide-react";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface BookingPaymentModalProps {
   isOpen: boolean;
@@ -36,6 +38,10 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
 }) => {
   const { currency, setCurrency, currencyConfig, convert, formatPrice, formatRaw } = useCurrency();
 
+  const { user } = useAuth();
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerName, setCustomerName] = useState("");
+
   const [paymentMethod, setPaymentMethod] = useState<"card" | "apple_pay" | "google_pay" | "bank">("card");
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -44,6 +50,17 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingRef, setBookingRef] = useState("");
+
+  // Populate logged-in user details if available
+  React.useEffect(() => {
+    if (user?.email && !customerEmail) {
+      setCustomerEmail(user.email);
+    }
+    if (user?.full_name && !customerName) {
+      setCustomerName(user.full_name);
+      setCardHolder(user.full_name);
+    }
+  }, [user, customerEmail, customerName]);
 
   if (!isOpen || !tripDetails) return null;
 
@@ -60,15 +77,40 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
   const hotelInSelected = convert(hotelPortionUsd);
   const feesInSelected = convert(serviceFeesUsd);
 
-  const handlePay = (e: React.FormEvent) => {
+  const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
 
-    setTimeout(() => {
+    const generatedRef = `WNDR-${Math.floor(100000 + Math.random() * 900000)}`;
+    setBookingRef(generatedRef);
+
+    const targetEmail = customerEmail.trim() || user?.email || "traveler@example.com";
+    const targetName = customerName.trim() || cardHolder.trim() || user?.full_name || "מטייל יקר";
+
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      await fetch(`${apiBase}/api/v1/workspace/booking-confirmation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          booking_ref: generatedRef,
+          destination: tripDetails.destination,
+          duration_days: tripDetails.durationDays,
+          total_amount: totalInSelectedCurrency,
+          currency: currency,
+          recipient_email: targetEmail,
+          customer_name: targetName,
+          flight_portion: flightInSelected,
+          hotel_portion: hotelInSelected,
+          payment_method: paymentMethod,
+        }),
+      });
+    } catch (err) {
+      console.warn("Could not dispatch confirmation email:", err);
+    } finally {
       setIsProcessing(false);
       setIsSuccess(true);
-      setBookingRef(`WNDR-${Math.floor(100000 + Math.random() * 900000)}`);
-    }, 1800);
+    }
   };
 
   const handleResetAndClose = () => {
@@ -107,8 +149,10 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
                 החופשה שלך ל-{tripDetails.destination} שוריינה
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
-                מסמכי ההזמנה, כרטיסי הטיסה והאישור המלא נשלחו לכתובת המייל שלך.
+              <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                מסמכי ההזמנה, כרטיסי הטיסה והאישור המלא נשלחו ישירות לכתובת המייל:{" "}
+                <strong className="text-mint-300 font-mono underline">{customerEmail || user?.email || "תיבת הדואר שלך"}</strong>{" "}
+                באמצעות שירות Resend!
               </p>
             </div>
 
@@ -283,6 +327,42 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                 >
                   <span>G Pay</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Passenger / Contact Information for Ticket & Voucher Dispatch */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3 text-right">
+              <div className="flex items-center gap-2 text-xs font-bold text-mint-400">
+                <Mail className="w-3.5 h-3.5" />
+                <span>פרטי הנוסע לקבלת שובר ההזמנה וכרטיסי הטיסה במייל (Resend):</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] text-slate-300 mb-1 font-medium">כתובת אימייל לקבלת ההזמנה:</label>
+                  <input
+                    type="email"
+                    required
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="traveler@example.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white text-xs focus:outline-none focus:border-mint-400 transition"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-300 mb-1 font-medium">שם הנוסע / המזמין:</label>
+                  <input
+                    type="text"
+                    required
+                    value={customerName}
+                    onChange={(e) => {
+                      setCustomerName(e.target.value);
+                      if (!cardHolder) setCardHolder(e.target.value);
+                    }}
+                    placeholder="ישראל ישראלי"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white text-xs focus:outline-none focus:border-mint-400 transition"
+                  />
+                </div>
               </div>
             </div>
 

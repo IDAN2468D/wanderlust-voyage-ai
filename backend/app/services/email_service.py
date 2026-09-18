@@ -14,6 +14,7 @@ from app.services.email_templates import (
     render_password_reset_html,
     render_flight_board_html,
     render_contact_confirmation_html,
+    render_booking_confirmation_html,
 )
 
 logger = logging.getLogger("email_service")
@@ -217,5 +218,37 @@ class EmailService:
             html_content=html_body,
         )
 
+    async def send_booking_confirmation(
+        self,
+        recipient_email: str,
+        booking_ref: str,
+        destination: str,
+        duration_days: int,
+        total_amount: float,
+        currency: str = "USD",
+        customer_name: Optional[str] = None,
+        flight_portion: Optional[float] = None,
+        hotel_portion: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Dispatches an executive booking confirmation and flight/hotel voucher."""
+        subject = f"🎉 אישור הזמנה #{booking_ref}: חופשתך ל-{destination} שוריינה בהצלחה! - Wanderlust"
+        html_body = render_booking_confirmation_html(
+            booking_ref=booking_ref,
+            destination=destination,
+            duration_days=duration_days,
+            total_amount=total_amount,
+            currency=currency,
+            customer_name=customer_name,
+            flight_portion=flight_portion,
+            hotel_portion=hotel_portion,
+            frontend_url=self.frontend_url,
+        )
+        return await self.send_email(
+            to_email=recipient_email,
+            subject=subject,
+            html_content=html_body,
+        )
+
 
 email_service = EmailService()
+
