@@ -67,8 +67,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Auth succeeded! Set cookies and redirect to destination
-    const response = NextResponse.redirect(new URL(redirectTarget, baseUrl));
+    // Auth succeeded! Set cookies and redirect to destination with auth_token parameter
+    const targetUrl = new URL(redirectTarget, baseUrl);
+    targetUrl.searchParams.set("auth_token", data.access_token);
+
+    const response = NextResponse.redirect(targetUrl);
 
     // Cookie expires in 7 days
     const maxAge = 60 * 60 * 24 * 7;
@@ -76,14 +79,12 @@ export async function GET(request: NextRequest) {
       path: "/",
       maxAge,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production" && baseUrl.startsWith("https"),
     });
 
     response.cookies.set("wanderlust_user", JSON.stringify(data.user), {
       path: "/",
       maxAge,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production" && baseUrl.startsWith("https"),
     });
 
     return response;

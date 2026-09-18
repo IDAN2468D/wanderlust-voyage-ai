@@ -80,8 +80,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      const storedUserStr = localStorage.getItem(USER_KEY);
+      let storedToken = localStorage.getItem(TOKEN_KEY);
+      let storedUserStr = localStorage.getItem(USER_KEY);
+
+      // Check URL parameters first (e.g. redirected from Google OAuth callback)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get("auth_token") || urlParams.get("token");
+      if (urlToken) {
+        storedToken = urlToken;
+        localStorage.setItem(TOKEN_KEY, storedToken);
+        // Clean up the URL parameter without page reload
+        urlParams.delete("auth_token");
+        urlParams.delete("token");
+        const cleanSearch = urlParams.toString() ? `?${urlParams.toString()}` : "";
+        const cleanUrl = window.location.pathname + cleanSearch;
+        window.history.replaceState({}, "", cleanUrl);
+      }
+
+      // If still no token, check document.cookie fallback
+      if (!storedToken && typeof document !== "undefined") {
+        const tokenMatch = document.cookie.match(new RegExp(`(?:^|; )${TOKEN_KEY}=([^;]*)`));
+        if (tokenMatch && tokenMatch[1]) {
+          storedToken = decodeURIComponent(tokenMatch[1]);
+          localStorage.setItem(TOKEN_KEY, storedToken);
+        }
+        const userMatch = document.cookie.match(new RegExp(`(?:^|; )${USER_KEY}=([^;]*)`));
+        if (userMatch && userMatch[1]) {
+          storedUserStr = decodeURIComponent(userMatch[1]);
+          localStorage.setItem(USER_KEY, storedUserStr);
+        }
+      }
 
       if (!storedToken) {
         setIsLoading(false);
