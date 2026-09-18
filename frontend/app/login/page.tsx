@@ -211,7 +211,7 @@ function LoginForm() {
       clientId
     )}&redirect_uri=${encodeURIComponent(
       callbackUrl
-    )}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=select_account&state=${state}`;
+    )}&response_type=code&scope=openid%20email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile&access_type=offline&prompt=select_account&state=${state}`;
 
     // ניתוב מיידי וישיר לעמוד ההזדהות של Google
     window.location.href = googleOAuthUrl;

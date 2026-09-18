@@ -171,11 +171,18 @@ export const Navbar: React.FC = () => {
                       <img
                         src={user.picture}
                         alt={user.full_name || "User"}
-                        className="w-6 h-6 rounded-full object-cover border border-mint-400/50"
+                        className="w-7 h-7 rounded-full object-cover border border-mint-400/60 shadow-sm"
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.triedFallback) {
+                            target.dataset.triedFallback = "true";
+                            target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+                          }
+                        }}
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-[11px] flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center">
                         {(user.full_name || user.email)[0].toUpperCase()}
                       </div>
                     )}
@@ -192,11 +199,18 @@ export const Navbar: React.FC = () => {
                           <img
                             src={user.picture}
                             alt={user.full_name || "User"}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-mint-400 shadow-md shrink-0"
+                            className="w-11 h-11 rounded-full object-cover border-2 border-mint-400 shadow-md shrink-0"
                             referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (!target.dataset.triedFallback) {
+                                target.dataset.triedFallback = "true";
+                                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+                              }
+                            }}
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center shrink-0">
+                          <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center shrink-0">
                             {(user.full_name || user.email)[0].toUpperCase()}
                           </div>
                         )}
@@ -290,6 +304,13 @@ export const Navbar: React.FC = () => {
                       alt={user.full_name || "User"}
                       className="w-8 h-8 rounded-full object-cover border border-mint-400"
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.dataset.triedFallback) {
+                          target.dataset.triedFallback = "true";
+                          target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+                        }
+                      }}
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center">

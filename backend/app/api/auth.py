@@ -143,6 +143,22 @@ async def login(credentials: UserLogin):
     )
 
 
+def _clean_redirect_uri(uri: str) -> str:
+    if not uri:
+        return ""
+    # Strip whitespace and any multiline paste artifacts
+    clean = uri.strip().split("\n")[0].split("\r")[0].strip()
+    if "?" in clean:
+        clean = clean.split("?")[0]
+    if "#" in clean:
+        clean = clean.split("#")[0]
+    if clean.endswith("/login"):
+        clean = clean.replace("/login", "/api/auth/callback/google")
+    elif not clean.endswith("/api/auth/callback/google"):
+        clean = clean.rstrip("/") + "/api/auth/callback/google"
+    return clean
+
+
 @router.get("/google/url")
 async def get_google_auth_url(redirect_uri: str = None):
     """
@@ -150,13 +166,7 @@ async def get_google_auth_url(redirect_uri: str = None):
     using the configured GOOGLE_CLIENT_ID and GOOGLE_REDIRECT_URI.
     """
     client_id = settings.GOOGLE_CLIENT_ID
-    target_redirect = redirect_uri or settings.GOOGLE_REDIRECT_URI
-    if "?" in target_redirect:
-        target_redirect = target_redirect.split("?")[0]
-    if target_redirect.endswith("/login"):
-        target_redirect = target_redirect.replace("/login", "/api/auth/callback/google")
-    elif not target_redirect.endswith("/api/auth/callback/google"):
-        target_redirect = target_redirect.rstrip("/") + "/api/auth/callback/google"
+    target_redirect = _clean_redirect_uri(redirect_uri or settings.GOOGLE_REDIRECT_URI)
 
     if not client_id:
         return {
@@ -172,7 +182,7 @@ async def get_google_auth_url(redirect_uri: str = None):
         "client_id": client_id,
         "redirect_uri": target_redirect,
         "response_type": "code",
-        "scope": "openid email profile",
+        "scope": "openid email profile https://www.googleapis.com/auth/userinfo.profile",
         "access_type": "offline",
         "prompt": "select_account",
     }
@@ -200,16 +210,8 @@ async def google_login(payload: GoogleAuthRequest):
     # Option 1: Authorization Code Exchange (Google OAuth 2.0 Redirect flow)
     if payload.code:
         try:
-            target_redirect = settings.GOOGLE_REDIRECT_URI
-            if payload.redirect_uri and "0.0.0.0" not in payload.redirect_uri:
-                target_redirect = payload.redirect_uri
-
-            if "?" in target_redirect:
-                target_redirect = target_redirect.split("?")[0]
-            if target_redirect.endswith("/login"):
-                target_redirect = target_redirect.replace("/login", "/api/auth/callback/google")
-            elif not target_redirect.endswith("/api/auth/callback/google"):
-                target_redirect = target_redirect.rstrip("/") + "/api/auth/callback/google"
+            raw_redirect = payload.redirect_uri if (payload.redirect_uri and "0.0.0.0" not in payload.redirect_uri) else settings.GOOGLE_REDIRECT_URI
+            target_redirect = _clean_redirect_uri(raw_redirect)
 
             async with httpx.AsyncClient(timeout=10.0) as client:
                 token_res = await client.post(
