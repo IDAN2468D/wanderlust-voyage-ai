@@ -172,6 +172,7 @@ export const Navbar: React.FC = () => {
                         src={user.picture}
                         alt={user.full_name || "User"}
                         className="w-6 h-6 rounded-full object-cover border border-mint-400/50"
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-[11px] flex items-center justify-center">
@@ -185,17 +186,31 @@ export const Navbar: React.FC = () => {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute left-0 mt-2 w-56 rounded-2xl wanderlust-glass border border-white/15 p-2 shadow-2xl space-y-1 z-50 animate-fade-in bg-[#0c121e]/95 backdrop-blur-xl text-right">
-                      <div className="px-3 py-2 border-b border-white/10">
-                        <span className="block text-white text-xs font-bold truncate">
-                          {user.full_name || "מטייל רשום"}
-                        </span>
-                        <span className="block text-[11px] text-slate-400 truncate" dir="ltr">
-                          {user.email}
-                        </span>
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-mint-500/15 border border-mint-500/30 text-[10px] text-mint-300 font-medium">
-                          {user.auth_provider === "google" ? "Google OAuth" : "Wanderlust User"}
-                        </span>
+                    <div className="absolute left-0 mt-2 w-64 rounded-2xl wanderlust-glass border border-white/15 p-2 shadow-2xl space-y-1 z-50 animate-fade-in bg-[#0c121e]/95 backdrop-blur-xl text-right">
+                      <div className="px-3 py-2.5 border-b border-white/10 flex items-center gap-3">
+                        {user.picture ? (
+                          <img
+                            src={user.picture}
+                            alt={user.full_name || "User"}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-mint-400 shadow-md shrink-0"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center shrink-0">
+                            {(user.full_name || user.email)[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="overflow-hidden flex-1 text-right">
+                          <span className="block text-white text-xs font-bold truncate">
+                            {user.full_name || "מטייל רשום"}
+                          </span>
+                          <span className="block text-[11px] text-slate-400 truncate font-mono" dir="ltr">
+                            {user.email}
+                          </span>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-mint-500/15 border border-mint-500/30 text-[10px] text-mint-300 font-medium">
+                            {user.auth_provider === "google" ? "Google OAuth" : "Wanderlust User"}
+                          </span>
+                        </div>
                       </div>
 
                       <button
@@ -274,6 +289,7 @@ export const Navbar: React.FC = () => {
                       src={user.picture}
                       alt={user.full_name || "User"}
                       className="w-8 h-8 rounded-full object-cover border border-mint-400"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center">

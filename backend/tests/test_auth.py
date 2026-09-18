@@ -93,10 +93,30 @@ def test_google_login_flow():
     assert data["user"]["auth_provider"] == "google"
     assert data["user"]["picture"] == "https://lh3.googleusercontent.com/a/sample_avatar"
 
+    # Verify /me endpoint returns the real Google email and picture
+    me_resp = client.get("/api/auth/me", headers={"Authorization": f"Bearer {data['access_token']}"})
+    assert me_resp.status_code == 200
+    me_data = me_resp.json()
+    assert me_data["email"] == google_email
+    assert me_data["full_name"] == "דניאל ישראלי"
+    assert me_data["picture"] == "https://lh3.googleusercontent.com/a/sample_avatar"
+    assert me_data["auth_provider"] == "google"
+
     # Calling again should update or log in the existing user
     relogin_resp = client.post("/api/auth/google", json=payload)
     assert relogin_resp.status_code == 200
     assert relogin_resp.json()["user"]["id"] == data["user"]["id"]
+
+    # Stateless test: Even if in-memory USERS_DB is cleared, /me recovers real user from JWT claims
+    from app.api.auth import USERS_DB
+    USERS_DB.clear()
+    stateless_me_resp = client.get("/api/auth/me", headers={"Authorization": f"Bearer {data['access_token']}"})
+    assert stateless_me_resp.status_code == 200
+    stateless_data = stateless_me_resp.json()
+    assert stateless_data["email"] == google_email
+    assert stateless_data["full_name"] == "דניאל ישראלי"
+    assert stateless_data["picture"] == "https://lh3.googleusercontent.com/a/sample_avatar"
+    assert stateless_data["auth_provider"] == "google"
 
 
 def test_google_auth_url_endpoint():

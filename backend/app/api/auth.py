@@ -1,7 +1,10 @@
 import uuid
 import logging
+import json
+import os
 from typing import Dict, Any
 import httpx
+from jose import jwt as jose_jwt
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.api.schemas import UserCreate, UserLogin, UserResponse, Token, GoogleAuthRequest
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user
@@ -10,7 +13,9 @@ from app.core.config import settings
 logger = logging.getLogger("auth_routes")
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# In-memory user database for plug-and-play simplicity and testing
+USERS_STORE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "users_store.json")
+
+# In-memory user database with persistent disk backing
 USERS_DB: Dict[str, Dict[str, Any]] = {
     "demo@travelplanner.ai": {
         "id": "usr_demo123",
@@ -22,6 +27,30 @@ USERS_DB: Dict[str, Dict[str, Any]] = {
         "auth_provider": "local",
     }
 }
+
+
+def _load_users_from_disk():
+    try:
+        if os.path.exists(USERS_STORE_PATH):
+            with open(USERS_STORE_PATH, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                if isinstance(saved, dict):
+                    USERS_DB.update(saved)
+    except Exception as e:
+        logger.warning(f"Could not load users from disk: {e}")
+
+
+def _save_users_to_disk():
+    try:
+        os.makedirs(os.path.dirname(USERS_STORE_PATH), exist_ok=True)
+        with open(USERS_STORE_PATH, "w", encoding="utf-8") as f:
+            json.dump(USERS_DB, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"Could not save users to disk: {e}")
+
+
+# Initialize persistent users on module startup
+_load_users_from_disk()
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -47,8 +76,19 @@ async def register(user_in: UserCreate):
         "auth_provider": "local",
     }
     USERS_DB[email_key] = user_record
+    _save_users_to_disk()
 
-    access_token = create_access_token(data={"sub": user_id, "email": email_key, "role": "user"})
+    access_token = create_access_token(
+        data={
+            "sub": email_key,
+            "user_id": user_id,
+            "email": email_key,
+            "full_name": user_record["full_name"],
+            "picture": user_record["picture"],
+            "role": user_record["role"],
+            "auth_provider": user_record["auth_provider"],
+        }
+    )
 
     return Token(
         access_token=access_token,
@@ -78,7 +118,15 @@ async def login(credentials: UserLogin):
         )
 
     access_token = create_access_token(
-        data={"sub": user_record["id"], "email": user_record["email"], "role": user_record["role"]}
+        data={
+            "sub": user_record["email"],
+            "user_id": user_record["id"],
+            "email": user_record["email"],
+            "full_name": user_record["full_name"],
+            "picture": user_record.get("picture"),
+            "role": user_record["role"],
+            "auth_provider": user_record.get("auth_provider", "local"),
+        }
     )
 
     return Token(
@@ -199,19 +247,41 @@ async def google_login(payload: GoogleAuthRequest):
                 else:
                     token_data = token_res.json()
                     access_token_google = token_data.get("access_token")
+                    id_token_google = token_data.get("id_token")
 
-                    # Fetch user info using Google access token
-                    userinfo_res = await client.get(
-                        "https://www.googleapis.com/oauth2/v3/userinfo",
-                        headers={"Authorization": f"Bearer {access_token_google}"},
-                    )
+                    # Attempt reading claims directly from Google's signed id_token
+                    if id_token_google:
+                        try:
+                            claims = jose_jwt.get_unverified_claims(id_token_google)
+                            if claims.get("email"):
+                                email = str(claims["email"]).lower().strip()
+                            if claims.get("name"):
+                                full_name = str(claims["name"]).strip()
+                            if claims.get("picture"):
+                                picture = str(claims["picture"]).strip()
+                        except Exception as e:
+                            logger.warning(f"Could not parse claims from id_token: {e}")
 
-                    if userinfo_res.status_code == 200:
-                        g_user = userinfo_res.json()
-                        email = g_user.get("email", "").lower().strip()
-                        full_name = g_user.get("name") or payload.name or email.split("@")[0].title()
-                        picture = g_user.get("picture") or payload.picture or ""
-                    else:
+                    # Authoritatively query Google's userinfo endpoint
+                    if access_token_google:
+                        try:
+                            userinfo_res = await client.get(
+                                "https://www.googleapis.com/oauth2/v3/userinfo",
+                                headers={"Authorization": f"Bearer {access_token_google}"},
+                            )
+
+                            if userinfo_res.status_code == 200:
+                                g_user = userinfo_res.json()
+                                if g_user.get("email"):
+                                    email = str(g_user["email"]).lower().strip()
+                                if g_user.get("name"):
+                                    full_name = str(g_user["name"]).strip()
+                                if g_user.get("picture"):
+                                    picture = str(g_user["picture"]).strip()
+                        except Exception as e:
+                            logger.warning(f"Error requesting Google userinfo: {e}")
+
+                    if not email:
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail="לא ניתן לקבל את פרטי המשתמש מחשבון ה-Google.",
@@ -291,7 +361,7 @@ async def google_login(payload: GoogleAuthRequest):
     # Upsert user record
     if email in USERS_DB:
         user_record = USERS_DB[email]
-        if full_name and (not user_record.get("full_name") or user_record["full_name"] == "Demo Traveler"):
+        if full_name:
             user_record["full_name"] = full_name
         if picture:
             user_record["picture"] = picture
@@ -309,8 +379,18 @@ async def google_login(payload: GoogleAuthRequest):
         }
         USERS_DB[email] = user_record
 
+    _save_users_to_disk()
+
     access_token = create_access_token(
-        data={"sub": user_record["id"], "email": user_record["email"], "role": user_record["role"]}
+        data={
+            "sub": user_record["email"],
+            "user_id": user_record["id"],
+            "email": user_record["email"],
+            "full_name": user_record["full_name"],
+            "picture": user_record.get("picture"),
+            "role": user_record["role"],
+            "auth_provider": "google",
+        }
     )
 
     return Token(
@@ -322,7 +402,7 @@ async def google_login(payload: GoogleAuthRequest):
             full_name=user_record["full_name"],
             role=user_record["role"],
             picture=user_record.get("picture"),
-            auth_provider=user_record.get("auth_provider", "google"),
+            auth_provider="google",
         ),
     )
 
@@ -331,25 +411,61 @@ async def google_login(payload: GoogleAuthRequest):
 async def get_me(current_user: dict = Depends(get_current_user)):
     """Retrieve details of the currently authenticated user."""
     user_id = current_user.get("user_id", "guest_user")
-    email = current_user.get("sub", "guest@travelplanner.ai")
+    email = current_user.get("email") or current_user.get("sub", "guest@travelplanner.ai")
+    full_name = current_user.get("full_name")
+    picture = current_user.get("picture")
+    auth_provider = current_user.get("auth_provider", "local")
+    role = current_user.get("role", "user")
 
-    # Look up in DB or return user context
-    for u in USERS_DB.values():
-        if u["id"] == user_id or u["email"] == email:
-            return UserResponse(
-                id=u["id"],
-                email=u["email"],
-                full_name=u["full_name"],
-                role=u["role"],
-                picture=u.get("picture"),
-                auth_provider=u.get("auth_provider", "local"),
-            )
+    # Look up in DB or persistent cache
+    user_rec = None
+    if email in USERS_DB:
+        user_rec = USERS_DB[email]
+    else:
+        for u in USERS_DB.values():
+            if u.get("id") == user_id or u.get("email") == email:
+                user_rec = u
+                break
+
+    if user_rec:
+        # Update missing or stale fields if token contains richer claims
+        if picture and not user_rec.get("picture"):
+            user_rec["picture"] = picture
+        if full_name and (not user_rec.get("full_name") or user_rec["full_name"] in ["Active Traveler", "Demo Traveler"]):
+            user_rec["full_name"] = full_name
+        if auth_provider == "google":
+            user_rec["auth_provider"] = "google"
+        _save_users_to_disk()
+        return UserResponse(
+            id=user_rec["id"],
+            email=user_rec["email"],
+            full_name=user_rec.get("full_name"),
+            role=user_rec.get("role", "user"),
+            picture=user_rec.get("picture"),
+            auth_provider=user_rec.get("auth_provider", "local"),
+        )
+
+    # Stateless fallback reconstructed directly from verified JWT claims
+    resolved_name = full_name or (email.split("@")[0].title() if "@" in email else "מטייל רשום")
+    resolved_picture = picture or (f"https://api.dicebear.com/7.x/initials/svg?seed={email}" if "@" in email else None)
+
+    restored_record = {
+        "id": user_id,
+        "email": email if "@" in email else f"{email}@travelplanner.ai",
+        "hashed_password": None,
+        "full_name": resolved_name,
+        "role": role,
+        "picture": resolved_picture,
+        "auth_provider": auth_provider,
+    }
+    USERS_DB[restored_record["email"]] = restored_record
+    _save_users_to_disk()
 
     return UserResponse(
-        id=user_id,
-        email=email if "@" in email else f"{email}@travelplanner.ai",
-        full_name="Active Traveler",
-        role=current_user.get("role", "guest"),
-        picture=None,
-        auth_provider="local",
+        id=restored_record["id"],
+        email=restored_record["email"],
+        full_name=restored_record["full_name"],
+        role=restored_record["role"],
+        picture=restored_record["picture"],
+        auth_provider=restored_record["auth_provider"],
     )

@@ -44,6 +44,10 @@ wheels/
 htmlcov/
 .tox/
 
+# Local runtime data & caches
+backend/data/
+data/
+
 # ==========================================
 # Node.js & Next.js
 # ==========================================

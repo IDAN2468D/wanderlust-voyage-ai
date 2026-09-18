@@ -67,12 +67,30 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user_id = payload.get("sub")
-    if user_id is None:
+    sub = payload.get("sub")
+    user_id = payload.get("user_id") or sub
+    if not sub and not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token missing subject identifier",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return {"sub": user_id, "user_id": user_id, "role": payload.get("role", "user")}
+    email = payload.get("email")
+    if not email and sub and "@" in str(sub):
+        email = str(sub)
+
+    full_name = payload.get("full_name") or payload.get("name")
+    picture = payload.get("picture")
+    auth_provider = payload.get("auth_provider") or ("google" if picture else "local")
+    role = payload.get("role", "user")
+
+    return {
+        "sub": str(sub or user_id),
+        "user_id": str(user_id or sub),
+        "email": str(email) if email else (f"{user_id}@travelplanner.ai" if user_id else "guest@travelplanner.ai"),
+        "full_name": full_name,
+        "picture": picture,
+        "role": role,
+        "auth_provider": auth_provider,
+    }

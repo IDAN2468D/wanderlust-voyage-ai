@@ -42,6 +42,24 @@ const TOKEN_KEY = "wanderlust_auth_token";
 const USER_KEY = "wanderlust_user";
 const PUBLIC_PATHS = ["/login"];
 
+function parseJwtPayload(token: string): any {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -58,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(USER_KEY, JSON.stringify(authUser));
       // Set cookie for SSR/edge compatibility
       document.cookie = `${TOKEN_KEY}=${authToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      document.cookie = `${USER_KEY}=${encodeURIComponent(JSON.stringify(authUser))}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     }
   };
 
@@ -69,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      document.cookie = `${USER_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
     }
   };
 
@@ -89,6 +109,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (urlToken) {
         storedToken = urlToken;
         localStorage.setItem(TOKEN_KEY, storedToken);
+
+        // Also check if cookie has fresh user data from callback route
+        const userMatch = document.cookie.match(new RegExp(`(?:^|; )${USER_KEY}=([^;]*)`));
+        if (userMatch && userMatch[1]) {
+          storedUserStr = decodeURIComponent(userMatch[1]);
+          localStorage.setItem(USER_KEY, storedUserStr);
+        }
+
         // Clean up the URL parameter without page reload
         urlParams.delete("auth_token");
         urlParams.delete("token");
@@ -117,12 +145,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
+        // Discard any stale fallback user mock (e.g. usr_g_... @travelplanner.ai)
         if (storedUserStr) {
+          try {
+            const parsed = JSON.parse(storedUserStr);
+            if (parsed.email && parsed.email.startsWith("usr_g_") && parsed.email.includes("@travelplanner.ai")) {
+              localStorage.removeItem(USER_KEY);
+              storedUserStr = null;
+            }
+          } catch {
+            storedUserStr = null;
+          }
+        }
+
+        // Fast hydration: extract claims directly from JWT token
+        const jwtClaims = parseJwtPayload(storedToken);
+        if (jwtClaims && jwtClaims.email && !jwtClaims.email.includes("@travelplanner.ai")) {
+          const fastUser: User = {
+            id: jwtClaims.user_id || jwtClaims.sub,
+            email: jwtClaims.email,
+            full_name: jwtClaims.full_name || jwtClaims.name || null,
+            picture: jwtClaims.picture || null,
+            role: jwtClaims.role || "user",
+            auth_provider: jwtClaims.auth_provider || (jwtClaims.picture ? "google" : "local"),
+          };
+          setUser(fastUser);
+          localStorage.setItem(USER_KEY, JSON.stringify(fastUser));
+        } else if (storedUserStr) {
           setUser(JSON.parse(storedUserStr));
         }
+
         setToken(storedToken);
 
-        // Verify token validity with backend /api/auth/me
+        // Verify & sync with backend /api/auth/me
         const res = await fetch(`${apiBase}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
