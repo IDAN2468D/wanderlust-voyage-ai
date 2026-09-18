@@ -33,6 +33,7 @@ import {
   Layers,
 } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useAuth } from "@/context/AuthContext";
 import { BookingPaymentModal } from "@/components/BookingPaymentModal";
 
 interface DaySchedule {
@@ -118,11 +119,20 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [openDays, setOpenDays] = useState<Record<number, boolean>>({ 1: true, 2: true });
 
+  const { user } = useAuth();
+
   // Workspace Sync State
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [emailInput, setEmailInput] = useState("");
-  const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "sent">("idle");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [calendarSyncLoading, setCalendarSyncLoading] = useState(false);
+
+  // Auto-populate email from logged-in user
+  React.useEffect(() => {
+    if (user?.email && !emailInput) {
+      setEmailInput(user.email);
+    }
+  }, [user?.email, emailInput]);
 
   // Interactive Checklist State
   const [checklist, setChecklist] = useState<PackingCategory[]>(initialChecklist || []);
@@ -202,7 +212,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
     }
   };
 
-  // Google Flow Gmail Briefing Dispatch
+  // Google Flow / Resend Email Briefing Dispatch
   const handleSendGmailBriefing = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput) return;
@@ -226,16 +236,12 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
         setTimeout(() => {
           setIsEmailModalOpen(false);
           setEmailStatus("idle");
-        }, 2200);
+        }, 3000);
       } else {
-        setEmailStatus("sent");
+        setEmailStatus("error");
       }
     } catch (err) {
-      setEmailStatus("sent");
-      setTimeout(() => {
-        setIsEmailModalOpen(false);
-        setEmailStatus("idle");
-      }, 2000);
+      setEmailStatus("error");
     }
   };
 
@@ -1066,37 +1072,45 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
         </div>
       </div>
 
-      {/* Gmail Briefing Dispatch Modal */}
+      {/* Gmail / Resend Briefing Dispatch Modal */}
       {isEmailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
           <div className="wanderlust-glass rounded-3xl p-6 sm:p-7 max-w-md w-full border border-white/20 shadow-2xl relative">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+              <div className="p-2.5 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
                 <Mail className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-serif font-bold text-white">שליחת תדריך נסיעה ל-Gmail</h3>
-                <p className="text-xs text-slate-400">באמצעות אינטגרציית Google Flow MCP</p>
+                <h3 className="text-lg font-serif font-bold text-white">שליחת תדריך נסיעה למייל</h3>
+                <p className="text-xs text-slate-400">מופעל באמצעות Resend & Google Flow MCP</p>
               </div>
             </div>
 
             {emailStatus === "sent" ? (
               <div className="py-6 text-center space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto animate-bounce" />
                 <div className="font-bold text-white text-sm">התדריך נשלח בהצלחה לכתובת {emailInput}!</div>
-                <p className="text-xs text-slate-400">בדקו את תיבת הדואר הנכנס לקבלת סיכום הטיול המלא.</p>
+                <p className="text-xs text-slate-400">בדקו את תיבת הדואר הנכנס לקבלת סיכום הטיול המלא והמעוצב.</p>
               </div>
             ) : (
               <form onSubmit={handleSendGmailBriefing} className="space-y-4">
+                {emailStatus === "error" && (
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                    <span>חלה שגיאה בשליחת המייל. אנא ודאו את הכתובת ונסו שוב.</span>
+                  </div>
+                )}
+
                 <div>
-                  <label className="text-xs text-slate-300 block mb-1 font-medium">כתובת מייל לקבלת התדריך:</label>
+                  <label className="text-xs text-slate-300 block mb-1.5 font-medium">כתובת מייל לקבלת התדריך המלא:</label>
                   <input
                     type="email"
                     required
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder="your-email@gmail.com"
-                    className="w-full p-3 rounded-xl bg-black/50 border border-white/10 text-white text-xs focus:outline-none focus:border-mint-400"
+                    placeholder="your-email@example.com"
+                    className="w-full p-3 rounded-xl bg-black/50 border border-white/15 text-white text-xs focus:outline-none focus:border-mint-400 transition"
+                    dir="ltr"
                   />
                 </div>
 
@@ -1104,14 +1118,17 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                   <button
                     type="submit"
                     disabled={emailStatus === "loading"}
-                    className="flex-1 btn-mint py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                    className="flex-1 btn-mint py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
                   >
                     <span>{emailStatus === "loading" ? "שולח כעת..." : "שלח תדריך עכשיו"}</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsEmailModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold"
+                    onClick={() => {
+                      setIsEmailModalOpen(false);
+                      setEmailStatus("idle");
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition"
                   >
                     ביטול
                   </button>

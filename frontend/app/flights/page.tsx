@@ -17,7 +17,10 @@ import {
   DollarSign,
   ChevronDown,
   ChevronUp,
+  Mail,
+  CheckCircle2,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface HolidayItem {
   key: string;
@@ -171,10 +174,62 @@ export default function TLVHolidayFlightBoardPage() {
   const [boardData, setBoardData] = useState<BoardResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Email Flight Board Modal State (Resend Integration)
+  const { user } = useAuth();
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
+  const [emailInput, setEmailInput] = useState<string>("");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  const [emailFeedback, setEmailFeedback] = useState<string>("");
+
   const consoleEndRef = useRef<HTMLDivElement>(null);
   const boardResultsRef = useRef<HTMLDivElement>(null);
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  // Auto-populate email if user is logged in
+  useEffect(() => {
+    if (user?.email && !emailInput) {
+      setEmailInput(user.email);
+    }
+  }, [user?.email, emailInput]);
+
+  const handleSendFlightBoardEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !emailInput.includes("@")) {
+      setEmailFeedback("נא להזין כתובת אימייל תקינה.");
+      setEmailStatus("error");
+      return;
+    }
+    setEmailStatus("loading");
+    setEmailFeedback("");
+    try {
+      const res = await fetch(`${apiBase}/api/v1/flights/send-board`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient_email: emailInput.trim(),
+          holiday_name: boardData?.holiday.name_he || "חופשה",
+          flights: boardData?.board_flights || [],
+          search_links: boardData?.search_links,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.status === "SUCCESS") {
+        setEmailStatus("sent");
+        setEmailFeedback(data.message || "לוח הטיסות נשלח בהצלחה לכתובת המייל שלך!");
+        setTimeout(() => {
+          setIsEmailModalOpen(false);
+          setEmailStatus("idle");
+        }, 3000);
+      } else {
+        setEmailStatus("error");
+        setEmailFeedback(data.message || "שגיאה בשליחת לוח הטיסות למייל.");
+      }
+    } catch (err) {
+      setEmailStatus("error");
+      setEmailFeedback("שגיאת תקשורת מול שרתי המערכת.");
+    }
+  };
 
   // Fetch canonical 2026 holidays list on mount
   useEffect(() => {
@@ -648,6 +703,30 @@ export default function TLVHolidayFlightBoardPage() {
         {/* Flight Board Results Section */}
         {boardData && (
           <div ref={boardResultsRef} className="space-y-10">
+            {/* Top Action Banner with Email Dispatch (Resend Integration) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-gradient-to-r from-cyan-500/10 via-[#0a101f] to-teal-500/10 border border-cyan-500/20 backdrop-blur-xl shadow-xl">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>🛫</span>
+                  <span>לוח טיסות מנותח עבור חופשת {boardData.holiday.name_he} ({boardData.board_flights.length} טיסות)</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  כולל בדיקת כבודה, שקלול המרת מט״ח ושמירת שבת
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!emailInput && user?.email) setEmailInput(user.email);
+                  setIsEmailModalOpen(true);
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/25 hover:scale-105 active:scale-95 transition whitespace-nowrap cursor-pointer"
+              >
+                <Mail className="w-4 h-4 text-slate-950" />
+                <span>שלח לוח טיסות למייל שלי (Resend)</span>
+              </button>
+            </div>
+
             {/* Top Picks Hero Cards (3-column) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* 1. Best Value */}
@@ -998,6 +1077,79 @@ export default function TLVHolidayFlightBoardPage() {
                 <span>שער חליפין בסיסי: 3.70 ₪ / USD (בנק ישראל)</span>
                 <span>כולל ~3% עמלת המרת מט״ח בכרטיסי אשראי ישראליים</span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Send Flight Board Modal (Resend Integration) */}
+        {isEmailModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
+            <div className="w-full max-w-md p-6 sm:p-7 rounded-3xl bg-[#080d1a] border border-cyan-500/30 shadow-2xl relative text-right">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-base">שליחת לוח הטיסות למייל</h4>
+                    <p className="text-[11px] text-slate-400">מופעל באמצעות Resend Delivery</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEmailModalOpen(false)}
+                  className="text-slate-400 hover:text-white text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {emailStatus === "sent" ? (
+                <div className="py-6 text-center space-y-2">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto animate-bounce" />
+                  <div className="font-bold text-white text-sm">לוח הטיסות נשלח בהצלחה!</div>
+                  <p className="text-xs text-slate-400">בדוק את תיבת הדואר הנכנס שלך ב-{emailInput}.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSendFlightBoardEmail} className="space-y-4">
+                  {emailStatus === "error" && emailFeedback && (
+                    <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                      <span>{emailFeedback}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-xs text-slate-300 block mb-1.5 font-semibold">כתובת מייל לקבלת הלוח המלא:</label>
+                    <input
+                      type="email"
+                      required
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="traveler@example.com"
+                      className="w-full p-3 rounded-xl bg-black/50 border border-white/15 text-white text-xs focus:outline-none focus:border-cyan-400 transition"
+                      dir="ltr"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      type="submit"
+                      disabled={emailStatus === "loading"}
+                      className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-slate-950 font-bold text-xs hover:opacity-90 transition disabled:opacity-50"
+                    >
+                      {emailStatus === "loading" ? "שולח למייל..." : "שלח כעת"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEmailModalOpen(false)}
+                      className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-xs transition"
+                    >
+                      ביטול
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         )}

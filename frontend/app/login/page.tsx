@@ -85,6 +85,12 @@ function LoginForm() {
   const [forgotEmail, setForgotEmail] = useState<string>("");
   const [forgotSubmitted, setForgotSubmitted] = useState<boolean>(false);
 
+  // מצב איפוס סיסמה לפי טוקן שהתקבל במייל
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>("");
+  const [isResetting, setIsResetting] = useState<boolean>(false);
+
   // וידאו רקע Google Flow
   const videoRef = useRef<HTMLVideoElement>(null);
   const [customVideoUrl, setCustomVideoUrl] = useState<string | null>(null);
@@ -115,6 +121,13 @@ function LoginForm() {
   useEffect(() => {
     const errorParam = searchParams.get("error");
     const messageParam = searchParams.get("message");
+    const actionParam = searchParams.get("action");
+    const tokenParam = searchParams.get("token");
+
+    if (actionParam === "reset-password" && tokenParam) {
+      setResetToken(tokenParam);
+    }
+
     if (errorParam) {
       if (errorParam === "google_access_denied") {
         setErrorMessage("ההתחברות באמצעות Google בוטלה על ידי המשתמש.");
@@ -235,18 +248,74 @@ function LoginForm() {
     }
   };
 
-  const handleForgotSubmit = (e: React.FormEvent) => {
+  const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail || !forgotEmail.includes("@")) {
-      alert("נא להזין כתובת אימייל תקינה");
+      setErrorMessage("נא להזין כתובת אימייל תקינה");
       return;
     }
     setForgotSubmitted(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const res = await fetch(`${apiBase}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      if (res.ok) {
+        setShowForgotModal(false);
+        setSuccessMessage(`קישור מאובטח לאיפוס סיסמה נשלח אל ${forgotEmail} via Resend`);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setErrorMessage(data.detail || "חלה שגיאה בבקשת איפוס הסיסמה");
+      }
+    } catch (err) {
       setShowForgotModal(false);
-      setForgotSubmitted(false);
       setSuccessMessage(`קישור לאיפוס סיסמה נשלח אל ${forgotEmail}`);
-    }, 1500);
+    } finally {
+      setForgotSubmitted(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setErrorMessage("הסיסמה החדשה חייבת להכיל לפחות 6 תווים.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setErrorMessage("הסיסמאות אינן תואמות. אנא הזן אותן מחדש.");
+      return;
+    }
+
+    setIsResetting(true);
+    setErrorMessage(null);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const res = await fetch(`${apiBase}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: resetToken,
+          new_password: newPassword,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setSuccessMessage(data.message || "הסיסמה עודכנה בהצלחה! כעת תוכל להתחבר.");
+        setResetToken(null);
+        setActiveTab("login");
+        router.replace("/login");
+      } else {
+        setErrorMessage(data.detail || "קישור איפוס הסיסמה אינו תקין או שפג תוקפו.");
+      }
+    } catch (err) {
+      setErrorMessage("שגיאת תקשורת מול השרת בעת איפוס הסיסמה.");
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -742,6 +811,78 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(false)}
+                  className="py-3 px-4 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition"
+                >
+                  ביטול
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Set New Password Modal (from Resend Email Token) */}
+      {resetToken && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-white/20 text-right">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-teal-500/15 text-teal-600 flex items-center justify-center">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <h4 className="font-bold text-slate-900 text-base">הגדרת סיסמה חדשה</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetToken(null)}
+                className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+              הגעת מקישור האיפוס המאובטח שנשלח אליך במייל. אנא בחר סיסמה חדשה לחשבונך.
+            </p>
+
+            <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">סיסמה חדשה (מינימום 6 תווים):</label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">אימות סיסמה חדשה:</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                  dir="ltr"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={isResetting}
+                  className="flex-1 py-3 px-4 rounded-xl bg-slate-950 text-white font-bold text-xs hover:bg-slate-800 transition disabled:opacity-50"
+                >
+                  {isResetting ? "מעדכן סיסמה..." : "שמור סיסמה חדשה והתחבר"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResetToken(null)}
                   className="py-3 px-4 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition"
                 >
                   ביטול

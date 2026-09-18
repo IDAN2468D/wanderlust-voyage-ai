@@ -2,13 +2,30 @@ import uuid
 import logging
 import json
 import os
+from datetime import timedelta
 from typing import Dict, Any
 import httpx
 from jose import jwt as jose_jwt
-from fastapi import APIRouter, HTTPException, status, Depends
-from app.api.schemas import UserCreate, UserLogin, UserResponse, Token, GoogleAuthRequest
-from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user
+from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
+from app.api.schemas import (
+    UserCreate,
+    UserLogin,
+    UserResponse,
+    Token,
+    GoogleAuthRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    EmailDispatchResponse,
+)
+from app.core.security import (
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    decode_access_token,
+    get_current_user,
+)
 from app.core.config import settings
+from app.services.email_service import email_service
 
 logger = logging.getLogger("auth_routes")
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -54,8 +71,8 @@ _load_users_from_disk()
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-async def register(user_in: UserCreate):
-    """Register a new user account and return a signed JWT access token."""
+async def register(user_in: UserCreate, background_tasks: BackgroundTasks):
+    """Register a new user account, dispatch welcome email, and return a signed JWT access token."""
     email_key = user_in.email.lower().strip()
     if email_key in USERS_DB:
         raise HTTPException(
@@ -77,6 +94,13 @@ async def register(user_in: UserCreate):
     }
     USERS_DB[email_key] = user_record
     _save_users_to_disk()
+
+    # Dispatch welcome email asynchronously
+    background_tasks.add_task(
+        email_service.send_welcome_email,
+        email=email_key,
+        full_name=user_record["full_name"],
+    )
 
     access_token = create_access_token(
         data={
@@ -102,6 +126,67 @@ async def register(user_in: UserCreate):
             auth_provider=user_record["auth_provider"],
         ),
     )
+
+
+@router.post("/forgot-password", response_model=EmailDispatchResponse)
+async def forgot_password(payload: ForgotPasswordRequest, background_tasks: BackgroundTasks):
+    """
+    Generates a secure password reset token and emails instructions via Resend.
+    Does not disclose whether the email exists in the database.
+    """
+    email_key = payload.email.lower().strip()
+    user_record = USERS_DB.get(email_key)
+
+    if user_record:
+        reset_token = create_access_token(
+            data={"sub": email_key, "purpose": "password_reset"},
+            expires_delta=timedelta(minutes=60),
+        )
+        background_tasks.add_task(
+            email_service.send_password_reset,
+            email=email_key,
+            reset_token=reset_token,
+            recipient_name=user_record.get("full_name"),
+        )
+        logger.info(f"Password reset token generated and queued for: {email_key}")
+
+    return EmailDispatchResponse(
+        status="SUCCESS",
+        message="אם כתובת האימייל קיימת במערכת, נשלח אליה קישור מאובטח לאיפוס הסיסמה.",
+        recipient=email_key,
+    )
+
+
+@router.post("/reset-password", response_model=EmailDispatchResponse)
+async def reset_password(payload: ResetPasswordRequest):
+    """
+    Validates a password reset token and updates the user's password.
+    """
+    token_data = decode_access_token(payload.token)
+    if not token_data or token_data.get("purpose") != "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="קישור איפוס הסיסמה אינו תקין או שפג תוקפו (תקף למשך 60 דקות).",
+        )
+
+    email_key = token_data.get("sub", "").lower().strip()
+    user_record = USERS_DB.get(email_key)
+    if not user_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="חשבון המשתמש לא נמצא במערכת.",
+        )
+
+    user_record["hashed_password"] = get_password_hash(payload.new_password)
+    _save_users_to_disk()
+    logger.info(f"Password reset successfully completed for: {email_key}")
+
+    return EmailDispatchResponse(
+        status="SUCCESS",
+        message="הסיסמה עודכנה בהצלחה! כעת תוכל להתחבר עם הסיסמה החדשה.",
+        recipient=email_key,
+    )
+
 
 
 @router.post("/login", response_model=Token)

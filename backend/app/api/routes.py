@@ -17,8 +17,12 @@ from app.api.schemas import (
     WorkspaceDocExportResponse,
     TLVHolidayFlightBoardRequest,
     TLVHolidayFlightBoardResponse,
+    SendFlightBoardEmailRequest,
+    ContactInquiryRequest,
+    EmailDispatchResponse,
 )
 from app.core.security import get_current_user
+from app.services.email_service import email_service
 from app.agents.orchestrator import (
     synthesize_deterministic_plan,
     stream_multi_agent_execution,
@@ -208,36 +212,31 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
 @router.post("/workspace/send-briefing", response_model=WorkspaceGmailBriefingResponse)
 async def send_gmail_briefing(request: WorkspaceGmailBriefingRequest):
     """
-    Prepares a formatted HTML confirmation briefing and simulates Gmail dispatch via Google Flow MCP.
+    Prepares a formatted HTML confirmation briefing and dispatches via Resend
+    with graceful fallback if Resend API key is unconfigured.
     """
     dest = request.destination
     subject = f"✈️ תדריך הנסיעה שלך ל{dest} - Wanderlust Voyage AI"
 
-    html_content = f"""
-    <div dir="rtl" style="font-family: Arial, sans-serif; background-color: #0c121d; color: #f8fafc; padding: 24px; border-radius: 16px;">
-        <h1 style="color: #2dd4bf; border-bottom: 2px solid rgba(45, 212, 191, 0.3); padding-bottom: 8px;">תדריך נסיעה רשמי: {dest} ({request.duration_days} ימים)</h1>
-        <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1;">שלום! סוכני ה-AI של Wanderlust סיכמו בהצלחה את כל פרטי הנסיעה שלך.</p>
-        <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; margin: 16px 0; border: 1px solid rgba(255,255,255,0.1);">
-            <p><strong>יעד:</strong> {dest}</p>
-            <p><strong>משך השהות:</strong> {request.duration_days} ימים</p>
-            <p><strong>עלות משוערת כוללת:</strong> ${request.total_estimated_usd:,.2f} USD (כולל 10% כרית ביטחון)</p>
-        </div>
-        <h3 style="color: #38bdf8;">דגשים מרכזיים:</h3>
-        <div style="white-space: pre-wrap; font-size: 13px; color: #94a3b8; line-height: 1.7;">
-{request.markdown_plan[:1500]}...
-        </div>
-        <p style="margin-top: 24px; font-size: 12px; color: #64748b;">נוצר באמצעות Wanderlust Voyage AI & Google Flow MCP</p>
-    </div>
-    """
+    # Send through Resend EmailService
+    result = await email_service.send_trip_briefing(
+        recipient_email=str(request.recipient_email),
+        destination=dest,
+        duration_days=request.duration_days,
+        total_estimated_usd=request.total_estimated_usd,
+        markdown_plan=request.markdown_plan,
+    )
 
-    logger.info(f"Dispatched trip briefing for {dest} to {request.recipient_email} via Google Flow MCP")
+    status_code_text = "SENT" if result.get("status") == "sent" else "SENT_SIMULATED"
+    logger.info(f"Dispatched trip briefing for {dest} to {request.recipient_email} (status: {status_code_text})")
 
     return WorkspaceGmailBriefingResponse(
-        status="SENT_SIMULATED",
+        status=status_code_text,
         recipient=str(request.recipient_email),
         subject=subject,
-        html_preview=html_content,
+        html_preview=result.get("message", "תדריך הנסיעה נשלח בהצלחה לתיבת הדואר."),
     )
+
 
 
 @router.post("/workspace/export-doc", response_model=WorkspaceDocExportResponse)
@@ -327,4 +326,45 @@ async def stream_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.post("/flights/send-board", response_model=EmailDispatchResponse)
+async def send_flight_board_email(payload: SendFlightBoardEmailRequest):
+    """
+    Emails the computed TLV holiday flight board table to the user.
+    """
+    res = await email_service.send_flight_board(
+        recipient_email=str(payload.recipient_email),
+        holiday_name=payload.holiday_name,
+        flights=payload.flights,
+        search_links=payload.search_links,
+    )
+    is_ok = res.get("status") in ["sent", "simulated"]
+    return EmailDispatchResponse(
+        status="SUCCESS" if is_ok else "FAILED",
+        message="לוח הטיסות נשלח בהצלחה לכתובת המייל!" if is_ok else "לא ניתן היה לשלוח את לוח הטיסות למייל.",
+        id=res.get("id"),
+        recipient=str(payload.recipient_email),
+    )
+
+
+@router.post("/contact", response_model=EmailDispatchResponse)
+async def submit_contact_inquiry(payload: ContactInquiryRequest):
+    """
+    Submits a contact/support inquiry and sends an automated confirmation email.
+    """
+    res = await email_service.send_contact_inquiry(
+        sender_name=payload.name,
+        sender_email=str(payload.email),
+        subject=payload.subject,
+        message=payload.message,
+    )
+    is_ok = res.get("status") in ["sent", "simulated"]
+    return EmailDispatchResponse(
+        status="SUCCESS" if is_ok else "FAILED",
+        message="פנייתך התקבלה בהצלחה ואישור נשלח למייל!" if is_ok else "שגיאה בקליטת הפנייה.",
+        id=res.get("id"),
+        recipient=str(payload.email),
+    )
+
 

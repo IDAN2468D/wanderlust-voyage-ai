@@ -39,6 +39,17 @@ class Settings(BaseSettings):
         description="Authorized redirect URI for Google OAuth",
     )
 
+    # Resend Email Service (resend.com)
+    RESEND_API_KEY: str = Field(default="", description="Resend API Key for transactional emails (re_...)")
+    RESEND_FROM_EMAIL: str = Field(
+        default="Wanderlust Voyage AI <onboarding@resend.dev>",
+        description="Sender email identity approved in Resend",
+    )
+    FRONTEND_URL: str = Field(
+        default="http://localhost:3000",
+        description="Public frontend web application URL",
+    )
+
     # PostgreSQL Database
     POSTGRES_USER: str = "travel_agent"
     POSTGRES_PASSWORD: str = "travel_agent_secret"

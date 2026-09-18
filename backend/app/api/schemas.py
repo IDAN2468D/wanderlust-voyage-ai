@@ -239,3 +239,48 @@ class TLVHolidayFlightBoardResponse(BaseModel):
     board_flights: List[TLVHolidayFlightOption]
     holiday_warnings: List[str]
 
+
+# ==============================================================================
+# Resend Email Integration Schemars
+# ==============================================================================
+
+class EmailDispatchResponse(BaseModel):
+    """Generic response for email dispatch requests."""
+
+    status: str
+    message: str
+    id: Optional[str] = None
+    recipient: Optional[str] = None
+
+
+class SendFlightBoardEmailRequest(BaseModel):
+    """Payload for emailing a TLV holiday flight board to a user."""
+
+    recipient_email: EmailStr
+    holiday_name: str
+    flights: List[Dict[str, Any]]
+    search_links: Optional[Dict[str, str]] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Payload for requesting a password reset email."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Payload for setting a new password using a reset token."""
+
+    token: str
+    new_password: str = Field(..., min_length=6, description="New password (minimum 6 characters)")
+
+
+class ContactInquiryRequest(BaseModel):
+    """Payload for user contact and feedback submissions."""
+
+    name: str = Field(..., min_length=2, description="Sender name")
+    email: EmailStr
+    subject: str = Field(..., min_length=2, description="Message subject")
+    message: str = Field(..., min_length=5, description="Message content")
+
+
