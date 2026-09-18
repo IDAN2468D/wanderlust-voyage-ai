@@ -15,6 +15,22 @@ import {
   Lock,
   Plane,
   Sparkles,
+  MapPin,
+  Compass,
+  Clock,
+  Check,
+  Users,
+  Layers,
+  Activity,
+  ArrowUpRight,
+  Cpu,
+  Luggage,
+  Umbrella,
+  Calendar,
+  Heart,
+  TrendingUp,
+  CheckCircle2,
+  Zap,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -23,34 +39,225 @@ import { TripForm, TripFormData } from "@/components/TripForm";
 import { AgentStreamLogs, StreamLogItem } from "@/components/AgentStreamLogs";
 import { TripResultView } from "@/components/TripResultView";
 
-const ALL_POPULAR_DESTINATIONS = [
+// Curated destinations with rich metadata, category tags and moments
+interface DestinationItem {
+  id: string;
+  name: string;
+  location: string;
+  country: string;
+  rating: number;
+  reviewsCount: number;
+  image: string;
+  category: "all" | "islands" | "culture" | "nature" | "culinary";
+  moments: number;
+  durationDays: number;
+  estCostUsd: number;
+  tagline: string;
+  flightHoursFromTlv: string;
+}
+
+const FEATURED_DESTINATIONS: DestinationItem[] = [
   {
     id: "santorini",
     name: "סנטוריני",
-    location: "יוון",
-    rating: 4.8,
+    location: "האיים הקיקלאדיים",
+    country: "יוון",
+    rating: 4.9,
+    reviewsCount: 428,
     image: "/images/santorini.jpg",
+    category: "islands",
+    moments: 24,
+    durationDays: 5,
+    estCostUsd: 1350,
+    tagline: "שקיעות מרהיבות באויה, וילות לבנות ובריכות אינסוף מול הלוע הגעשי",
+    flightHoursFromTlv: "2 שעות ו-15 דק'",
+  },
+  {
+    id: "tokyo",
+    name: "טוקיו",
+    location: "קנטו",
+    country: "יפן",
+    rating: 4.95,
+    reviewsCount: 680,
+    image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000&auto=format&fit=crop",
+    category: "culture",
+    moments: 42,
+    durationDays: 10,
+    estCostUsd: 2850,
+    tagline: "שילוב חד-פעמי בין עתידנות, מקדשים עתיקים, אופנת רחוב ומטבח מישלן",
+    flightHoursFromTlv: "11 שעות ו-20 דק'",
   },
   {
     id: "maldives",
     name: "האיים המלדיביים",
     location: "האוקיינוס ההודי",
-    rating: 4.9,
+    country: "המלדיביים",
+    rating: 4.92,
+    reviewsCount: 310,
     image: "/images/maldives.jpg",
+    category: "islands",
+    moments: 19,
+    durationDays: 7,
+    estCostUsd: 3400,
+    tagline: "בקתות עץ יוקרתיות על המים, שוניות אלמוגים פראיות ושלווה מוחלטת",
+    flightHoursFromTlv: "7 שעות ו-40 דק'",
   },
   {
     id: "swiss_alps",
     name: "האלפים השוויצריים",
-    location: "שוויץ",
-    rating: 4.7,
+    location: "צנטרלשוויץ",
+    country: "שוויץ",
+    rating: 4.88,
+    reviewsCount: 295,
     image: "/images/swiss_alps.jpg",
+    category: "nature",
+    moments: 31,
+    durationDays: 6,
+    estCostUsd: 2200,
+    tagline: "פסגות מושלגות, אגמים צלולים, רכבות פנורמיות ומלונות ספא יוקרתיים",
+    flightHoursFromTlv: "4 שעות ו-10 דק'",
   },
   {
     id: "bali",
     name: "באלי",
     location: "אינדונזיה",
-    rating: 4.8,
+    country: "אינדונזיה",
+    rating: 4.85,
+    reviewsCount: 540,
     image: "/images/bali.jpg",
+    category: "nature",
+    moments: 36,
+    durationDays: 8,
+    estCostUsd: 1750,
+    tagline: "טרסות אורז באובוד, מקדשים מרחפים על המים וחופים טרופיים קסומים",
+    flightHoursFromTlv: "13 שעות ו-30 דק'",
+  },
+  {
+    id: "rome",
+    name: "רומא",
+    location: "לאציו",
+    country: "איטליה",
+    rating: 4.87,
+    reviewsCount: 620,
+    image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop",
+    category: "culinary",
+    moments: 28,
+    durationDays: 5,
+    estCostUsd: 1420,
+    tagline: "פסטה טרייה בסמטאות טרסטוורה, קולוסיאום מואר והיסטוריה חיה בכל צעד",
+    flightHoursFromTlv: "3 שעות ו-45 דק'",
+  },
+];
+
+// Quick Hero Inspiration Chips
+const QUICK_INSPIRATIONS = [
+  { label: "🌸 טוקיו ביפן", destination: "טוקיו, יפן", duration: 10 },
+  { label: "🏖️ חופשת באלי", destination: "באלי, אינדונזיה", duration: 8 },
+  { label: "🏛️ רומא וטוסקנה", destination: "רומא, איטליה", duration: 5 },
+  { label: "🎿 האלפים השוויצריים", destination: "האלפים השוויצריים, שוויץ", duration: 6 },
+  { label: "🏝️ וילה במלדיביים", destination: "האיים המלדיביים", duration: 7 },
+  { label: "🇬🇷 סנטוריני הרומנטית", destination: "סנטוריני, יוון", duration: 5 },
+];
+
+// Autonomous Multi-Agent Team Specs
+const AGENTS_TEAM = [
+  {
+    id: "orchestrator",
+    name: "Travel Orchestrator",
+    role: "סוכן מתאם ראשי",
+    desc: "מנתח את העדפות המטייל, מסנכרן את כל 6 הסוכנים האחרים ומחבר ל-Google Workspace.",
+    icon: Compass,
+    color: "from-amber-400 to-amber-600",
+    badgeColor: "bg-amber-400/10 text-amber-300 border-amber-400/20",
+    metrics: "סנכרון תוכנית-על",
+  },
+  {
+    id: "flights",
+    name: "Flight Search Engine",
+    role: "סוכן טיסות ונתב\"ג",
+    desc: "סורק לוחות טיסות מנתב\"ג, בודק מועדי כניסת חג ושבת ומחשב כבודה מלאה ללא הפתעות.",
+    icon: Plane,
+    color: "from-blue-400 to-cyan-500",
+    badgeColor: "bg-cyan-400/10 text-cyan-300 border-cyan-400/20",
+    metrics: "השוואה ישירה וקונקשנים",
+  },
+  {
+    id: "hotels",
+    name: "Places & Hotel Curator",
+    role: "סוכן לינה וקולינריה",
+    desc: "מאתר מלונות בוטיק וריזורטים עם דירוג 8.8+, לצד מסעדות שף וחוויות קולינריה אותנטיות.",
+    icon: MapPin,
+    color: "from-emerald-400 to-teal-500",
+    badgeColor: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+    metrics: "אימות מיקומים וקרבה",
+  },
+  {
+    id: "budget",
+    name: "Budget & Currency Optimizer",
+    role: "סוכן תקציב ופיננסים",
+    desc: "מחשב שערי המרה רציפים (₪/$/€), מקצה 10% בלת\"ם אוטומטי ומונע חריגות תקציב.",
+    icon: TrendingUp,
+    color: "from-purple-400 to-pink-500",
+    badgeColor: "bg-purple-400/10 text-purple-300 border-purple-400/20",
+    metrics: "ניהול רב-מטבעי מדויק",
+  },
+  {
+    id: "weather",
+    name: "Weather & Packing Optimizer",
+    role: "סוכן אקלים ומזוודה",
+    desc: "בודק טמפרטורות יום/לילה, עומסי חום או גשם ומפיק צ'ק ליסט מותאם למזוודה.",
+    icon: Umbrella,
+    color: "from-sky-400 to-blue-600",
+    badgeColor: "bg-sky-400/10 text-sky-300 border-sky-400/20",
+    metrics: "חיזוי עונתי מותאם",
+  },
+  {
+    id: "culture",
+    name: "Culture & Events Specialist",
+    role: "סוכן תרבות ואירועים",
+    desc: "מוצא פסטיבלים עונתיים, נקודות תצפית לשקיעה ואוצרות תרבות הרחק ממלכודות התיירים.",
+    icon: Sparkles,
+    color: "from-orange-400 to-amber-500",
+    badgeColor: "bg-orange-400/10 text-orange-300 border-orange-400/20",
+    metrics: "חוויות מקומיות נסתרות",
+  },
+  {
+    id: "safety",
+    name: "Safety & Health Advisor",
+    role: "סוכן בטיחות ורפואה",
+    desc: "מוודא דרישות אשרת כניסה (ויזה), תוקף דרכון, אזהרות מסע עדכניות ומספרי חירום מקומיים.",
+    icon: ShieldCheck,
+    color: "from-mint-400 to-emerald-600",
+    badgeColor: "bg-mint-400/10 text-mint-300 border-mint-400/20",
+    metrics: "הגנה ובדיקת דרישות",
+  },
+];
+
+// Verified Traveler Testimonials
+const TESTIMONIALS = [
+  {
+    name: "רוני ואלון שפירא",
+    from: "תל אביב",
+    dest: "טוקיו וקיוטו • 12 ימים",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+    quote: "סוכני ה-AI הרכיבו לנו טיול מושלם ליפן ב-40 שניות! המלונות היו בדיוק דקה מתחנות השינקנסן, המסלול הסתנכרן לנו אוטומטית ל-Google Calendar, וחסכנו כמעט ₪3,000 בהשוואת הטיסות.",
+    stars: 5,
+  },
+  {
+    name: "מיכל דוידוביץ'",
+    from: "הרצליה",
+    dest: "האלפים השוויצריים • 6 ימים",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
+    quote: "הפיצ'ר של בדיקת מזג האוויר והמזוודה היה גאוני. ידענו בדיוק מה לארוז, קיבלנו שובר הזמנה מעוצב ישר למייל דרך Resend והשירות היה ללא דופי.",
+    stars: 5,
+  },
+  {
+    name: "דניאל גרינברג",
+    from: "ירושלים",
+    dest: "סנטוריני וכרתים • 7 ימים",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
+    quote: "השילוב של פריסה לתשלומים ללא ריבית והעובדה שכל הטיסות מנתב\"ג נבדקו כולל כבודה אמיתית נתן לנו שקט נפשי מלא. מומלץ בחום לכל מי שמתכנן חופשה!",
+    stars: 5,
   },
 ];
 
@@ -69,7 +276,8 @@ export default function Home() {
   const [currentDestination, setCurrentDestination] = useState<string>("באלי, אינדונזיה");
   const [currentDuration, setCurrentDuration] = useState<number>(7);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
-  const [carouselIndex, setCarouselIndex] = useState<number>(0);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [activeAgentCard, setActiveAgentCard] = useState<number>(0);
 
   // Specialist Agents Extra Data
   const [weatherMetrics, setWeatherMetrics] = useState<any>(null);
@@ -84,7 +292,7 @@ export default function Home() {
   const agentSectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Check URL search parameters on mount (e.g., from destinations / trips / search modal)
+  // Check URL search parameters on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -107,18 +315,16 @@ export default function Home() {
     }
   }, []);
 
-  const handleSelectDestination = (destName: string, locName: string) => {
-    setCurrentDestination(`${destName}, ${locName}`);
+  const handleSelectQuickInspiration = (dest: string, duration: number) => {
+    setCurrentDestination(dest);
+    setCurrentDuration(duration);
     formRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleNextDestination = () => {
-    setCarouselIndex((prev) => (prev + 1) % ALL_POPULAR_DESTINATIONS.length);
-  };
-
-  const handlePrevDestination = () => {
-    setCarouselIndex((prev) => (prev - 1 + ALL_POPULAR_DESTINATIONS.length) % ALL_POPULAR_DESTINATIONS.length);
-  };
+  const filteredDestinations =
+    selectedCategory === "all"
+      ? FEATURED_DESTINATIONS
+      : FEATURED_DESTINATIONS.filter((d) => d.category === selectedCategory);
 
   const handleTripSubmit = async (formData: TripFormData) => {
     setIsStreaming(true);
@@ -170,7 +376,7 @@ export default function Home() {
         body: JSON.stringify(requestPayload),
       });
 
-      // If /trips/plan/stream not available, fallback to /plan-trip/stream
+      // Fallback
       if (!response.ok && response.status === 404) {
         response = await fetch(`${apiBase}/api/v1/plan-trip/stream`, {
           method: "POST",
@@ -270,12 +476,14 @@ export default function Home() {
                   agent: "travel_orchestrator",
                   stage: "COMPLETE",
                   title: "התוכנית הושלמה בהצלחה ע\"י 7 סוכני ה-AI",
-                  message: `כל משימות הסוכנים סוכמו במלואן. סטטוס תקציב: ${data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"}`,
+                  message: `כל משימות הסוכנים סוכמו במלואן. סטטוס תקציב: ${
+                    data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"
+                  }`,
                   timestamp: nowTime,
                 },
               ]);
 
-              // Store last planned trip for post-registration email delivery
+              // Store last planned trip for post-registration email auto-dispatch
               try {
                 localStorage.setItem(
                   "wanderlust_last_planned_trip",
@@ -358,240 +566,240 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#070c12] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
+    <main className="min-h-screen bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans relative overflow-x-hidden" dir="rtl">
+      {/* Background Liquid Glass Ambient Glow Orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-1/4 -right-40 w-[550px] h-[550px] rounded-full bg-cyan-600/10 blur-[130px] animate-flow-1" />
+        <div className="absolute top-2/3 -left-40 w-[600px] h-[600px] rounded-full bg-mint-500/10 blur-[140px] animate-flow-2" />
+        <div className="absolute bottom-10 right-1/3 w-[450px] h-[450px] rounded-full bg-amber-500/08 blur-[120px] animate-flow-3" />
+      </div>
+
       {/* Global Shared Header Navbar */}
       <Navbar />
 
       {/* ========================================================
-          HERO WRAPPER WITH FULL BLEED BACKGROUND IMAGE
+          LIVE AIRPORT & TELEMETRY TICKER BAR (Liquid Glass 4.0 Pro)
       ======================================================== */}
-      <div className="relative min-h-[920px] lg:min-h-[1000px] w-full overflow-hidden flex flex-col justify-between">
-        {/* Background Image with Vignette & Gradients */}
+      <div className="relative z-20 border-y border-white/10 bg-black/40 backdrop-blur-xl py-2 px-4 sm:px-8 text-[11px] overflow-x-auto select-none">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 whitespace-nowrap">
+          <div className="flex items-center gap-2 font-bold text-mint-400">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-mint-500" />
+            </span>
+            <span>טלמטריה חיה נתב"ג (TLV Hub)</span>
+          </div>
+
+          <div className="flex items-center gap-6 text-slate-300 font-mono overflow-x-auto py-0.5">
+            <span className="flex items-center gap-1.5">
+              <Plane className="w-3 h-3 text-cyan-400" />
+              <span>TLV ⇄ HND: 11h 20m • טיסות פתוחות</span>
+            </span>
+            <span className="text-white/20">|</span>
+            <span className="flex items-center gap-1.5">
+              <span>🏛️ FCO רומא: 21°C • עומס נמוך</span>
+            </span>
+            <span className="text-white/20">|</span>
+            <span className="flex items-center gap-1.5">
+              <span>🏝️ JTR סנטוריני: 23°C • שקיעה ב-19:42</span>
+            </span>
+            <span className="text-white/20">|</span>
+            <span className="flex items-center gap-1.5">
+              <TrendingUp className="w-3 h-3 text-emerald-400" />
+              <span>שער יציג: 1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
+            </span>
+            <span className="text-white/20">|</span>
+            <span className="text-amber-400 flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              <span>7 סוכני AI פעילים כעת במקביל</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================
+          HERO WRAPPER WITH FULL BLEED LUXURY BACKGROUND IMAGE
+      ======================================================== */}
+      <div className="relative min-h-[920px] lg:min-h-[1020px] w-full overflow-hidden flex flex-col justify-between">
+        {/* Background Image with Vignette & Specular Gradient */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/hero-bg.jpg"
             alt="Wanderlust Coastline"
             fill
             priority
-            className="object-cover object-center scale-105"
+            className="object-cover object-center scale-105 transition-transform duration-1000 ease-out"
           />
-          {/* Gradients for text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-[#070c12]/50 to-black/60" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070c12]/80 via-transparent to-[#070c12]/70" />
+          {/* Multi-layer Cinematic Vignettes */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/60 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/90 via-[#050811]/40 to-[#050811]/80" />
         </div>
 
-        {/* ========================================================
-            HERO MAIN CONTENT (Split: Heading Right, Form Left)
-        ======================================================== */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-12 lg:py-16 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Right Column: Hero Headline & CTAs */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Eyebrow */}
-              <div className="flex items-center gap-2 text-mint-400 text-xs font-bold uppercase tracking-[0.2em]">
-                <span className="w-6 h-0.5 bg-mint-400 inline-block" />
-                <span>העולם מחכה לך</span>
+        {/* HERO MAIN CONTENT (Headline + Quick Prompts on Right, TripForm on Left) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-10 lg:py-16 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+            {/* Right Column: Hero Headline, Badges, Quick Prompt Chips */}
+            <div className="lg:col-span-7 space-y-6 text-right">
+              {/* Top Luxury Eyebrow */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
+                <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse" />
+                <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
               </div>
 
-              {/* Massive Editorial Serif Heading */}
+              {/* Massive Editorial Headline */}
               <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.12]">
-                הרפתקאות <br />
-                שנשארות איתך <br />
-                <span className="italic font-normal text-slate-200">לנצח</span>
+                מסעות שנבנים <br />
+                במיוחד עבורך <br />
+                <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
+                  ע״י 7 סוכני AI
+                </span>
               </h1>
 
               {/* Subtitle */}
               <p className="text-slate-300 text-sm sm:text-base max-w-xl leading-relaxed">
-                גלה יעדים עוצרי נשימה, חוויות בלתי נשכחות ומסלולים שנבנים במיוחד עבורך על ידי צוות סוכני בינה מלאכותית אוטונומיים — מטיסות ועד אחרון הפרטים.
+                מערכת אוטונומית מתקדמת הסורקת לוחות טיסות חיים מנתב״ג, מאתרת מלונות בוטיק יוקרתיים, מבצעת אופטימיזציית תקציב מלאה ומסנכרנת את תיק המסע המלא ישירות ל-Google Calendar וכתובת המייל שלך.
               </p>
 
+              {/* Quick Inspiration Pills */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold text-slate-400 block">
+                  השראה מיידית – לחץ ליצירת מסלול מותאם בלחיצה אחת:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_INSPIRATIONS.map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectQuickInspiration(chip.destination, chip.duration)}
+                      className="px-3.5 py-1.5 rounded-full bg-white/[0.07] hover:bg-mint-500/20 hover:border-mint-400/50 border border-white/15 text-xs text-slate-200 hover:text-mint-300 transition-all duration-200 flex items-center gap-1.5 group shadow-sm hover:scale-[1.02]"
+                    >
+                      <span>{chip.label}</span>
+                      <ArrowLeft className="w-3 h-3 text-slate-400 group-hover:text-mint-400 group-hover:-translate-x-0.5 transition-transform" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-3.5 pt-3">
                 <button
                   type="button"
                   onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  className="btn-mint px-7 py-3.5 rounded-full text-sm font-bold flex items-center gap-2"
+                  className="btn-mint px-7 py-3.5 rounded-full text-sm font-bold flex items-center gap-2.5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  <span>חקור יעדים</span>
+                  <span>התחל תכנון טיול עכשיו</span>
                   <ArrowLeft className="w-4 h-4" />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setIsVideoModalOpen(true)}
-                  className="flex items-center gap-3 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-sm font-semibold transition group"
+                  className="flex items-center gap-3 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-sm font-semibold transition group shadow-md"
                 >
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-mint-400 shadow-inner group-hover:scale-110 transition-transform">
+                  <div className="w-8 h-8 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
                     <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                   </div>
-                  <span>צפה בהדגמה</span>
+                  <span>צפה בהדגמת וידאו</span>
                 </button>
 
                 <a
                   href="/flights"
-                  className="flex items-center gap-2 px-5 py-3 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-sm font-bold transition group"
+                  className="flex items-center gap-2 px-5 py-3 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-sm font-bold transition group shadow-md"
                 >
                   <Plane className="w-4 h-4 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
-                  <span>לוח טיסות חגים נתב"ג ✈️</span>
+                  <span>לוח טיסות חגים מנתב"ג ✈️</span>
                 </a>
               </div>
             </div>
 
-            {/* Left Column: Floating Wanderlust Booking Card */}
+            {/* Left Column: Floating Trip Planning Glass Card */}
             <div className="lg:col-span-5" id="planner-form" ref={formRef}>
-              <TripForm
-                onSubmit={handleTripSubmit}
-                isLoading={isStreaming}
-                selectedDestination={currentDestination}
-              />
+              <div className="relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-mint-500/30 to-cyan-500/30 rounded-3xl blur-xl opacity-60 pointer-events-none" />
+                <div className="relative">
+                  <TripForm
+                    onSubmit={handleTripSubmit}
+                    isLoading={isStreaming}
+                    selectedDestination={currentDestination}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ========================================================
-            HERO BOTTOM BAR: Popular Destinations Carousel + Guarantees
-        ======================================================== */}
-        <div id="destinations" className="relative z-10 w-full px-6 sm:px-12 lg:px-16 pb-8 pt-4">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
-              {/* Popular Destinations (Cards) */}
-              <div className="lg:col-span-8 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h4 className="text-base font-bold text-white font-serif">יעדים פופולריים</h4>
-                    <a
-                      href="/destinations"
-                      className="text-xs text-mint-400 font-semibold cursor-pointer hover:underline"
-                    >
-                      צפה בהכל
-                    </a>
+        {/* Social Proof & Guarantees Strip */}
+        <div className="relative z-10 w-full px-5 sm:px-10 lg:px-16 pb-8 pt-4">
+          <div className="max-w-7xl mx-auto space-y-4">
+            {/* Guarantees Grid */}
+            <div className="wanderlust-glass rounded-2xl p-4 sm:p-5 border border-white/15 shadow-2xl">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-right">
+                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-mint-500/15 text-mint-400 border border-mint-500/20">
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handlePrevDestination}
-                      title="קודם"
-                      className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center border border-white/10 backdrop-blur-md transition"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleNextDestination}
-                      title="הבא"
-                      className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center border border-white/10 backdrop-blur-md transition"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
+                  <div>
+                    <div className="font-bold text-xs text-white">הבטחת מחיר מלאה</div>
+                    <div className="text-[10px] text-slate-400">כולל כבודה מראש וללא עמלות</div>
                   </div>
                 </div>
 
-                {/* 4 Cards Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {ALL_POPULAR_DESTINATIONS.map((dest, idx) => (
-                    <div
-                      key={dest.id}
-                      onClick={() => handleSelectDestination(dest.name, dest.location)}
-                      className={`group relative h-36 rounded-2xl overflow-hidden cursor-pointer border shadow-lg dest-card-zoom transition-all ${
-                        carouselIndex === idx ? "border-mint-400/80 ring-2 ring-mint-400/40" : "border-white/15"
-                      }`}
-                    >
-                      <Image
-                        src={dest.image}
-                        alt={dest.name}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                      <div className="absolute bottom-2.5 right-2.5 left-2.5 flex items-end justify-between">
-                        <div>
-                          <div className="font-bold text-xs text-white group-hover:text-mint-400 transition-colors">
-                            {dest.name}
-                          </div>
-                          <div className="text-[10px] text-slate-300">{dest.location}</div>
-                        </div>
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-white bg-black/50 px-1.5 py-0.5 rounded-md backdrop-blur-sm border border-white/10">
-                          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                          <span>{dest.rating}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
+                    <Headphones className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs text-white">מענה ועדכונים 24/7</div>
+                    <div className="text-[10px] text-slate-400">סוכני AI זמינים לכל שינוי</div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Guarantees Strip */}
-              <div className="lg:col-span-4 wanderlust-glass-card rounded-2xl p-3.5 border border-white/10 shadow-lg">
-                <div className="grid grid-cols-2 gap-3 text-right">
-                  <div className="flex items-center gap-2.5 p-1.5">
-                    <div className="p-2 rounded-xl bg-white/5 text-mint-400">
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-white">הבטחת מחיר</div>
-                      <div className="text-[10px] text-slate-400">המחיר הטוב ביותר</div>
-                    </div>
+                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/20">
+                    <CalendarCheck className="w-5 h-5" />
                   </div>
-
-                  <div className="flex items-center gap-2.5 p-1.5">
-                    <div className="p-2 rounded-xl bg-white/5 text-mint-400">
-                      <Headphones className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-white">תמיכה 24/7</div>
-                      <div className="text-[10px] text-slate-400">סוכני AI זמינים</div>
-                    </div>
+                  <div>
+                    <div className="font-bold text-xs text-white">סנכרון Google Workspace</div>
+                    <div className="text-[10px] text-slate-400">יומן Calendar, מייל ומסמכים</div>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2.5 p-1.5">
-                    <div className="p-2 rounded-xl bg-white/5 text-mint-400">
-                      <CalendarCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-white">גמישות מרבית</div>
-                      <div className="text-[10px] text-slate-400">שינויים והתאמות</div>
-                    </div>
+                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                    <Lock className="w-5 h-5" />
                   </div>
-
-                  <div className="flex items-center gap-2.5 p-1.5">
-                    <div className="p-2 rounded-xl bg-white/5 text-mint-400">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-white">תשלום מאובטח</div>
-                      <div className="text-[10px] text-slate-400">הצפנה מקצה לקצה</div>
-                    </div>
+                  <div>
+                    <div className="font-bold text-xs text-white">סליקה בתקן PCI-DSS</div>
+                    <div className="text-[10px] text-slate-400">פריסה לתשלומים, Apple Pay ו-bit</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Social Proof Numbers Strip */}
-            <div className="pt-6 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {/* Key Metrics Counter Strip */}
+            <div className="pt-3 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="font-serif text-2xl font-black text-white tracking-tight">500+</div>
+                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">500+</div>
                 <div className="text-xs text-slate-400 mt-0.5">יעדים ברחבי תבל</div>
               </div>
               <div>
-                <div className="font-serif text-2xl font-black text-white tracking-tight">10K+</div>
-                <div className="text-xs text-slate-400 mt-0.5">מטיילים מרוצים</div>
+                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">12,450+</div>
+                <div className="text-xs text-slate-400 mt-0.5">מסלולי טיול שנבנו</div>
               </div>
               <div>
-                <div className="font-serif text-2xl font-black text-white tracking-tight">150+</div>
-                <div className="text-xs text-slate-400 mt-0.5">מומחי תיירות וסוכני AI</div>
+                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">7 מומחים</div>
+                <div className="text-xs text-slate-400 mt-0.5">סוכני AI אוטונומיים בסנכרון</div>
               </div>
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-serif text-2xl font-black text-white tracking-tight">4.9</span>
+                  <span className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">4.96</span>
                   <div className="flex text-amber-400">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                    ))}
                   </div>
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">דירוג שביעות רצון</div>
+                <div className="text-xs text-slate-400 mt-0.5">דירוג שביעות רצון ממוצע</div>
               </div>
             </div>
           </div>
@@ -599,47 +807,19 @@ export default function Home() {
       </div>
 
       {/* ========================================================
-          TLV HOLIDAY FLIGHT BOARD SPOTLIGHT BANNER
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8">
-        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#0a121e]/80 to-teal-950/40 border border-cyan-500/30 backdrop-blur-2xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>חדש באתר: סוכן טיסות חגים מנתב"ג</span>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              מתכננים חופשה בפסח, שבועות, קיץ או סוכות?
-            </h3>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              סוכן נתב"ג החכם משווה את כל הטיסות הזולות מחברות ישראליות וזרות, בודק מועדי שבת וחג שבהם אל על וישראייר אינן טסות, מנרמל את עלויות הכבודה המלאות ובונה לוח המראות חי.
-            </p>
-          </div>
-
-          <a
-            href="/flights"
-            className="shrink-0 px-7 py-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-3 cursor-pointer"
-          >
-            <Plane className="w-4 h-4" />
-            <span>פתח את לוח המראות החגים ✈️</span>
-          </a>
-        </div>
-      </section>
-
-      {/* ========================================================
-          MULTI-AGENT EXECUTION & TELEMETRY STREAM SECTION
+          MULTI-AGENT EXECUTION & TELEMETRY STREAM SECTION (If Active)
       ======================================================== */}
       {(isStreaming || logs.length > 0 || markdownPlan) && (
-        <section ref={agentSectionRef} className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-14 space-y-10">
+        <section ref={agentSectionRef} className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-14 space-y-10 relative z-20">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs px-3 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-500/30 font-bold uppercase tracking-wider">
               חדר המבצעים האוטונומי
             </span>
             <h2 className="text-3xl font-serif font-bold text-white">
-              תהליך התכנון והסינתזה של סוכני ה-AI
+              תהליך התכנון והסינתזה של 7 סוכני ה-AI
             </h2>
             <p className="text-xs text-slate-400">
-              מעקב חי אחר קריאות לכלים, בירור לוחות זמנים ואישור תקציב בזמן אמת.
+              מעקב חי אחר קריאות לכלים, בירור לוחות זמנים מנתב״ג, בחירת מלונות ואישור תקציב.
             </p>
           </div>
 
@@ -668,6 +848,299 @@ export default function Home() {
           )}
         </section>
       )}
+
+      {/* ========================================================
+          EXPLORE DESTINATIONS SECTION (MotionSites "Scenic Travel" & "Travel Explorer" Style)
+      ======================================================== */}
+      <section id="destinations" className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-8 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
+          <div className="space-y-2 text-right">
+            <div className="flex items-center gap-2 text-xs font-bold text-mint-400 uppercase tracking-wider">
+              <Compass className="w-3.5 h-3.5" />
+              <span>אוסף מסעות עולמי</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+              יעדים מובילים ומסלולים מבוקשים
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-xl">
+              בחר יעד מתוך האוסף הנבחר. לחיצה על כרטיס תטען אוטומטית את היעד למחשבון התכנון.
+            </p>
+          </div>
+
+          {/* Category Filter Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {[
+              { id: "all", label: "כל היעדים" },
+              { id: "islands", label: "🏝️ איים ונופש" },
+              { id: "culture", label: "🏛️ תרבות והיסטוריה" },
+              { id: "nature", label: "🏔️ טבע ונופים" },
+              { id: "culinary", label: "🍷 קולינריה" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSelectedCategory(tab.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  selectedCategory === tab.id
+                    ? "bg-mint-500/25 text-mint-300 border border-mint-400 shadow-md shadow-mint-500/10"
+                    : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 6 Destination Cards Grid with Liquid Glass treatment */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredDestinations.map((dest) => (
+            <div
+              key={dest.id}
+              onClick={() => handleSelectQuickInspiration(`${dest.name}, ${dest.country}`, dest.durationDays)}
+              className="group wanderlust-glass-card rounded-3xl overflow-hidden border border-white/15 hover:border-mint-400/60 shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer flex flex-col justify-between"
+            >
+              {/* Image Container */}
+              <div className="relative h-60 w-full overflow-hidden">
+                <Image
+                  src={dest.image}
+                  alt={dest.name}
+                  fill
+                  className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a101b] via-[#0a101b]/30 to-transparent" />
+
+                {/* Top Badges */}
+                <div className="absolute top-3.5 right-3.5 left-3.5 flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white flex items-center gap-1.5 shadow-md">
+                    <Sparkles className="w-3 h-3 text-mint-400" />
+                    <span>{dest.moments} רגעי מפתח</span>
+                  </span>
+
+                  <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white flex items-center gap-1 shadow-md">
+                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                    <span>{dest.rating}</span>
+                    <span className="text-slate-400 text-[9px]">({dest.reviewsCount})</span>
+                  </span>
+                </div>
+
+                {/* Bottom of Image: Flight time from TLV */}
+                <div className="absolute bottom-3 right-3.5 left-3.5 flex items-center justify-between text-[11px] text-slate-300">
+                  <span className="bg-black/60 px-2.5 py-0.5 rounded-md backdrop-blur-sm border border-white/10 flex items-center gap-1 font-mono">
+                    <Plane className="w-3 h-3 text-cyan-400" />
+                    <span>מנתב״ג: {dest.flightHoursFromTlv}</span>
+                  </span>
+                  <span className="bg-mint-500/20 text-mint-300 font-bold px-2 py-0.5 rounded-md border border-mint-500/30 text-[10px]">
+                    {dest.durationDays} ימים מומלצים
+                  </span>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-5 space-y-3.5 text-right flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <h3 className="text-xl font-bold text-white font-serif group-hover:text-mint-300 transition-colors">
+                      {dest.name}
+                    </h3>
+                    <span className="text-xs text-slate-400">{dest.country}</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed mt-1.5">
+                    {dest.tagline}
+                  </p>
+                </div>
+
+                {/* Price and Action button */}
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block">עלות משוערת למסלול:</span>
+                    <span className="font-heading font-black text-white text-base">
+                      ${dest.estCostUsd.toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="px-4 py-2 rounded-xl bg-mint-500/15 border border-mint-500/30 text-mint-300 text-xs font-bold group-hover:bg-mint-400 group-hover:text-slate-950 transition-all flex items-center gap-1.5 shadow-sm">
+                    <span>בחר ותכנן</span>
+                    <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================
+          MULTI-AGENT ORCHESTRATION COCKPIT (How the 7 AI Agents Work)
+      ======================================================== */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-10 relative z-10">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
+            <Cpu className="w-3.5 h-3.5" />
+            <span>הארכיטקטורה הרב-סוכנית</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">
+            צוות של 7 סוכני בינה מלאכותית אוטונומיים
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            במקום מודל גנרי בודד, Wanderlust מפעילה 7 סוכנים מומחים הפועלים בסינרגיה מתמדת ומונעים טעויות בתכנון, בטיסות ובתקציב.
+          </p>
+        </div>
+
+        {/* 7 Agents Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {AGENTS_TEAM.map((agent, idx) => {
+            const Icon = agent.icon;
+            return (
+              <div
+                key={agent.id}
+                onMouseEnter={() => setActiveAgentCard(idx)}
+                className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between text-right space-y-3 ${
+                  activeAgentCard === idx
+                    ? "wanderlust-glass border-mint-400/60 shadow-xl shadow-mint-500/10 scale-[1.02]"
+                    : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${agent.color} text-slate-950 font-bold shadow-md`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${agent.badgeColor}`}>
+                      {agent.metrics}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-white text-sm font-serif">{agent.name}</h4>
+                    <span className="text-[11px] text-mint-400 font-semibold">{agent.role}</span>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">{agent.desc}</p>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    מופעל אוטונומית
+                  </span>
+                  <span className="font-mono text-slate-400">SSE Live Telemetry</span>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* 8th Card: Google Workspace Integration Hub */}
+          <div className="p-5 rounded-2xl border border-dashed border-mint-400/40 bg-gradient-to-br from-mint-500/10 to-transparent flex flex-col justify-between text-right space-y-3">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-mint-400 text-slate-950 font-bold shadow-md">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full border border-mint-400/30 bg-mint-400/15 text-mint-300 font-bold">
+                  Google Workspace
+                </span>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-white text-sm font-serif">סנכרון מלא לפלטפורמה שלך</h4>
+                <span className="text-[11px] text-mint-400 font-semibold">Calendar • Docs • Resend</span>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                קבל את כל לוחות הזמנים ישירות ליומן Google שלך, מסמך תכנון משותף ושובר כרטיסים רשמי במייל.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-mint-300 font-bold">
+              <span>סנכרון בלחיצת כפתור</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          TLV HOLIDAY FLIGHT BOARD SPOTLIGHT BANNER
+      ======================================================== */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-8 relative z-10">
+        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#0a121e]/80 to-teal-950/40 border border-cyan-500/30 backdrop-blur-2xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl text-right">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>בלעדי: סוכן טיסות חגים מנתב"ג</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              מתכננים חופשה בפסח, שבועות, קיץ או סוכות?
+            </h3>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              סוכן נתב"ג החכם משווה את כל הטיסות מכל חברות התעופה הישראליות והזרות, בודק מועדי כניסת שבת וחג שבהם אל על וישראייר אינן טסות, מנרמל את עלויות הכבודה המלאות ובונה לוח המראות חי.
+            </p>
+          </div>
+
+          <a
+            href="/flights"
+            className="shrink-0 px-7 py-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-3 cursor-pointer"
+          >
+            <Plane className="w-4 h-4" />
+            <span>פתח את לוח המראות החגים ✈️</span>
+          </a>
+        </div>
+      </section>
+
+      {/* ========================================================
+          TRAVELER REVIEWS & SOCIAL PROOF
+      ======================================================== */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-10 relative z-10">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-mint-500/10 border border-mint-400/20 text-mint-300 text-xs font-bold">
+            <Users className="w-3.5 h-3.5" />
+            <span>חוויות מטיילים</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">
+            מה אומרים המטיילים שלנו?
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            מעל 12,000 מסלולים שנבנו ע״י סוכני ה-AI ועזרו למטיילים ישראלים לחסוך זמן וכסף.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {TESTIMONIALS.map((t, idx) => (
+            <div
+              key={idx}
+              className="wanderlust-glass rounded-3xl p-6 border border-white/10 flex flex-col justify-between space-y-4 text-right shadow-xl hover:border-white/20 transition"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(t.stars)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold text-mint-400 bg-mint-500/10 px-2 py-0.5 rounded-full border border-mint-500/20">
+                    מטייל מאומת
+                  </span>
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed italic">
+                  "{t.quote}"
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/20">
+                  <Image src={t.avatar} alt={t.name} fill className="object-cover" />
+                </div>
+                <div className="leading-tight">
+                  <div className="font-bold text-xs text-white">{t.name}</div>
+                  <div className="text-[10px] text-slate-400">{t.from} • {t.dest}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Interactive Video Demonstration Modal */}
       <VideoModal
