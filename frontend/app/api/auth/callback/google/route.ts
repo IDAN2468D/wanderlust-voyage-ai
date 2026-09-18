@@ -46,10 +46,7 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Exact redirectUri matching Google Cloud Console authorization
-    const redirectUri =
-      (process.env.GOOGLE_REDIRECT_URI && !process.env.GOOGLE_REDIRECT_URI.includes("0.0.0.0"))
-        ? process.env.GOOGLE_REDIRECT_URI
-        : `${baseUrl}/api/auth/callback/google`;
+    const redirectUri = `${baseUrl}/api/auth/callback/google`;
 
     const backendRes = await fetch(`${apiBase}/api/auth/google`, {
       method: "POST",

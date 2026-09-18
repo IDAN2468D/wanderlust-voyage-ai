@@ -103,6 +103,12 @@ async def get_google_auth_url(redirect_uri: str = None):
     """
     client_id = settings.GOOGLE_CLIENT_ID
     target_redirect = redirect_uri or settings.GOOGLE_REDIRECT_URI
+    if "?" in target_redirect:
+        target_redirect = target_redirect.split("?")[0]
+    if target_redirect.endswith("/login"):
+        target_redirect = target_redirect.replace("/login", "/api/auth/callback/google")
+    elif not target_redirect.endswith("/api/auth/callback/google"):
+        target_redirect = target_redirect.rstrip("/") + "/api/auth/callback/google"
 
     if not client_id:
         return {
@@ -149,6 +155,13 @@ async def google_login(payload: GoogleAuthRequest):
             target_redirect = settings.GOOGLE_REDIRECT_URI
             if payload.redirect_uri and "0.0.0.0" not in payload.redirect_uri:
                 target_redirect = payload.redirect_uri
+
+            if "?" in target_redirect:
+                target_redirect = target_redirect.split("?")[0]
+            if target_redirect.endswith("/login"):
+                target_redirect = target_redirect.replace("/login", "/api/auth/callback/google")
+            elif not target_redirect.endswith("/api/auth/callback/google"):
+                target_redirect = target_redirect.rstrip("/") + "/api/auth/callback/google"
 
             async with httpx.AsyncClient(timeout=10.0) as client:
                 token_res = await client.post(
