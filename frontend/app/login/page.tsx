@@ -15,9 +15,6 @@ import {
   Loader2,
   Sparkles,
   Compass,
-  KeyRound,
-  X,
-  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -77,7 +74,6 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showConfigModal, setShowConfigModal] = useState<boolean>(false);
 
   // וידאו רקע Google Flow
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -194,85 +190,25 @@ function LoginForm() {
     }
   };
 
-  // התחברות באמצעות Google OAuth 2.0 (מבוסס מפתחות המערכת)
-  const handleGoogleSignIn = async () => {
+  // התחברות ישירה ומיידית באמצעות חשבון Google הרשמי
+  const handleGoogleSignIn = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    const envClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const clientId =
+      (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID.trim()) ||
+      "239218305388-1uebns92vqun03dg2k60toe2iatukuqm.apps.googleusercontent.com";
+    const callbackUrl = `${window.location.origin}/api/auth/callback/google`;
+    const state = encodeURIComponent(redirectTarget);
 
-    try {
-      // 1. בדיקה מול השרת האם GOOGLE_CLIENT_ID מוגדר וקבלת URL מוכן
-      let authUrl: string | null = null;
-      try {
-        const callbackUrl = `${window.location.origin}/api/auth/callback/google`;
-        const res = await fetch(
-          `${apiBase}/api/auth/google/url?redirect_uri=${encodeURIComponent(callbackUrl)}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data.configured && data.url) {
-            authUrl = data.url;
-          }
-        }
-      } catch (err) {
-        console.warn("Could not query backend for Google OAuth URL:", err);
-      }
+    const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+      clientId
+    )}&redirect_uri=${encodeURIComponent(
+      callbackUrl
+    )}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=select_account&state=${state}`;
 
-      // 2. אם השרת לא החזיר URL אך קיים NEXT_PUBLIC_GOOGLE_CLIENT_ID בקליינט
-      if (!authUrl && envClientId && envClientId.trim() !== "") {
-        const callbackUrl = `${window.location.origin}/api/auth/callback/google`;
-        const state = encodeURIComponent(redirectTarget);
-        authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-          envClientId.trim()
-        )}&redirect_uri=${encodeURIComponent(
-          callbackUrl
-        )}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=select_account&state=${state}`;
-      }
-
-      // 3. אם יש URL תקף – הפניה מיידית למסך ההסכמה הרשמי של Google
-      if (authUrl) {
-        window.location.href = authUrl;
-        return;
-      }
-
-      // 4. אם המפתחות ריקים – פתיחת מודאל הדרכה וסטטוס מפתחות עם אפשרות כניסת דמו
-      setShowConfigModal(true);
-      setIsSubmitting(false);
-    } catch (err) {
-      setErrorMessage("שגיאה באתחול תהליך ההתחברות מול Google");
-      setIsSubmitting(false);
-    }
-  };
-
-  // כניסה מהירה במצב דמו עבור בדיקות
-  const handleDemoGoogleSignIn = async () => {
-    setIsSubmitting(true);
-    setShowConfigModal(false);
-    setErrorMessage(null);
-
-    try {
-      const googleProfile = {
-        email: "eli.trekker@gmail.com",
-        name: "אלי טרקר (Google Sandbox)",
-        picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      };
-
-      const res = await loginWithGoogle(undefined, googleProfile);
-      if (res.success) {
-        setSuccessMessage("התחברת בהצלחה (מצב Google Sandbox)!");
-        setTimeout(() => {
-          router.replace(redirectTarget);
-        }, 450);
-      } else {
-        setErrorMessage(res.error || "ההתחברות נכשלה");
-      }
-    } catch (err) {
-      setErrorMessage("שגיאה בתקשורת מול השרת");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // ניתוב מיידי וישיר לעמוד ההזדהות של Google
+    window.location.href = googleOAuthUrl;
   };
 
   const handleSocialNotice = (providerName: string) => {
@@ -700,70 +636,6 @@ function LoginForm() {
 
       </div>
 
-      {/* ====================================================================== */}
-      {/* GOOGLE OAUTH CONFIGURATION & SANDBOX MODAL                             */}
-      {/* ====================================================================== */}
-      {showConfigModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-lg bg-slate-900/95 border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.8)] text-right text-white">
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={() => setShowConfigModal(false)}
-              className="absolute top-5 left-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-300">
-                <KeyRound className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-white">חיבור Google OAuth 2.0</h3>
-                <p className="text-xs text-slate-400">הגדרת מפתחות ההזדהות במערכת</p>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed mb-4">
-              מנגנון ההתחברות באמצעות Google הוגדר וממתין להזנת מפתחות ה-OAuth שלך בקובצי הסביבה:
-            </p>
-
-            {/* Code Block with Keys */}
-            <div className="bg-black/60 rounded-xl p-3.5 border border-white/10 font-mono text-xs text-teal-300 space-y-1 select-all mb-4 text-left dir-ltr" dir="ltr">
-              <div>GOOGLE_CLIENT_ID=&lt;your_client_id&gt;</div>
-              <div>GOOGLE_CLIENT_SECRET=&lt;your_client_secret&gt;</div>
-              <div>GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google</div>
-              <div>NEXT_PUBLIC_GOOGLE_CLIENT_ID=&lt;your_client_id&gt;</div>
-            </div>
-
-            <p className="text-[11px] text-slate-400 mb-6 leading-normal">
-              💡 הדבק את המפתחות בתוך <span className="text-teal-300 font-mono">backend/.env</span> ו-<span className="text-teal-300 font-mono">frontend/.env.local</span>. לאחר מכן לחיצה על כפתור Google תפנה ישירות לחשבון Google שלך.
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2.5">
-              <button
-                type="button"
-                onClick={handleDemoGoogleSignIn}
-                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20 transition"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>התחבר עכשיו במצב Google Sandbox</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowConfigModal(false)}
-                className="py-3 px-5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-semibold border border-white/10 transition"
-              >
-                סגור
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Subtle Google Flow Ambient Watermark footer */}
       <div className="absolute bottom-3 text-center text-[10px] text-slate-400/60 flex items-center gap-2 select-none">
