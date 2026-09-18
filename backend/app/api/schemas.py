@@ -144,6 +144,8 @@ class GoogleAuthRequest(BaseModel):
     """Google OAuth authentication request payload."""
 
     credential: Optional[str] = Field(default=None, description="Google ID token (JWT) from Google Identity Services")
+    code: Optional[str] = Field(default=None, description="Google OAuth 2.0 authorization code from redirect callback")
+    redirect_uri: Optional[str] = Field(default=None, description="OAuth redirect URI matching the request")
     email: Optional[EmailStr] = Field(default=None, description="Email address provided by Google profile")
     name: Optional[str] = Field(default=None, description="Full name provided by Google profile")
     picture: Optional[str] = Field(default=None, description="Profile avatar URL from Google")

@@ -95,17 +95,113 @@ async def login(credentials: UserLogin):
     )
 
 
+@router.get("/google/url")
+async def get_google_auth_url(redirect_uri: str = None):
+    """
+    Generate the official Google OAuth 2.0 authorization consent URL
+    using the configured GOOGLE_CLIENT_ID and GOOGLE_REDIRECT_URI.
+    """
+    client_id = settings.GOOGLE_CLIENT_ID
+    target_redirect = redirect_uri or settings.GOOGLE_REDIRECT_URI
+
+    if not client_id:
+        return {
+            "configured": False,
+            "url": None,
+            "client_id": None,
+            "redirect_uri": target_redirect,
+            "message": "GOOGLE_CLIENT_ID is not configured in backend/.env",
+        }
+
+    import urllib.parse
+    params = {
+        "client_id": client_id,
+        "redirect_uri": target_redirect,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "select_account",
+    }
+    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+    return {
+        "configured": True,
+        "url": auth_url,
+        "client_id": client_id,
+        "redirect_uri": target_redirect,
+    }
+
+
 @router.post("/google", response_model=Token)
 async def google_login(payload: GoogleAuthRequest):
     """
-    Authenticate or register a user via Google OAuth (ID token or verified profile payload).
-    Validates the token against Google's tokeninfo endpoint when credential is provided.
+    Authenticate or register a user via Google OAuth:
+    1. OAuth 2.0 Authorization Code (payload.code) with GOOGLE_CLIENT_SECRET
+    2. Google Identity Services ID Token (payload.credential)
+    3. Direct profile payload (Demo / Sandbox sign-in)
     """
     email: str = ""
     full_name: str = ""
     picture: str = ""
 
-    if payload.credential:
+    # Option 1: Authorization Code Exchange (Google OAuth 2.0 Redirect flow)
+    if payload.code:
+        try:
+            target_redirect = payload.redirect_uri or settings.GOOGLE_REDIRECT_URI
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                token_res = await client.post(
+                    "https://oauth2.googleapis.com/token",
+                    data={
+                        "code": payload.code,
+                        "client_id": settings.GOOGLE_CLIENT_ID,
+                        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                        "redirect_uri": target_redirect,
+                        "grant_type": "authorization_code",
+                    },
+                )
+
+                if token_res.status_code != 200:
+                    logger.error(f"Google code exchange failed ({token_res.status_code}): {token_res.text}")
+                    # If development and code failed, fallback to payload email if available
+                    if payload.email:
+                        email = str(payload.email).lower().strip()
+                        full_name = payload.name or email.split("@")[0].title()
+                        picture = payload.picture or ""
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="אימות קוד ההרשאה מול Google נכשל. ודא שה-GOOGLE_CLIENT_SECRET וה-REDIRECT_URI מוגדרים כראוי.",
+                        )
+                else:
+                    token_data = token_res.json()
+                    access_token_google = token_data.get("access_token")
+
+                    # Fetch user info using Google access token
+                    userinfo_res = await client.get(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        headers={"Authorization": f"Bearer {access_token_google}"},
+                    )
+
+                    if userinfo_res.status_code == 200:
+                        g_user = userinfo_res.json()
+                        email = g_user.get("email", "").lower().strip()
+                        full_name = g_user.get("name") or payload.name or email.split("@")[0].title()
+                        picture = g_user.get("picture") or payload.picture or ""
+                    else:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="לא ניתן לקבל את פרטי המשתמש מחשבון ה-Google.",
+                        )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.error(f"Unexpected error in Google code exchange: {exc}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="שגיאה בתקשורת מול שרתי Google",
+            )
+
+    # Option 2: Google ID Token (Google Identity Services GSI)
+    elif payload.credential:
         # Verify Google ID token via Google TokenInfo API
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
@@ -151,14 +247,14 @@ async def google_login(payload: GoogleAuthRequest):
                     detail="שגיאה בתקשורת מול שרתי Google",
                 )
     elif payload.email:
-        # Direct profile payload (Demo / Sandbox sign-in)
+        # Option 3: Direct profile payload (Demo / Sandbox sign-in)
         email = str(payload.email).lower().strip()
         full_name = payload.name or email.split("@")[0].title()
         picture = payload.picture or ""
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="נדרש טוקן אימות או כתובת אימייל מגוגל",
+            detail="נדרש קוד הרשאה, טוקן אימות או כתובת אימייל מגוגל",
         )
 
     if not email:

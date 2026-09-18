@@ -13,6 +13,15 @@ export interface User {
   auth_provider?: string;
 }
 
+export interface GoogleLoginOptions {
+  credential?: string;
+  code?: string;
+  redirect_uri?: string;
+  email?: string;
+  name?: string;
+  picture?: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -20,7 +29,10 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: (credential?: string, profile?: { email?: string; name?: string; picture?: string }) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (
+    optionsOrCredential?: string | GoogleLoginOptions,
+    profile?: { email?: string; name?: string; picture?: string }
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
@@ -157,12 +169,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Login with Google OAuth
   const loginWithGoogle = async (
-    credential?: string,
+    optionsOrCredential?: string | GoogleLoginOptions,
     profile?: { email?: string; name?: string; picture?: string }
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const payload: any = {};
-      if (credential) payload.credential = credential;
+      if (typeof optionsOrCredential === "string") {
+        payload.credential = optionsOrCredential;
+      } else if (optionsOrCredential && typeof optionsOrCredential === "object") {
+        if (optionsOrCredential.credential) payload.credential = optionsOrCredential.credential;
+        if (optionsOrCredential.code) payload.code = optionsOrCredential.code;
+        if (optionsOrCredential.redirect_uri) payload.redirect_uri = optionsOrCredential.redirect_uri;
+        if (optionsOrCredential.email) payload.email = optionsOrCredential.email;
+        if (optionsOrCredential.name) payload.name = optionsOrCredential.name;
+        if (optionsOrCredential.picture) payload.picture = optionsOrCredential.picture;
+      }
+
       if (profile?.email) payload.email = profile.email;
       if (profile?.name) payload.name = profile.name;
       if (profile?.picture) payload.picture = profile.picture;

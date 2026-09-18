@@ -97,3 +97,12 @@ def test_google_login_flow():
     relogin_resp = client.post("/api/auth/google", json=payload)
     assert relogin_resp.status_code == 200
     assert relogin_resp.json()["user"]["id"] == data["user"]["id"]
+
+
+def test_google_auth_url_endpoint():
+    """Verify Google OAuth URL endpoint returns status structure."""
+    response = client.get("/api/auth/google/url")
+    assert response.status_code == 200
+    data = response.json()
+    assert "configured" in data
+    assert "redirect_uri" in data
