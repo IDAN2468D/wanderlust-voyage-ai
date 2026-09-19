@@ -841,55 +841,13 @@ export default function Home() {
         <div className="absolute bottom-10 right-1/3 w-[450px] h-[450px] rounded-full bg-amber-500/08 blur-[120px] animate-flow-3" />
       </div>
 
-      {/* Global Shared Header Navbar */}
+      {/* Global Shared Header Navbar (Floats seamlessly over the Hero) */}
       <Navbar />
-
-      {/* ========================================================
-          LIVE AIRPORT & TELEMETRY TICKER BAR (Liquid Glass 4.0 Pro)
-      ======================================================== */}
-      <div className="relative z-20 border-b border-white/[0.08] bg-[#070b13]/90 backdrop-blur-2xl py-2.5 px-4 sm:px-8 text-[11px] select-none overflow-hidden" dir="rtl">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          {/* Live Station Badge */}
-          <div className="flex items-center gap-2 font-bold shrink-0 bg-mint-500/10 border border-mint-400/25 px-3 py-1 rounded-full text-mint-300 shadow-[0_0_12px_rgba(45,212,191,0.15)]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-mint-400" />
-            </span>
-            <span className="text-xs">טלמטריה חיה נתב"ג (TLV Hub)</span>
-          </div>
-
-          {/* Telemetry Data Ribbon without ugly scrollbars */}
-          <div className="flex items-center gap-3 sm:gap-5 text-slate-300 font-mono overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap text-xs">
-            <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
-              <Plane className="w-3.5 h-3.5 text-cyan-400" />
-              <span>TLV ⇄ HND: <strong className="text-white font-sans">11h 20m</strong> • טיסות פתוחות</span>
-            </span>
-            <span className="text-white/20 hidden sm:inline">|</span>
-            <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
-              <span>🏛️ FCO רומא: <strong className="text-white font-sans">21°C</strong> • עומס נמוך</span>
-            </span>
-            <span className="text-white/20 hidden md:inline">|</span>
-            <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
-              <span>🏝️ JTR סנטוריני: <strong className="text-white font-sans">23°C</strong> • שקיעה ב-19:42</span>
-            </span>
-            <span className="text-white/20 hidden lg:inline">|</span>
-            <span className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 text-emerald-300">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-              <span>1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
-            </span>
-            <span className="text-white/20 hidden xl:inline">|</span>
-            <span className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 text-amber-300 font-sans font-semibold">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>13 סוכני AI פעילים במקביל</span>
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* ========================================================
           HERO WRAPPER WITH WORLD LANDMARKS & GLOBE HORIZON (GlobalVista Theme)
       ======================================================== */}
-      <div className="relative min-h-[960px] lg:min-h-[1080px] w-full overflow-hidden flex flex-col justify-between">
+      <div className="relative min-h-[980px] lg:min-h-[1100px] w-full overflow-hidden flex flex-col justify-between pt-28 sm:pt-32 lg:pt-36">
         {/* Background Image: High-res World Landmarks & Planet Earth Horizon */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -906,7 +864,7 @@ export default function Home() {
         </div>
 
         {/* HERO MAIN CONTENT - Full Width Panoramic Architecture */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-8 pb-10 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-4 pb-10 w-full">
           {/* Top Hero Section: Headline, Live Badges & CTAs */}
           <div className="max-w-4xl mx-auto text-center space-y-4 mb-4">
             {/* Top Luxury Eyebrow */}
@@ -1302,6 +1260,48 @@ export default function Home() {
               </div>
             </div>
 
+          </div>
+        </div>
+
+        {/* ========================================================
+            LIVE AIRPORT & TELEMETRY TICKER BAR (Liquid Glass 4.0 Pro)
+        ======================================================== */}
+        <div className="relative z-20 border-t border-white/[0.08] bg-[#050811]/95 backdrop-blur-2xl py-2.5 px-4 sm:px-8 text-[11px] select-none overflow-hidden" dir="rtl">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            {/* Live Station Badge */}
+            <div className="flex items-center gap-2 font-bold shrink-0 bg-sky-500/10 border border-sky-400/25 px-3 py-1 rounded-full text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.15)]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400" />
+              </span>
+              <span className="text-xs">טלמטריה חיה נתב"ג (TLV Hub)</span>
+            </div>
+
+            {/* Telemetry Data Ribbon */}
+            <div className="flex items-center gap-3 sm:gap-5 text-slate-300 font-mono overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap text-xs">
+              <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+                <Plane className="w-3.5 h-3.5 text-cyan-400" />
+                <span>TLV ⇄ HND: <strong className="text-white font-sans">11h 20m</strong> • טיסות פתוחות</span>
+              </span>
+              <span className="text-white/20 hidden sm:inline">|</span>
+              <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+                <span>🏛️ FCO רומא: <strong className="text-white font-sans">21°C</strong> • עומס נמוך</span>
+              </span>
+              <span className="text-white/20 hidden md:inline">|</span>
+              <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+                <span>🏝️ JTR סנטוריני: <strong className="text-white font-sans">23°C</strong> • שקיעה ב-19:42</span>
+              </span>
+              <span className="text-white/20 hidden lg:inline">|</span>
+              <span className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 text-emerald-300">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span>1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
+              </span>
+              <span className="text-white/20 hidden xl:inline">|</span>
+              <span className="flex items-center gap-1.5 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20 text-sky-300 font-sans font-semibold">
+                <Zap className="w-3.5 h-3.5 text-sky-400" />
+                <span>13 סוכני AI פעילים במקביל</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
