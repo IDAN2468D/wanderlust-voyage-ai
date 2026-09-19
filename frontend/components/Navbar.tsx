@@ -66,11 +66,11 @@ export const Navbar: React.FC = () => {
               <Mountain className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <span className="font-heading font-black text-lg sm:text-xl tracking-[0.2em] text-white block">
-                WANDERLUST
+              <span className="font-heading font-black text-lg sm:text-xl tracking-[0.15em] text-white block">
+                AGENT TRAVEL PLANNER
               </span>
               <span className="text-[8px] sm:text-[9px] tracking-[0.25em] text-slate-300 font-medium block">
-                EXPLORE. DREAM. DISCOVER.
+                AUTONOMOUS AI VOYAGES
               </span>
             </div>
           </a>

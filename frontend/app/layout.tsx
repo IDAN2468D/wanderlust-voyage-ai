@@ -19,9 +19,9 @@ import { CurrencyProvider } from "@/context/CurrencyContext";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Wanderlust VoyageAI | הרפתקאות שנשארות איתך לתמיד",
+  title: "AgentTravelPlanner | תכנון חופשות ומסעות עם סוכני AI אוטונומיים",
   description:
-    "גלה יעדים עוצרי נשימה ותכנן את הטיול המושלם עם צוות סוכני בינה מלאכותית אוטונומיים.",
+    "גלה יעדים עוצרי נשימה ותכנן את הטיול המושלם עם צוות 13 סוכני בינה מלאכותית אוטונומיים.",
 };
 
 export default function RootLayout({

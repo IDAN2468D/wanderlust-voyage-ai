@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     )
 
     # General
-    PROJECT_NAME: str = "AI Multi-Agent Travel Planner"
+    PROJECT_NAME: str = "AgentTravelPlanner"
     VERSION: str = "1.0.0"
     APP_ENV: str = "development"
     PORT: int = 8000
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # Resend Email Service (resend.com)
     RESEND_API_KEY: str = Field(default="", description="Resend API Key for transactional emails (re_...)")
     RESEND_FROM_EMAIL: str = Field(
-        default="Wanderlust Voyage AI <onboarding@resend.dev>",
+        default="AgentTravelPlanner <onboarding@resend.dev>",
         description="Sender email identity approved in Resend",
     )
     FRONTEND_URL: str = Field(

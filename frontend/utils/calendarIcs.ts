@@ -48,10 +48,10 @@ export function generateIcsContent(opts: IcsCalendarOptions): string {
   const lines: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Wanderlust Voyage AI//Travel Planner 2026//HE",
+    "PRODID:-//AgentTravelPlanner//Travel Planner 2026//HE",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    `X-WR-CALNAME:✈️ חופשה ב${dest} - Wanderlust`,
+    `X-WR-CALNAME:✈️ חופשה ב${dest} - AgentTravelPlanner`,
     "X-WR-TIMEZONE:UTC",
   ];
 
@@ -65,7 +65,7 @@ export function generateIcsContent(opts: IcsCalendarOptions): string {
 
   lines.push(
     "BEGIN:VEVENT",
-    `UID:flight-dep-${formatDateDay(depDate)}-${Math.random().toString(36).substring(2, 8)}@wanderlust`,
+    `UID:flight-dep-${formatDateDay(depDate)}-${Math.random().toString(36).substring(2, 8)}@agenttravelplanner`,
     `DTSTAMP:${nowStamp}`,
     `DTSTART:${depStartStr}`,
     `DTEND:${depEndStr}`,
@@ -89,12 +89,12 @@ export function generateIcsContent(opts: IcsCalendarOptions): string {
 
   lines.push(
     "BEGIN:VEVENT",
-    `UID:hotel-stay-${formatDateDay(depDate)}-${Math.random().toString(36).substring(2, 8)}@wanderlust`,
+    `UID:hotel-stay-${formatDateDay(depDate)}-${Math.random().toString(36).substring(2, 8)}@agenttravelplanner`,
     `DTSTAMP:${nowStamp}`,
     `DTSTART:${hotelStartStr}`,
     `DTEND:${hotelEndStr}`,
     `SUMMARY:🏨 שהייה במלון: ${hotel}`,
-    `DESCRIPTION:צ'ק אין החל מ-15:00. שובר מאושר דרך Wanderlust Voyage AI (${days} לילות).`,
+    `DESCRIPTION:צ'ק אין החל מ-15:00. שובר מאושר דרך AgentTravelPlanner (${days} לילות).`,
     `LOCATION:${dest}`,
     "STATUS:CONFIRMED",
     "END:VEVENT"
@@ -164,12 +164,12 @@ export function generateIcsContent(opts: IcsCalendarOptions): string {
 
   lines.push(
     "BEGIN:VEVENT",
-    `UID:flight-ret-${formatDateDay(returnDate)}-${Math.random().toString(36).substring(2, 8)}@wanderlust`,
+    `UID:flight-ret-${formatDateDay(returnDate)}-${Math.random().toString(36).substring(2, 8)}@agenttravelplanner`,
     `DTSTAMP:${nowStamp}`,
     `DTSTART:${retStartStr}`,
     `DTEND:${retEndStr}`,
     `SUMMARY:🛬 טיסה חזרה לישראל מ${dest}`,
-    `DESCRIPTION:טיסת חזרה לנמל התעופה בן גוריון. שובר ואישור Wanderlust Voyage AI.`,
+    `DESCRIPTION:טיסת חזרה לנמל התעופה בן גוריון. שובר ואישור AgentTravelPlanner.`,
     `LOCATION:${dest}`,
     "STATUS:CONFIRMED",
     "BEGIN:VALARM",

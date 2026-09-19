@@ -27,11 +27,11 @@ export const Footer: React.FC = () => {
                 <Mountain className="w-6 h-6" />
               </div>
               <div>
-                <span className="font-heading font-black text-xl tracking-[0.2em] text-white block">
-                  WANDERLUST
+                <span className="font-heading font-black text-xl tracking-[0.15em] text-white block">
+                  AGENT TRAVEL PLANNER
                 </span>
                 <span className="text-[9px] tracking-[0.25em] text-slate-400 font-medium block">
-                  EXPLORE. DREAM. DISCOVER.
+                  AUTONOMOUS AI VOYAGES
                 </span>
               </div>
             </a>
@@ -100,10 +100,10 @@ export const Footer: React.FC = () => {
 
           {/* Col 3: החברה והסוכנים */}
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white font-serif tracking-wide">Wanderlust AI</h4>
+            <h4 className="text-sm font-bold text-white font-serif tracking-wide">AgentTravelPlanner</h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><a href="/about" className="hover:text-mint-400 transition">אודות המיזם והחזון</a></li>
-              <li><a href="/about" className="hover:text-mint-400 transition">צוות 4 סוכני ה-AI</a></li>
+              <li><a href="/about" className="hover:text-mint-400 transition">צוות 13 סוכני ה-AI האוטונומיים</a></li>
               <li><a href="/blog" className="hover:text-mint-400 transition">מגזין ובלוג המטיילים</a></li>
               <li><a href="/about" className="hover:text-mint-400 transition">אבטחה ופרטיות מידע</a></li>
               <li><a href="/about" className="hover:text-mint-400 transition">תמיכה וסיוע 24/7</a></li>
@@ -114,7 +114,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span>© {new Date().getFullYear()} Wanderlust VoyageAI. כל הזכויות שמורות.</span>
+            <span>© {new Date().getFullYear()} AgentTravelPlanner. כל הזכויות שמורות.</span>
             <span className="hidden sm:inline">·</span>
             <span className="flex items-center gap-1 text-slate-400">
               נבנה באהבה עבור מטיילים ברחבי תבל <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />

@@ -1,4 +1,4 @@
-# 🗺️ מפת מבנה הפרויקט המלא – Wanderlust Voyage AI
+# 🗺️ מפת מבנה הפרויקט המלא – AgentTravelPlanner
 
 מערכת בינה מלאכותית אוטונומית רב-סוכנית לתכנון מסעות וחופשות, המבוססת על ארכיטקטורת 5-Layer Agent Stack:
 - **Frontend:** Next.js 15 (App Router), React 19, Tailwind CSS, Framer Motion, Liquid Glass 4.0 Pro
