@@ -669,38 +669,40 @@ export default function Home() {
       {/* ========================================================
           LIVE AIRPORT & TELEMETRY TICKER BAR (Liquid Glass 4.0 Pro)
       ======================================================== */}
-      <div className="relative z-20 border-y border-white/10 bg-black/40 backdrop-blur-xl py-2 px-4 sm:px-8 text-[11px] overflow-x-auto select-none">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 whitespace-nowrap">
-          <div className="flex items-center gap-2 font-bold text-mint-400">
+      <div className="relative z-20 border-b border-white/[0.08] bg-[#070b13]/90 backdrop-blur-2xl py-2.5 px-4 sm:px-8 text-[11px] select-none overflow-hidden" dir="rtl">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          {/* Live Station Badge */}
+          <div className="flex items-center gap-2 font-bold shrink-0 bg-mint-500/10 border border-mint-400/25 px-3 py-1 rounded-full text-mint-300 shadow-[0_0_12px_rgba(45,212,191,0.15)]">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-mint-500" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-mint-400" />
             </span>
-            <span>טלמטריה חיה נתב"ג (TLV Hub)</span>
+            <span className="text-xs">טלמטריה חיה נתב"ג (TLV Hub)</span>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-300 font-mono overflow-x-auto py-0.5">
-            <span className="flex items-center gap-1.5">
-              <Plane className="w-3 h-3 text-cyan-400" />
-              <span>TLV ⇄ HND: 11h 20m • טיסות פתוחות</span>
+          {/* Telemetry Data Ribbon without ugly scrollbars */}
+          <div className="flex items-center gap-3 sm:gap-5 text-slate-300 font-mono overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap text-xs">
+            <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+              <Plane className="w-3.5 h-3.5 text-cyan-400" />
+              <span>TLV ⇄ HND: <strong className="text-white font-sans">11h 20m</strong> • טיסות פתוחות</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="flex items-center gap-1.5">
-              <span>🏛️ FCO רומא: 21°C • עומס נמוך</span>
+            <span className="text-white/20 hidden sm:inline">|</span>
+            <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+              <span>🏛️ FCO רומא: <strong className="text-white font-sans">21°C</strong> • עומס נמוך</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="flex items-center gap-1.5">
-              <span>🏝️ JTR סנטוריני: 23°C • שקיעה ב-19:42</span>
+            <span className="text-white/20 hidden md:inline">|</span>
+            <span className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">
+              <span>🏝️ JTR סנטוריני: <strong className="text-white font-sans">23°C</strong> • שקיעה ב-19:42</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="flex items-center gap-1.5">
-              <TrendingUp className="w-3 h-3 text-emerald-400" />
-              <span>שער יציג: 1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
+            <span className="text-white/20 hidden lg:inline">|</span>
+            <span className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 text-emerald-300">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+              <span>1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="text-amber-400 flex items-center gap-1">
-              <Zap className="w-3 h-3" />
-              <span>13 סוכני AI פעילים כעת במקביל</span>
+            <span className="text-white/20 hidden xl:inline">|</span>
+            <span className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 text-amber-300 font-sans font-semibold">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>13 סוכני AI פעילים במקביל</span>
             </span>
           </div>
         </div>
