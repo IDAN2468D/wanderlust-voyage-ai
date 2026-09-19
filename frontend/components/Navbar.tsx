@@ -58,10 +58,10 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="relative z-30 w-full px-6 sm:px-12 lg:px-16 py-5 border-b border-white/5 bg-[#070c12]/80 backdrop-blur-xl sticky top-0" dir="rtl">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="relative z-30 w-full px-4 sm:px-8 lg:px-12 xl:px-14 py-4 sm:py-5 border-b border-white/5 bg-[#070c12]/85 backdrop-blur-xl sticky top-0" dir="rtl">
+        <div className="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-6">
           {/* Logo (Right side in RTL) */}
-          <a href="/" className="flex items-center gap-3 group">
+          <a href="/" className="flex items-center gap-3 group shrink-0">
             <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-mint-400 group-hover:scale-105 transition-transform">
               <Mountain className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
@@ -76,7 +76,7 @@ export const Navbar: React.FC = () => {
           </a>
 
           {/* Desktop Navigation Links (Center) */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-200">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-10 text-sm font-medium text-slate-200">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
               return (

@@ -669,9 +669,12 @@ export default function Home() {
       {/* ========================================================
           LIVE AIRPORT & TELEMETRY TICKER BAR (Liquid Glass 4.0 Pro)
       ======================================================== */}
-      <div className="relative z-20 border-y border-white/10 bg-black/40 backdrop-blur-xl py-2 px-4 sm:px-8 text-[11px] overflow-x-auto select-none">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 whitespace-nowrap">
-          <div className="flex items-center gap-2 font-bold text-mint-400">
+      <div className="relative z-20 border-y border-white/10 bg-black/40 backdrop-blur-xl py-2 px-4 sm:px-8 lg:px-12 xl:px-14 text-[11px] select-none overflow-hidden">
+        <div
+          className="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-6 whitespace-nowrap overflow-x-auto no-scrollbar scrollbar-none"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <div className="flex items-center gap-2 font-bold text-mint-400 shrink-0">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-mint-500" />
@@ -679,26 +682,29 @@ export default function Home() {
             <span>טלמטריה חיה נתב"ג (TLV Hub)</span>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-300 font-mono overflow-x-auto py-0.5">
-            <span className="flex items-center gap-1.5">
+          <div
+            className="flex items-center gap-6 text-slate-300 font-mono py-0.5 no-scrollbar scrollbar-none overflow-x-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <span className="flex items-center gap-1.5 shrink-0">
               <Plane className="w-3 h-3 text-cyan-400" />
               <span>TLV ⇄ HND: 11h 20m • טיסות פתוחות</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="flex items-center gap-1.5">
+            <span className="text-white/20 shrink-0">|</span>
+            <span className="flex items-center gap-1.5 shrink-0">
               <span>🏛️ FCO רומא: 21°C • עומס נמוך</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="flex items-center gap-1.5">
+            <span className="text-white/20 shrink-0">|</span>
+            <span className="flex items-center gap-1.5 shrink-0">
               <span>🏝️ JTR סנטוריני: 23°C • שקיעה ב-19:42</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="flex items-center gap-1.5">
+            <span className="text-white/20 shrink-0">|</span>
+            <span className="flex items-center gap-1.5 shrink-0">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
               <span>שער יציג: 1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
             </span>
-            <span className="text-white/20">|</span>
-            <span className="text-amber-400 flex items-center gap-1">
+            <span className="text-white/20 shrink-0">|</span>
+            <span className="text-amber-400 flex items-center gap-1 shrink-0">
               <Zap className="w-3 h-3" />
               <span>13 סוכני AI פעילים כעת במקביל</span>
             </span>
