@@ -34,7 +34,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "מדריך סנטוריני 2026: המקומות הסודיים שרוב התיירים מפספסים",
     excerpt: "מעבר לכיפות הכחולות של אויה: כפרים ציוריים ללא עומס מבקרים, טברנות משפחתיות אותנטיות ושבילי הליכה המשקיפים ללוע הר הגעש.",
     category: "יעדים סודיים",
-    image: "/images/santorini.jpg",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1200&auto=format&fit=crop",
     author: "צוות אדריכלי המסלול",
     readTime: "5 דק' קריאה",
     date: "ספטמבר 2026",
@@ -46,7 +46,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "איך לחוות יוקרה עוצרת נשימה בבאלי מבלי לחרוג מהתקציב?",
     excerpt: "סוכן התקציב שלנו חושף: וילות פרטיות עם בריכות אינפיניטי בג'ונגל, שפים פרטיים וטיפולי ספא יומיים במחיר של מלון פשוט באירופה.",
     category: "טיפים וחיסכון",
-    image: "/images/bali.jpg",
+    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200&auto=format&fit=crop",
     author: "מבקר התקציב הפיננסי",
     readTime: "7 דק' קריאה",
     date: "אוגוסט 2026",
@@ -58,7 +58,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "האלפים השוויצריים: מדריך לרכבות הנוף הפנורמיות היפות בתבל",
     excerpt: "מסע ברכבת 'גליישר אקספרס' מצרמט לסנט מוריץ, חלונות תקרה פנורמיים ומעבר מעל 291 גשרים בלב הפסגות המושלגות.",
     category: "מסלולים",
-    image: "/images/swiss_alps.jpg",
+    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop",
     author: "מומחה הטיסות והתחבורה",
     readTime: "6 דק' קריאה",
     date: "יולי 2026",
@@ -70,7 +70,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "האיים המלדיביים בעונות מעבר: איך לחסוך עד 40% על וילות מים?",
     excerpt: "מתי כדאי להזמין, איך להתנהל מול מזג האוויר הטרופי ומדוע עונות המעבר הן הסוד השמור ביותר של צוללנים וחובבי שקט.",
     category: "טיפים וחיסכון",
-    image: "/images/maldives.jpg",
+    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?q=80&w=1200&auto=format&fit=crop",
     author: "סוכן המלונות והתעופה",
     readTime: "4 דק' קריאה",
     date: "יוני 2026",
@@ -108,6 +108,7 @@ export default function BlogPage() {
             src="/images/hero-bg.jpg"
             alt="Blog Background"
             fill
+            unoptimized
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
@@ -176,6 +177,7 @@ export default function BlogPage() {
                   src={post.image}
                   alt={post.title}
                   fill
+                  unoptimized
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-black/20 to-transparent" />

@@ -68,6 +68,7 @@ export default function AboutPage() {
             src="/images/hero-bg.jpg"
             alt="About Background"
             fill
+            unoptimized
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
@@ -122,9 +123,10 @@ export default function AboutPage() {
 
           <div className="lg:col-span-6 relative h-96 rounded-3xl overflow-hidden border border-white/15 shadow-2xl">
             <Image
-              src="/images/swiss_alps.jpg"
+              src="https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop"
               alt="Our vision"
               fill
+              unoptimized
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-transparent to-transparent" />

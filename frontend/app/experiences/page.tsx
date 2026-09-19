@@ -38,7 +38,7 @@ const EXPERIENCES_DATA: ExperienceItem[] = [
     title: "ספארי יוקרה ושמורות טבע פראיות",
     subtitle: "מפגש בלתי אמצעי עם 'חמשת הגדולים' בלודג'ים מפוארים תחת כיפת השמיים",
     category: "nature",
-    image: "/images/hero-bg.jpg",
+    image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1200&auto=format&fit=crop",
     duration: "5 - 8 ימים",
     groupType: "זוגות ומשפחות",
     rating: 4.97,
@@ -52,7 +52,7 @@ const EXPERIENCES_DATA: ExperienceItem[] = [
     title: "צלילות עמוקות ולגונות בודדות",
     subtitle: "שוניות אלמוגים מרהיבות, כרישי לווייתן ומים צלולים כבדולח",
     category: "adventure",
-    image: "/images/maldives.jpg",
+    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?q=80&w=1200&auto=format&fit=crop",
     duration: "6 - 10 ימים",
     groupType: "חובבי ים וצלילה",
     rating: 4.93,
@@ -66,7 +66,7 @@ const EXPERIENCES_DATA: ExperienceItem[] = [
     title: "סיורי יין וגסטרונומיה עילית",
     subtitle: "סדנאות שף פרטיות, יקבי בוטיק ומסעדות מכוכבות מישלן",
     category: "culinary",
-    image: "/images/santorini.jpg",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1200&auto=format&fit=crop",
     duration: "4 - 7 ימים",
     groupType: "חובבי אוכל וזוגות",
     rating: 4.95,
@@ -80,7 +80,7 @@ const EXPERIENCES_DATA: ExperienceItem[] = [
     title: "סקי פסגות ובקתות חורף אלפיניות",
     subtitle: "מדרונות שלג בתוליים, סאונות מחוממות המשקיפות לרכסים לבנים ואפרה-סקי יוקרתי",
     category: "adventure",
-    image: "/images/swiss_alps.jpg",
+    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop",
     duration: "6 - 9 ימים",
     groupType: "חובבי שלג וספורט חורף",
     rating: 4.91,
@@ -94,7 +94,7 @@ const EXPERIENCES_DATA: ExperienceItem[] = [
     title: "ריטריט שלווה, יוגה ו-Wellness",
     subtitle: "התנתקות מוחלטת מהרעש העירוני, מעיינות מרפא וטיפולים הוליסטיים",
     category: "wellness",
-    image: "/images/bali.jpg",
+    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200&auto=format&fit=crop",
     duration: "7 - 14 ימים",
     groupType: "יחידים, זוגות וקבוצות קטנות",
     rating: 4.98,
@@ -108,7 +108,7 @@ const EXPERIENCES_DATA: ExperienceItem[] = [
     title: "מסעות בעקבות תרבויות וממלכות עתיקות",
     subtitle: "חשיפת סודות הארכיטקטורה, המיתולוגיה והאוצרות ההיסטוריים בליווי היסטוריונים",
     category: "culture",
-    image: "/images/hero-bg.jpg",
+    image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1200&auto=format&fit=crop",
     duration: "7 - 12 ימים",
     groupType: "חוקרים ושוחרי תרבות",
     rating: 4.92,
@@ -148,6 +148,7 @@ export default function ExperiencesPage() {
             src="/images/bali.jpg"
             alt="Experiences Background"
             fill
+            unoptimized
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
@@ -208,6 +209,7 @@ export default function ExperiencesPage() {
                   src={item.image}
                   alt={item.title}
                   fill
+                  unoptimized
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-black/30 to-transparent" />

@@ -69,7 +69,7 @@ const FEATURED_DESTINATIONS: DestinationItem[] = [
     country: "יוון",
     rating: 4.9,
     reviewsCount: 428,
-    image: "/images/santorini.jpg",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1200&auto=format&fit=crop",
     category: "islands",
     moments: 24,
     durationDays: 5,
@@ -84,7 +84,7 @@ const FEATURED_DESTINATIONS: DestinationItem[] = [
     country: "יפן",
     rating: 4.95,
     reviewsCount: 680,
-    image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1200&auto=format&fit=crop",
     category: "culture",
     moments: 42,
     durationDays: 10,
@@ -99,7 +99,7 @@ const FEATURED_DESTINATIONS: DestinationItem[] = [
     country: "המלדיביים",
     rating: 4.92,
     reviewsCount: 310,
-    image: "/images/maldives.jpg",
+    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?q=80&w=1200&auto=format&fit=crop",
     category: "islands",
     moments: 19,
     durationDays: 7,
@@ -114,7 +114,7 @@ const FEATURED_DESTINATIONS: DestinationItem[] = [
     country: "שוויץ",
     rating: 4.88,
     reviewsCount: 295,
-    image: "/images/swiss_alps.jpg",
+    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop",
     category: "nature",
     moments: 31,
     durationDays: 6,
@@ -129,7 +129,7 @@ const FEATURED_DESTINATIONS: DestinationItem[] = [
     country: "אינדונזיה",
     rating: 4.85,
     reviewsCount: 540,
-    image: "/images/bali.jpg",
+    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200&auto=format&fit=crop",
     category: "nature",
     moments: 36,
     durationDays: 8,
@@ -144,7 +144,7 @@ const FEATURED_DESTINATIONS: DestinationItem[] = [
     country: "איטליה",
     rating: 4.87,
     reviewsCount: 620,
-    image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1200&auto=format&fit=crop",
     category: "culinary",
     moments: 28,
     durationDays: 5,
@@ -717,6 +717,7 @@ export default function Home() {
             alt="Wanderlust Coastline"
             fill
             priority
+            unoptimized
             className="object-cover object-center scale-105 transition-transform duration-1000 ease-out"
           />
           {/* Multi-layer Cinematic Vignettes */}
@@ -988,6 +989,8 @@ export default function Home() {
                   src={dest.image}
                   alt={dest.name}
                   fill
+                  unoptimized
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a101b] via-[#0a101b]/30 to-transparent" />

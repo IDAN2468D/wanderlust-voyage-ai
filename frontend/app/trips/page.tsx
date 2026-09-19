@@ -44,7 +44,7 @@ const TRIPS_DATA: SampleTrip[] = [
     country: "אינדונזיה",
     days: 10,
     totalBudget: 1450,
-    image: "/images/bali.jpg",
+    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200&auto=format&fit=crop",
     flightEst: 620,
     hotelEst: 510,
     style: "יוקרה קלה / טבע",
@@ -68,7 +68,7 @@ const TRIPS_DATA: SampleTrip[] = [
     country: "שוויץ",
     days: 7,
     totalBudget: 2400,
-    image: "/images/swiss_alps.jpg",
+    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop",
     flightEst: 430,
     hotelEst: 1180,
     style: "נופים פנורמיים / טבע",
@@ -89,7 +89,7 @@ const TRIPS_DATA: SampleTrip[] = [
     country: "יוון",
     days: 5,
     totalBudget: 1850,
-    image: "/images/santorini.jpg",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1200&auto=format&fit=crop",
     flightEst: 390,
     hotelEst: 850,
     style: "רומנטיקה ובוטיק",
@@ -108,7 +108,7 @@ const TRIPS_DATA: SampleTrip[] = [
     country: "האוקיינוס ההודי",
     days: 6,
     totalBudget: 3200,
-    image: "/images/maldives.jpg",
+    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?q=80&w=1200&auto=format&fit=crop",
     flightEst: 850,
     hotelEst: 1650,
     style: "יוקרה עילאית",
@@ -154,6 +154,7 @@ export default function TripsPage() {
             src="/images/santorini.jpg"
             alt="Trips Background"
             fill
+            unoptimized
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
@@ -194,6 +195,7 @@ export default function TripsPage() {
                       src={trip.image}
                       alt={trip.title}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />

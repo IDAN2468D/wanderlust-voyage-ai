@@ -38,7 +38,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
     category: "europe",
     rating: 4.9,
     reviewsCount: 340,
-    image: "/images/santorini.jpg",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1200&auto=format&fit=crop",
     priceFrom: 1850,
     bestSeason: "מאי - אוקטובר",
     description: "בתים לבנים בוהקים, כיפות כחולות המשקיפות אל לוע הר הגעש והשקיעות המפורסמות בעולם.",
@@ -51,7 +51,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
     category: "tropical",
     rating: 4.95,
     reviewsCount: 520,
-    image: "/images/maldives.jpg",
+    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?q=80&w=1200&auto=format&fit=crop",
     priceFrom: 3200,
     bestSeason: "נובמבר - אפריל",
     description: "וילות יוקרה על המים, לגונות טורקיז צלולות ועולם תת-ימי עשיר בשוניות אלמוגים נדירות.",
@@ -64,7 +64,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
     category: "nature",
     rating: 4.85,
     reviewsCount: 290,
-    image: "/images/swiss_alps.jpg",
+    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop",
     priceFrom: 2400,
     bestSeason: "יוני - ספטמבר (או דצמבר-מרץ לסקי)",
     description: "פסגות דרמטיות, אגמי טורקיז אלפיניים, רכבות פנורמיות וכפרי עץ ציוריים בלב הטבע.",
@@ -77,7 +77,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
     category: "asia",
     rating: 4.88,
     reviewsCount: 610,
-    image: "/images/bali.jpg",
+    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200&auto=format&fit=crop",
     priceFrom: 1450,
     bestSeason: "אפריל - אוקטובר",
     description: "מקדשים עתיקים, טרסות אורז ירוקות עד האופק, גלישת גלים ותרבות רוחנית מרגיעה.",
@@ -90,7 +90,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
     category: "europe",
     rating: 4.92,
     reviewsCount: 410,
-    image: "/images/santorini.jpg",
+    image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1200&auto=format&fit=crop",
     priceFrom: 2100,
     bestSeason: "מאי - ספטמבר",
     description: "מצוקים תלולים הנושקים לים הטירני, מטעי לימונים ריחניים ופסטה טרייה בכפרים תלויים.",
@@ -103,7 +103,7 @@ const DESTINATIONS_DATA: DestinationItem[] = [
     category: "asia",
     rating: 4.96,
     reviewsCount: 780,
-    image: "/images/hero-bg.jpg",
+    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200&auto=format&fit=crop",
     priceFrom: 2900,
     bestSeason: "מרץ - מאי / אוקטובר - נובמבר",
     description: "שילוב מהפנט בין עתידנות טכנולוגית לבין גני זן שלווים, מקדשי שינטו ואירוח מסורתי.",
@@ -142,6 +142,7 @@ export default function DestinationsPage() {
             src="/images/hero-bg.jpg"
             alt="Destinations background"
             fill
+            unoptimized
             className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/80 via-[#070c12] to-[#070c12]" />
@@ -233,6 +234,7 @@ export default function DestinationsPage() {
                   src={dest.image}
                   alt={dest.name}
                   fill
+                  unoptimized
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-black/25 to-transparent" />
