@@ -79,7 +79,7 @@ export const Navbar: React.FC = () => {
   const NAV_LINKS = [
     { label: "דף הבית", href: "/", icon: Home },
     { label: "טיסות חגים TLV ✈️", href: "/flights", icon: Plane, isSpecial: true },
-    { label: "יעדים", href: "/destinations", icon: Compass },
+    { label: "מקומות ויעדים", href: "/#discover-places", icon: Compass },
     { label: "חוויות", href: "/experiences", icon: Sparkles },
     { label: "מסלולים", href: "/trips", icon: Map },
     { label: "אודות", href: "/about", icon: Info },
@@ -463,9 +463,9 @@ export const Navbar: React.FC = () => {
                   router.push("/#planner-form");
                 }
               }}
-              className="relative group overflow-hidden hidden sm:inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-teal-400 via-mint-400 to-emerald-400 text-slate-950 font-black text-xs tracking-wider shadow-[0_0_22px_rgba(45,212,191,0.35)] hover:shadow-[0_0_32px_rgba(45,212,191,0.55)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+              className="relative group overflow-hidden hidden sm:inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 font-black text-xs tracking-wider shadow-[0_0_22px_rgba(245,158,11,0.4)] hover:shadow-[0_0_32px_rgba(245,158,11,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="absolute inset-0 bg-white/25 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               <Sparkles className="w-3.5 h-3.5 text-slate-950 animate-pulse" />
               <span>תכנן טיול</span>
               <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />

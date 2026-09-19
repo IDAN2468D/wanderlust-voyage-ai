@@ -8,6 +8,8 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Search,
   Star,
   ShieldCheck,
   Headphones,
@@ -60,6 +62,109 @@ interface DestinationItem {
   tagline: string;
   flightHoursFromTlv: string;
 }
+
+interface CuratedPlaceItem {
+  id: string;
+  name: string;
+  hebrewName: string;
+  location: string;
+  country: string;
+  rating: number;
+  reviewsCount: number;
+  image: string;
+  category: "all" | "nature" | "culture" | "recreation" | "culinary";
+  categoryLabel: string;
+  description: string;
+  durationDays: number;
+}
+
+// 6 Curated Places from Bali reference (CariBali style)
+const BALI_CURATED_PLACES: CuratedPlaceItem[] = [
+  {
+    id: "uluwatu",
+    name: "Uluwatu Temple",
+    hebrewName: "מקדש אולואווטו",
+    location: "דרום באלי, אינדונזיה",
+    country: "אינדונזיה",
+    rating: 4.6,
+    reviewsCount: 840,
+    image: "https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=1200&auto=format&fit=crop",
+    category: "culture",
+    categoryLabel: "תרבות ומקדשים",
+    description: "Perched on a dramatic cliff-top overlooking the Indian Ocean, Uluwatu Temple is one of Bali's most iconic landmarks.",
+    durationDays: 8,
+  },
+  {
+    id: "tegalalang",
+    name: "Tegalalang Rice Terrace",
+    hebrewName: "טרסות האורז טגלאלנג",
+    location: "אובוד, באלי",
+    country: "אינדונזיה",
+    rating: 4.3,
+    reviewsCount: 650,
+    image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?q=80&w=1200&auto=format&fit=crop",
+    category: "nature",
+    categoryLabel: "תיירות טבע",
+    description: "Located in the heart of Ubud, Tegalalang offers stunning green rice terraces arranged in a traditional Subak system.",
+    durationDays: 8,
+  },
+  {
+    id: "batur",
+    name: "Mount Batur",
+    hebrewName: "הר באטור",
+    location: "קינטמני, באלי",
+    country: "אינדונזיה",
+    rating: 4.6,
+    reviewsCount: 520,
+    image: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?q=80&w=1200&auto=format&fit=crop",
+    category: "nature",
+    categoryLabel: "תיירות טבע",
+    description: "An active volcano and one of Bali's most popular trekking spots, Mount Batur offers an unforgettable sunrise over cloud valleys.",
+    durationDays: 8,
+  },
+  {
+    id: "tirta_empul",
+    name: "Tirta Empul Temple",
+    hebrewName: "מקדש טירטה אמפול",
+    location: "טמפקסירינג, באלי",
+    country: "אינדונזיה",
+    rating: 4.6,
+    reviewsCount: 710,
+    image: "https://images.unsplash.com/photo-1570789210967-2cac24afeb00?q=80&w=1200&auto=format&fit=crop",
+    category: "culture",
+    categoryLabel: "תרבות ומקדשים",
+    description: "This sacred water temple in Tampaksiring is famous for holy spring water, where visitors experience spiritual purification.",
+    durationDays: 8,
+  },
+  {
+    id: "monkey_forest",
+    name: "Sacred Monkey Forest Sanctuary",
+    hebrewName: "יער הקופים הקדוש",
+    location: "מרכז אובוד, באלי",
+    country: "אינדונזיה",
+    rating: 4.5,
+    reviewsCount: 920,
+    image: "https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=1200&auto=format&fit=crop",
+    category: "nature",
+    categoryLabel: "תיירות טבע",
+    description: "Nestled in central Ubud, this lush forest sanctuary is home to over 1,000 long-tailed macaques and moss-draped ancient shrines.",
+    durationDays: 8,
+  },
+  {
+    id: "kelingking",
+    name: "Nusa Penida (Kelingking Beach)",
+    hebrewName: "נוסה פנידה (צוק קלינגקינג)",
+    location: "נוסה פנידה, באלי",
+    country: "אינדונזיה",
+    rating: 4.7,
+    reviewsCount: 1150,
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop",
+    category: "recreation",
+    categoryLabel: "נופש וחופים",
+    description: "Famous for its cliff that resembles a T-Rex overlooking an untouched white-sand cove and hypnotic turquoise waters.",
+    durationDays: 8,
+  },
+];
 
 const FEATURED_DESTINATIONS: DestinationItem[] = [
   {
@@ -342,6 +447,10 @@ export default function Home() {
   const [currentDuration, setCurrentDuration] = useState<number>(7);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCuratedCategory, setSelectedCuratedCategory] = useState<string>("all");
+  const [curatedPage, setCuratedPage] = useState<number>(1);
+  const [searchLocation, setSearchLocation] = useState<string>("באלי, אינדונזיה");
+  const [searchVibe, setSearchVibe] = useState<string>("טבע ונופים");
   const [activeAgentCard, setActiveAgentCard] = useState<number>(0);
 
   // Specialist Agents Extra Data
@@ -396,6 +505,44 @@ export default function Home() {
     selectedCategory === "all"
       ? FEATURED_DESTINATIONS
       : FEATURED_DESTINATIONS.filter((d) => d.category === selectedCategory);
+
+  // Combined and paginated places (6 per page like CariBali)
+  const allCuratedPlaces: CuratedPlaceItem[] = [
+    ...BALI_CURATED_PLACES,
+    ...FEATURED_DESTINATIONS.map((d) => ({
+      id: d.id,
+      name: d.name,
+      hebrewName: d.name,
+      location: `${d.location}, ${d.country}`,
+      country: d.country,
+      rating: d.rating,
+      reviewsCount: d.reviewsCount,
+      image: d.image,
+      category: (d.category === "islands" ? "recreation" : d.category) as any,
+      categoryLabel:
+        d.category === "islands"
+          ? "נופש וחופים"
+          : d.category === "nature"
+          ? "תיירות טבע"
+          : d.category === "culture"
+          ? "תרבות ומקדשים"
+          : "קולינריה",
+      description: d.tagline,
+      durationDays: d.durationDays,
+    })),
+  ];
+
+  const filteredCuratedPlaces =
+    selectedCuratedCategory === "all"
+      ? allCuratedPlaces
+      : allCuratedPlaces.filter((p) => p.category === selectedCuratedCategory);
+
+  const PAGE_SIZE = 6;
+  const totalCuratedPages = Math.max(1, Math.ceil(filteredCuratedPlaces.length / PAGE_SIZE));
+  const displayCuratedPlaces = filteredCuratedPlaces.slice(
+    (curatedPage - 1) * PAGE_SIZE,
+    curatedPage * PAGE_SIZE
+  );
 
   const handleTripSubmit = async (formData: TripFormData) => {
     setIsStreaming(true);
@@ -711,52 +858,132 @@ export default function Home() {
       {/* ========================================================
           HERO WRAPPER WITH FULL BLEED LUXURY BACKGROUND IMAGE
       ======================================================== */}
-      <div className="relative min-h-[920px] lg:min-h-[1020px] w-full overflow-hidden flex flex-col justify-between">
+      <div className="relative min-h-[960px] lg:min-h-[1080px] w-full overflow-hidden flex flex-col justify-between">
         {/* Background Image with Vignette & Specular Gradient */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/hero-bg.jpg"
-            alt="Wanderlust Coastline"
+            src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=2000&auto=format&fit=crop"
+            alt="Scenic Bali Temple & Travel Explorer"
             fill
             priority
             unoptimized
             className="object-cover object-center scale-105 transition-transform duration-1000 ease-out"
           />
           {/* Multi-layer Cinematic Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/60 to-black/70" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/90 via-[#050811]/40 to-[#050811]/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/45 to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/75 via-transparent to-[#050811]/75" />
         </div>
 
         {/* HERO MAIN CONTENT - Full Width Panoramic Architecture */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-8 pb-12 w-full">
           {/* Top Hero Section: Headline, Live Badges & Quick Inspiration */}
-          <div className="max-w-4xl mx-auto text-center space-y-4 mb-8">
+          <div className="max-w-4xl mx-auto text-center space-y-4 mb-6">
             {/* Top Luxury Eyebrow */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse" />
-              <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא • 13 סוכני AI</span>
               <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping" />
             </div>
 
-            {/* Massive Editorial Headline */}
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.15]">
-              מסעות שנבנים במיוחד עבורך <br className="hidden sm:inline" />
-              <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
-                ע״י 13 סוכני AI אוטונומיים
+            {/* Massive Editorial Headline matching CariBali reference */}
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-lg">
+              גלה את המסע שמותאם בדיוק בשבילך <br className="hidden sm:inline" />
+              <span className="italic font-normal bg-gradient-to-r from-amber-300 via-orange-200 to-mint-300 bg-clip-text text-transparent">
+                Uncover The Bali & World That Matches You
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              מערכת תזמור מתקדמת הסורקת טיסות חיות מנתב״ג, מאתרת מלונות בוטיק יוקרתיים, מחשבת החזרי Tax-Free ושופינג, מנגישה כשרות וסעודות שבת, ומסנכרנת את תיק המסע המלא ישירות ל-Google Calendar.
+            <p className="text-slate-200 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+              מפנינות נסתרות ועד אתרי חובה אייקוניים, 13 סוכני ה-AI שלנו מתאימים עבורך אישית כל טיסה, מלון, אטרקציה ותקציב בדיוק לפי הסגנון שלך.
             </p>
+
+            {/* ========================================================
+                SIGNATURE FLOATING CAPSULE SEARCH BAR (CariBali Style)
+            ======================================================== */}
+            <div className="w-full max-w-3xl mx-auto pt-3 pb-2 select-none">
+              <div className="relative group">
+                {/* Ambient glowing shadow behind capsule */}
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500/35 via-orange-500/30 to-mint-500/35 blur-xl opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                {/* Floating White Pill Container */}
+                <div className="relative rounded-full bg-white/95 text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl border-2 border-white p-2 sm:p-2.5 flex items-center justify-between gap-2 sm:gap-3 transition-all">
+                  
+                  {/* Field 1: Destination Selector */}
+                  <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-4 py-1 cursor-pointer">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-600 shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 text-right">
+                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500">
+                        בחר יעד לחקירה
+                      </label>
+                      <select
+                        value={searchLocation}
+                        onChange={(e) => setSearchLocation(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
+                      >
+                        <option value="באלי, אינדונזיה">באלי, אינדונזיה 🏖️</option>
+                        <option value="טוקיו, יפן">טוקיו, יפן 🌸</option>
+                        <option value="רומא, איטליה">רומא, איטליה 🏛️</option>
+                        <option value="האלפים השוויצריים, שוויץ">האלפים השוויצריים 🎿</option>
+                        <option value="האיים המלדיביים">האיים המלדיביים 🏝️</option>
+                        <option value="סנטוריני, יוון">סנטוריני, יוון 🇬🇷</option>
+                        <option value="ניו יורק, ארה״ב">ניו יורק, ארה״ב 🗽</option>
+                      </select>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-8 w-px bg-slate-200 hidden sm:block shrink-0" />
+
+                  {/* Field 2: Vacation Vibe / Category Selector */}
+                  <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-4 py-1 cursor-pointer">
+                    <div className="w-8 h-8 rounded-full bg-mint-500/15 flex items-center justify-center text-mint-600 shrink-0">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 text-right">
+                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500">
+                        איזה סגנון חופשה אתה אוהב?
+                      </label>
+                      <select
+                        value={searchVibe}
+                        onChange={(e) => setSearchVibe(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
+                      >
+                        <option value="טבע ונופים">טבע ונופים פראיים 🏔️</option>
+                        <option value="תרבות ומקדשים">תרבות, היסטוריה ומקדשים 🏛️</option>
+                        <option value="נופש וחופים">חופים טרופיים ואיים 🏖️</option>
+                        <option value="קולינריה ושופינג">קולינריה גורמה ושופינג 🍷</option>
+                        <option value="ריזורטים וספא">ריזורטים יוקרתיים וספא 💆</option>
+                      </select>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                  </div>
+
+                  {/* Action Button: Glowing Amber/Orange Search Circle */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSelectQuickInspiration(searchLocation, 8);
+                    }}
+                    title="הפעל תכנון מסע חכם"
+                    className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white flex items-center justify-center shadow-lg shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-200 shrink-0 group/btn"
+                  >
+                    <Search className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                  </button>
+
+                </div>
+              </div>
+            </div>
 
             {/* Quick Inspiration Pills & Action Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsVideoModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-xs font-semibold transition group shadow-md"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition group shadow-md"
               >
                 <div className="w-5 h-5 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
                   <Play className="w-3 h-3 fill-current ml-0.5" />
@@ -766,7 +993,7 @@ export default function Home() {
 
               <a
                 href="/flights"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-xs font-bold transition group shadow-md"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 backdrop-blur-md border border-cyan-400/30 text-cyan-200 hover:text-white text-xs font-bold transition group shadow-md"
               >
                 <Plane className="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
                 <span>לוח טיסות חגים מנתב"ג ✈️</span>
@@ -774,7 +1001,7 @@ export default function Home() {
 
               {/* Quick Inspiration Pills */}
               <div className="hidden lg:flex items-center gap-1.5 mr-2">
-                <span className="text-[11px] font-bold text-slate-400 ml-1">
+                <span className="text-[11px] font-bold text-slate-300 ml-1">
                   השראה מהירה:
                 </span>
                 {QUICK_INSPIRATIONS.slice(0, 3).map((chip, idx) => (
@@ -782,10 +1009,10 @@ export default function Home() {
                     key={idx}
                     type="button"
                     onClick={() => handleSelectQuickInspiration(chip.destination, chip.duration)}
-                    className="px-3 py-1 rounded-full bg-white/[0.07] hover:bg-mint-500/20 hover:border-mint-400/50 border border-white/15 text-[11px] text-slate-200 hover:text-mint-300 transition-all duration-200 flex items-center gap-1 group shadow-sm hover:scale-[1.02]"
+                    className="px-3 py-1 rounded-full bg-black/40 hover:bg-amber-500/25 hover:border-amber-400/50 border border-white/20 text-[11px] text-slate-200 hover:text-amber-200 transition-all duration-200 flex items-center gap-1 group shadow-sm hover:scale-[1.02]"
                   >
                     <span>{chip.label}</span>
-                    <ArrowLeft className="w-2.5 h-2.5 text-slate-400 group-hover:text-mint-400 group-hover:-translate-x-0.5 transition-transform" />
+                    <ArrowLeft className="w-2.5 h-2.5 text-slate-400 group-hover:text-amber-300 group-hover:-translate-x-0.5 transition-transform" />
                   </button>
                 ))}
               </div>
@@ -935,125 +1162,199 @@ export default function Home() {
       )}
 
       {/* ========================================================
-          EXPLORE DESTINATIONS SECTION (MotionSites "Scenic Travel" & "Travel Explorer" Style)
+          DISCOVER PLACES SECTION (CariBali & MotionSites Style)
       ======================================================== */}
-      <section id="destinations" className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
-          <div className="space-y-2 text-right">
-            <div className="flex items-center gap-2 text-xs font-bold text-mint-400 uppercase tracking-wider">
-              <Compass className="w-3.5 h-3.5" />
-              <span>אוסף מסעות עולמי</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-              יעדים מובילים ומסלולים מבוקשים
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-xl">
-              בחר יעד מתוך האוסף הנבחר. לחיצה על כרטיס תטען אוטומטית את היעד למחשבון התכנון.
-            </p>
+      <section id="discover-places" className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-10 relative z-10">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/25 text-amber-400 text-xs font-bold">
+            <Compass className="w-3.5 h-3.5" />
+            <span>גילוי יעדים ואוצרות טבע</span>
           </div>
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+            Discover places you're going to love
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            מפלאי תרבות עתיקים ועד בריחה לטבע פראי, תן להעדפות שלך להוביל אותך לחוויות המרגשות ביותר בעולם.
+          </p>
 
-          {/* Category Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {/* Filter Pills (All, Nature, Cultural, Recreational, General) */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-3">
             {[
-              { id: "all", label: "כל היעדים" },
-              { id: "islands", label: "🏝️ איים ונופש" },
-              { id: "culture", label: "🏛️ תרבות והיסטוריה" },
-              { id: "nature", label: "🏔️ טבע ונופים" },
-              { id: "culinary", label: "🍷 קולינריה" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSelectedCategory(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  selectedCategory === tab.id
-                    ? "bg-mint-500/25 text-mint-300 border border-mint-400 shadow-md shadow-mint-500/10"
-                    : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+              { id: "all", label: "הכל (All)" },
+              { id: "nature", label: "תיירות טבע (Nature)" },
+              { id: "culture", label: "תרבות ומקדשים (Cultural)" },
+              { id: "recreation", label: "נופש וחופים (Recreational)" },
+              { id: "culinary", label: "קולינריה וכללי (General)" },
+            ].map((tab) => {
+              const isSelected = selectedCuratedCategory === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCuratedCategory(tab.id);
+                    setCuratedPage(1);
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${
+                    isSelected
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25 scale-105 border border-amber-400/40"
+                      : "bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 border border-white/10 hover:border-white/20"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* 6 Destination Cards Grid with Liquid Glass treatment */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDestinations.map((dest) => (
+        {/* 3 Columns Grid of Destination / Attraction Cards (CariBali Style) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+          {displayCuratedPlaces.map((place) => (
             <div
-              key={dest.id}
-              onClick={() => handleSelectQuickInspiration(`${dest.name}, ${dest.country}`, dest.durationDays)}
-              className="group wanderlust-glass-card rounded-3xl overflow-hidden border border-white/15 hover:border-mint-400/60 shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer flex flex-col justify-between"
+              key={place.id}
+              onClick={() => handleSelectQuickInspiration(`${place.name}, ${place.country}`, place.durationDays)}
+              className="group bg-[#0d1424]/85 hover:bg-[#121c32]/95 border border-white/10 hover:border-amber-400/50 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer flex flex-col justify-between"
             >
-              {/* Image Container */}
-              <div className="relative h-60 w-full overflow-hidden">
-                <Image
-                  src={dest.image}
-                  alt={dest.name}
-                  fill
-                  unoptimized
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a101b] via-[#0a101b]/30 to-transparent" />
-
-                {/* Top Badges */}
-                <div className="absolute top-3.5 right-3.5 left-3.5 flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white flex items-center gap-1.5 shadow-md">
-                    <Sparkles className="w-3 h-3 text-mint-400" />
-                    <span>{dest.moments} רגעי מפתח</span>
-                  </span>
-
-                  <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white flex items-center gap-1 shadow-md">
-                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                    <span>{dest.rating}</span>
-                    <span className="text-slate-400 text-[9px]">({dest.reviewsCount})</span>
-                  </span>
-                </div>
-
-                {/* Bottom of Image: Flight time from TLV */}
-                <div className="absolute bottom-3 right-3.5 left-3.5 flex items-center justify-between text-[11px] text-slate-300">
-                  <span className="bg-black/60 px-2.5 py-0.5 rounded-md backdrop-blur-sm border border-white/10 flex items-center gap-1 font-mono">
-                    <Plane className="w-3 h-3 text-cyan-400" />
-                    <span>מנתב״ג: {dest.flightHoursFromTlv}</span>
-                  </span>
-                  <span className="bg-mint-500/20 text-mint-300 font-bold px-2 py-0.5 rounded-md border border-mint-500/30 text-[10px]">
-                    {dest.durationDays} ימים מומלצים
-                  </span>
+              {/* Rounded Image Container */}
+              <div className="relative h-56 w-full overflow-hidden p-3 pb-0">
+                <div className="relative h-full w-full rounded-2xl overflow-hidden">
+                  <Image
+                    src={place.image}
+                    alt={place.name}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                  
+                  {/* Top Badge: Category */}
+                  <div className="absolute top-3 right-3">
+                    <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white border border-white/15 shadow-sm">
+                      {place.categoryLabel}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Card Body */}
-              <div className="p-5 space-y-3.5 text-right flex-1 flex flex-col justify-between">
+              {/* Content Body */}
+              <div className="p-5 space-y-3 text-right flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-baseline justify-between">
-                    <h3 className="text-xl font-bold text-white font-serif group-hover:text-mint-300 transition-colors">
-                      {dest.name}
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-white font-serif group-hover:text-amber-300 transition-colors">
+                      {place.name}
                     </h3>
-                    <span className="text-xs text-slate-400">{dest.country}</span>
+                    <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
+                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                      <span>{place.rating}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">({place.reviewsCount})</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed mt-1.5">
-                    {dest.tagline}
+
+                  <p className="text-xs text-slate-400 leading-relaxed mt-2 line-clamp-2">
+                    {place.description}
                   </p>
                 </div>
 
-                {/* Price and Action button */}
-                <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block">עלות משוערת למסלול:</span>
-                    <span className="font-heading font-black text-white text-base">
-                      ${dest.estCostUsd.toLocaleString()}
-                    </span>
-                  </div>
+                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{place.location}</span>
+                  </span>
 
-                  <div className="px-4 py-2 rounded-xl bg-mint-500/15 border border-mint-500/30 text-mint-300 text-xs font-bold group-hover:bg-mint-400 group-hover:text-slate-950 transition-all flex items-center gap-1.5 shadow-sm">
-                    <span>בחר ותכנן</span>
-                    <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                  </div>
+                  <span className="text-amber-400 font-bold hover:underline flex items-center gap-1 text-[11px]">
+                    <span>קרא עוד ותכנן</span>
+                    <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+                  </span>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Pagination Bar (Matching CariBali Layout) */}
+        <div className="flex items-center justify-center gap-2 pt-4 select-none">
+          <button
+            type="button"
+            onClick={() => setCuratedPage((p) => Math.max(1, p - 1))}
+            disabled={curatedPage === 1}
+            className="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] disabled:opacity-40 disabled:hover:bg-white/[0.05] text-xs font-semibold text-slate-300 border border-white/10 transition-colors"
+          >
+            עמוד קודם (Back Page)
+          </button>
+
+          <div className="flex items-center gap-1.5 mx-2">
+            {[1, 2, 3, 4, 5].slice(0, Math.max(3, totalCuratedPages)).map((pageNum) => (
+              <button
+                key={pageNum}
+                type="button"
+                onClick={() => setCuratedPage(pageNum)}
+                className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${
+                  curatedPage === pageNum
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30 scale-105"
+                    : "bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 border border-white/10"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCuratedPage((p) => Math.min(totalCuratedPages, p + 1))}
+            disabled={curatedPage === totalCuratedPages}
+            className="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] disabled:opacity-40 disabled:hover:bg-white/[0.05] text-xs font-semibold text-slate-300 border border-white/10 transition-colors"
+          >
+            עמוד הבא (Next Page)
+          </button>
+        </div>
+      </section>
+
+      {/* ========================================================
+          TRAVEL SMARTER VALUE PROPOSITIONS (CariBali Style)
+      ======================================================== */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-14 space-y-8 relative z-10 border-t border-white/10">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+            Travel Smarter with AgentTravelPlanner
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            תן להעדפות שלך ולסוכני הבינה המלאכותית להוביל אותך למקומות שמתאימים בדיוק לוייב שלך.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-amber-400/40 transition-all duration-300 text-right space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white font-serif">Personalized Picks</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              המלצות מותאמות אישית שנבנות על פי סגנון הטיול, תחומי העניין והתקציב שלך, ללא מלכודות תיירים.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/40 transition-all duration-300 text-right space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <Cpu className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white font-serif">Smart and Simple</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              במקום עשרות שעות מול עשרות טאבים, 13 סוכני ה-AI שלנו מתאמים טיסות, מלונות ומסלולים בלחיצת כפתור אחת.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-mint-400/40 transition-all duration-300 text-right space-y-3 shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-mint-500/15 border border-mint-500/30 flex items-center justify-center text-mint-400">
+              <CalendarCheck className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white font-serif">All in One Place</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              לוחות טיסות מנתב״ג, מלונות מובילים, תוכנית יומית וסנכרון מלא ישירות ל-Google Calendar ולמייל.
+            </p>
+          </div>
         </div>
       </section>
 
