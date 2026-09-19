@@ -16,7 +16,12 @@ import {
   Plane,
   Compass,
   BookmarkCheck,
-  Briefcase
+  Briefcase,
+  Home,
+  Map,
+  Info,
+  BookOpen,
+  Navigation as NavigationIcon,
 } from "lucide-react";
 import { SearchModal } from "@/components/SearchModal";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
@@ -72,13 +77,13 @@ export const Navbar: React.FC = () => {
   }, []);
 
   const NAV_LINKS = [
-    { label: "דף הבית", href: "/" },
-    { label: "טיסות חגים TLV ✈️", href: "/flights", isSpecial: true },
-    { label: "יעדים", href: "/destinations" },
-    { label: "חוויות", href: "/experiences" },
-    { label: "מסלולים", href: "/trips" },
-    { label: "אודות", href: "/about" },
-    { label: "בלוג", href: "/blog" },
+    { label: "דף הבית", href: "/", icon: Home },
+    { label: "טיסות חגים TLV ✈️", href: "/flights", icon: Plane, isSpecial: true },
+    { label: "יעדים", href: "/destinations", icon: Compass },
+    { label: "חוויות", href: "/experiences", icon: Sparkles },
+    { label: "מסלולים", href: "/trips", icon: Map },
+    { label: "אודות", href: "/about", icon: Info },
+    { label: "בלוג", href: "/blog", icon: BookOpen },
   ];
 
   const currencyList = Object.values(CURRENCIES);
@@ -86,57 +91,98 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className="sticky top-0 z-40 w-full bg-[#070b13]/85 backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_10px_35px_-5px_rgba(0,0,0,0.6)] transition-all duration-300"
+        className="sticky top-0 z-40 w-full bg-[#070b13]/90 backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_12px_35px_-5px_rgba(0,0,0,0.65)] transition-all duration-300"
         dir="rtl"
       >
-        {/* Top ambient luxury accent line */}
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-mint-400/60 to-transparent pointer-events-none" />
+        {/* Top ambient luxury accent line with animated shimmer */}
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-mint-400/70 to-transparent pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-10 py-3 sm:py-3.5 flex items-center justify-between gap-4">
           
-          {/* Logo (Right side in RTL) */}
+          {/* ========================================================
+              ANIMATED LOGO & BRANDING (Liquid Glass 4.0 Pro)
+          ======================================================== */}
           <a
             href="/"
-            className="flex items-center gap-3 group shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-mint-400 rounded-2xl"
+            className="flex items-center gap-3.5 group shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-mint-400 rounded-2xl select-none"
+            title="Agent Travel Planner - דף הבית"
           >
-            <div className="relative p-2 sm:p-2.5 rounded-2xl bg-gradient-to-br from-mint-500/20 via-teal-500/10 to-emerald-500/20 border border-mint-400/30 shadow-[0_0_20px_rgba(45,212,191,0.2)] group-hover:shadow-[0_0_30px_rgba(45,212,191,0.45)] group-hover:border-mint-400/60 group-hover:scale-105 transition-all duration-300">
-              <Mountain className="w-5 h-5 sm:w-6 sm:h-6 text-mint-400 group-hover:rotate-6 transition-transform duration-300" />
-              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-mint-400 animate-ping opacity-75" />
-              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-mint-400 border-2 border-[#070b13]" />
+            {/* Logo Emblem with Rotating Orbital Rings & Glow Effects */}
+            <div className="relative">
+              {/* Breathing ambient neon underglow */}
+              <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-mint-500/40 via-cyan-500/35 to-emerald-400/40 blur-xl opacity-75 group-hover:opacity-100 group-hover:scale-115 transition-all duration-500 animate-pulse-glow pointer-events-none" />
+
+              {/* Rotating outer orbital dashed radar ring */}
+              <div className="absolute -inset-1 rounded-2xl border border-dashed border-mint-400/40 group-hover:border-mint-400/70 animate-spin-slow pointer-events-none transition-colors" />
+              
+              {/* Counter-rotating subtle orbital ring */}
+              <div className="absolute -inset-2 rounded-full border border-dotted border-cyan-400/25 animate-spin-reverse-slow pointer-events-none" />
+
+              {/* Orbiting celestial satellite dot */}
+              <div className="absolute -top-1.5 -left-1.5 w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9] animate-pulse pointer-events-none" />
+
+              {/* Central Glass Emblem Badge */}
+              <div className="relative p-2.5 sm:p-3 rounded-2xl bg-[#090f19]/90 border border-mint-400/40 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_0_20px_rgba(45,212,191,0.25)] group-hover:border-mint-400 group-hover:shadow-[0_0_30px_rgba(45,212,191,0.55)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center overflow-hidden">
+                {/* Background Rotating Compass/Radar SVG */}
+                <Compass className="w-8 h-8 text-mint-500/25 animate-spin-slow absolute inset-auto pointer-events-none" />
+                
+                {/* Supersonic Climbing AI Plane */}
+                <Plane className="w-3.5 h-3.5 text-cyan-300 absolute top-1 left-1 transform -rotate-45 animate-plane-float drop-shadow-[0_0_6px_#22d3ee] pointer-events-none" />
+
+                {/* Main Stylized Mountain Peak */}
+                <Mountain className="w-5 h-5 sm:w-6 sm:h-6 text-mint-300 drop-shadow-[0_0_10px_rgba(45,212,191,0.9)] group-hover:scale-110 transition-transform duration-300 relative z-10" />
+
+                {/* Radar Sweep Effect inside emblem */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-mint-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none animate-radar-sweep" />
+              </div>
+
+              {/* Live Active Online Beacon */}
+              <span className="absolute -top-1 -right-1 flex h-3 w-3 pointer-events-none">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-[#070b13] shadow-[0_0_8px_#34d399]" />
+              </span>
             </div>
+
+            {/* Typography & AI Agent Status Badges */}
             <div className="flex flex-col text-right">
-              <span className="font-heading font-black text-base sm:text-lg tracking-[0.14em] bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent group-hover:text-white transition-colors block">
+              <span className="font-heading font-black text-base sm:text-lg tracking-[0.14em] bg-gradient-to-r from-white via-mint-100 to-cyan-200 bg-[length:200%_auto] animate-text-shimmer bg-clip-text text-transparent group-hover:brightness-125 transition-all block">
                 AGENT TRAVEL PLANNER
               </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[9px] tracking-[0.22em] text-slate-400 font-semibold block">
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[8.5px] sm:text-[9.5px] tracking-[0.24em] text-slate-300 font-semibold block">
                   AUTONOMOUS AI VOYAGES
                 </span>
-                <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-mint-500/15 border border-mint-400/30 text-[8.5px] font-bold text-mint-300 tracking-wider">
-                  13 AGENTS
+                {/* 13 Active Agents Pill Badge */}
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/20 to-mint-500/15 border border-emerald-400/40 text-[9px] font-bold text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span>13 סוכני AI פעילים</span>
                 </span>
               </div>
             </div>
           </a>
 
-          {/* Desktop Navigation Floating Dock (Center) */}
-          <nav className="hidden lg:flex items-center gap-1 p-1.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] backdrop-blur-xl">
+          {/* ========================================================
+              REDESIGNED NAVIGATION DOCK (Icons, Tooltips, Glass)
+          ======================================================== */}
+          <nav className="hidden lg:flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/[0.035] hover:bg-white/[0.05] border border-white/[0.09] shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_10px_30px_-10px_rgba(0,0,0,0.6)] backdrop-blur-2xl transition-all duration-300">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
+              const Icon = link.icon;
               
               if (link.isSpecial) {
                 return (
                   <a
                     key={link.href}
                     href={link.href}
-                    className={`relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 ${
+                    className={`relative group px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
                       isActive
-                        ? "bg-gradient-to-r from-cyan-500/25 to-blue-500/20 text-cyan-200 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
-                        : "bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-100 border border-cyan-500/20"
+                        ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/25 text-cyan-100 border border-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+                        : "bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 text-cyan-300 hover:text-cyan-100 border border-cyan-500/30 hover:border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.18)]"
                     }`}
                   >
+                    <Icon className="w-3.5 h-3.5 text-cyan-300 animate-plane-float shrink-0" />
                     <span>{link.label}</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]" />
                   </a>
                 );
               }
@@ -145,25 +191,32 @@ export const Navbar: React.FC = () => {
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                  className={`group relative px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-2 ${
                     isActive
-                      ? "bg-mint-500/20 text-mint-300 border border-mint-400/35 shadow-[0_0_15px_rgba(45,212,191,0.2)]"
-                      : "text-slate-300 hover:text-white hover:bg-white/[0.07]"
+                      ? "bg-gradient-to-r from-mint-500/25 to-teal-500/20 text-mint-200 font-bold border border-mint-400/50 shadow-[0_0_20px_rgba(45,212,191,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)]"
+                      : "text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border hover:border-white/10"
                   }`}
                 >
-                  {isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-mint-400 shadow-[0_0_6px_#2dd4bf]" />
-                  )}
+                  <Icon
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5 ${
+                      isActive ? "text-mint-300" : "text-slate-400 group-hover:text-mint-400"
+                    }`}
+                  />
                   <span>{link.label}</span>
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-mint-400 shadow-[0_0_8px_#2dd4bf] animate-pulse" />
+                  )}
                 </a>
               );
             })}
           </nav>
 
-          {/* Left Controls (Search, Currency, User Profile, CTA Button) */}
+          {/* ========================================================
+              CONTROLS (Search, Currency, User Profile, CTA)
+          ======================================================== */}
           <div className="flex items-center gap-2.5 sm:gap-3">
             
-            {/* Sleek Search Button (Capsule with Ctrl+K shortcut on XL) */}
+            {/* Quick Search Capsule Button */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
@@ -279,7 +332,7 @@ export const Navbar: React.FC = () => {
                       <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#070b13] shadow-[0_0_6px_#34d399]" />
                     </div>
 
-                    {/* Full Name without ugly truncation */}
+                    {/* Full Name display without awkward cutoff */}
                     <span className="font-semibold text-white max-w-[140px] sm:max-w-[170px] truncate text-right">
                       {user.full_name || user.email.split("@")[0]}
                     </span>
@@ -497,24 +550,33 @@ export const Navbar: React.FC = () => {
               </div>
             )}
 
-            {/* Mobile Nav Links */}
-            <div className="space-y-1 pt-1">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors ${
-                    pathname === link.href
-                      ? "bg-mint-500/20 text-mint-300 border border-mint-500/30"
-                      : link.isSpecial
-                      ? "bg-cyan-500/10 text-cyan-300 border border-cyan-500/20"
-                      : "text-slate-300 hover:bg-white/5"
-                  }`}
-                >
-                  {link.label}
-                </a>
-              ))}
+            {/* Mobile Nav Links with Icons */}
+            <div className="space-y-1.5 pt-1">
+              {NAV_LINKS.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-mint-500/20 text-mint-300 border border-mint-500/35 shadow-sm"
+                        : link.isSpecial
+                        ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/25"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? "text-mint-400" : "text-slate-400"}`} />
+                    <span className="flex-1 text-right">{link.label}</span>
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-mint-400 shadow-[0_0_6px_#2dd4bf]" />
+                    )}
+                  </a>
+                );
+              })}
             </div>
 
             {/* Mobile Currency Selector */}
