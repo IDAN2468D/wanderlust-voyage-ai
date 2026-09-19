@@ -38,6 +38,11 @@ import {
   ShoppingBag,
   Radio,
   MessageSquare,
+  Car,
+  Ship,
+  ArrowLeftRight,
+  Hotel,
+  Globe,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -453,6 +458,32 @@ export default function Home() {
   const [searchVibe, setSearchVibe] = useState<string>("טבע ונופים");
   const [activeAgentCard, setActiveAgentCard] = useState<number>(0);
 
+  // GlobalVista Liquid Glass Booking Console States
+  const [activeBookingTab, setActiveBookingTab] = useState<"flights" | "hotels" | "cars" | "cruises">("flights");
+  const [searchOrigin, setSearchOrigin] = useState<string>("תל אביב (TLV), ישראל");
+  const [searchDestination, setSearchDestination] = useState<string>("לכל יעד בעולם (Anywhere)");
+  const [departDate, setDepartDate] = useState<string>("2025-05-24");
+  const [returnDate, setReturnDate] = useState<string>("2025-05-31");
+  const [travelersCount, setTravelersCount] = useState<string>("2 מבוגרים, ילד 1");
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({
+    bali: false,
+    santorini: true,
+    dubai: false,
+    maldives: false,
+  });
+
+  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleSwapOriginDestination = () => {
+    const prevOrigin = searchOrigin;
+    const prevDest = searchDestination;
+    setSearchOrigin(prevDest === "לכל יעד בעולם (Anywhere)" ? "באלי, אינדונזיה" : prevDest);
+    setSearchDestination(prevOrigin);
+  };
+
   // Specialist Agents Extra Data
   const [weatherMetrics, setWeatherMetrics] = useState<any>(null);
   const [packingChecklist, setPackingChecklist] = useState<any[]>([]);
@@ -856,173 +887,364 @@ export default function Home() {
       </div>
 
       {/* ========================================================
-          HERO WRAPPER WITH FULL BLEED LUXURY BACKGROUND IMAGE
+          HERO WRAPPER WITH WORLD LANDMARKS & GLOBE HORIZON (GlobalVista Theme)
       ======================================================== */}
       <div className="relative min-h-[960px] lg:min-h-[1080px] w-full overflow-hidden flex flex-col justify-between">
-        {/* Background Image with Vignette & Specular Gradient */}
+        {/* Background Image: High-res World Landmarks & Planet Earth Horizon */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=2000&auto=format&fit=crop"
-            alt="Scenic Bali Temple & Travel Explorer"
+            src="/images/world_landmarks_globe.jpg"
+            alt="GlobalVista - Explore the World With Confidence"
             fill
             priority
             unoptimized
             className="object-cover object-center scale-105 transition-transform duration-1000 ease-out"
           />
           {/* Multi-layer Cinematic Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/45 to-black/60" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/75 via-transparent to-[#050811]/75" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/30 to-blue-950/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-950/45 via-transparent to-blue-950/45" />
         </div>
 
         {/* HERO MAIN CONTENT - Full Width Panoramic Architecture */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-8 pb-12 w-full">
-          {/* Top Hero Section: Headline, Live Badges & Quick Inspiration */}
-          <div className="max-w-4xl mx-auto text-center space-y-4 mb-6">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-8 pb-10 w-full">
+          {/* Top Hero Section: Headline, Live Badges & CTAs */}
+          <div className="max-w-4xl mx-auto text-center space-y-4 mb-4">
             {/* Top Luxury Eyebrow */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא • 13 סוכני AI</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping" />
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold tracking-wide shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 text-sky-300 animate-pulse" />
+              <span>AI-POWERED TRAVEL PLANNER • 13 סוכנים אוטונומיים</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-300 animate-ping" />
             </div>
 
-            {/* Massive Editorial Headline matching CariBali reference */}
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.15] drop-shadow-lg">
-              גלה את המסע שמותאם בדיוק בשבילך <br className="hidden sm:inline" />
-              <span className="italic font-normal bg-gradient-to-r from-amber-300 via-orange-200 to-mint-300 bg-clip-text text-transparent">
-                Uncover The Bali & World That Matches You
+            {/* Massive Headline matching GlobalVista reference */}
+            <h1 className="font-heading font-black text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+              Explore the World <br />
+              <span className="bg-gradient-to-r from-white via-sky-100 to-blue-200 bg-clip-text text-transparent">
+                With Confidence
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-200 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed drop-shadow-md">
-              מפנינות נסתרות ועד אתרי חובה אייקוניים, 13 סוכני ה-AI שלנו מתאימים עבורך אישית כל טיסה, מלון, אטרקציה ותקציב בדיוק לפי הסגנון שלך.
+            <p className="text-slate-100 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] font-medium">
+              Seamless global travel planning, personalized experiences, and trusted booking — all in one place.
             </p>
 
-            {/* ========================================================
-                SIGNATURE FLOATING CAPSULE SEARCH BAR (CariBali Style)
-            ======================================================== */}
-            <div className="w-full max-w-3xl mx-auto pt-3 pb-2 select-none">
-              <div className="relative group">
-                {/* Ambient glowing shadow behind capsule */}
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500/35 via-orange-500/30 to-mint-500/35 blur-xl opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                {/* Floating White Pill Container */}
-                <div className="relative rounded-full bg-white/95 text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl border-2 border-white p-2 sm:p-2.5 flex items-center justify-between gap-2 sm:gap-3 transition-all">
-                  
-                  {/* Field 1: Destination Selector */}
-                  <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-4 py-1 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-600 shrink-0">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-right">
-                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500">
-                        בחר יעד לחקירה
-                      </label>
-                      <select
-                        value={searchLocation}
-                        onChange={(e) => setSearchLocation(e.target.value)}
-                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
-                      >
-                        <option value="באלי, אינדונזיה">באלי, אינדונזיה 🏖️</option>
-                        <option value="טוקיו, יפן">טוקיו, יפן 🌸</option>
-                        <option value="רומא, איטליה">רומא, איטליה 🏛️</option>
-                        <option value="האלפים השוויצריים, שוויץ">האלפים השוויצריים 🎿</option>
-                        <option value="האיים המלדיביים">האיים המלדיביים 🏝️</option>
-                        <option value="סנטוריני, יוון">סנטוריני, יוון 🇬🇷</option>
-                        <option value="ניו יורק, ארה״ב">ניו יורק, ארה״ב 🗽</option>
-                      </select>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                  </div>
-
-                  {/* Divider */}
-                  <div className="h-8 w-px bg-slate-200 hidden sm:block shrink-0" />
-
-                  {/* Field 2: Vacation Vibe / Category Selector */}
-                  <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-4 py-1 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-mint-500/15 flex items-center justify-center text-mint-600 shrink-0">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-right">
-                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-500">
-                        איזה סגנון חופשה אתה אוהב?
-                      </label>
-                      <select
-                        value={searchVibe}
-                        onChange={(e) => setSearchVibe(e.target.value)}
-                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
-                      >
-                        <option value="טבע ונופים">טבע ונופים פראיים 🏔️</option>
-                        <option value="תרבות ומקדשים">תרבות, היסטוריה ומקדשים 🏛️</option>
-                        <option value="נופש וחופים">חופים טרופיים ואיים 🏖️</option>
-                        <option value="קולינריה ושופינג">קולינריה גורמה ושופינג 🍷</option>
-                        <option value="ריזורטים וספא">ריזורטים יוקרתיים וספא 💆</option>
-                      </select>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                  </div>
-
-                  {/* Action Button: Glowing Amber/Orange Search Circle */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleSelectQuickInspiration(searchLocation, 8);
-                    }}
-                    title="הפעל תכנון מסע חכם"
-                    className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white flex items-center justify-center shadow-lg shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-200 shrink-0 group/btn"
-                  >
-                    <Search className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                  </button>
-
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Inspiration Pills & Action Buttons */}
+            {/* Two Action Buttons: Start Your Journey & View Destinations */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setIsVideoModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition group shadow-md"
+                onClick={() => {
+                  formRef.current?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-black shadow-[0_0_25px_rgba(37,99,235,0.5)] hover:shadow-[0_0_35px_rgba(37,99,235,0.7)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2"
               >
-                <div className="w-5 h-5 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
-                  <Play className="w-3 h-3 fill-current ml-0.5" />
-                </div>
-                <span>צפה בהדגמת וידאו</span>
+                <span>Start Your Journey</span>
+                <ArrowLeft className="w-4 h-4" />
               </button>
 
               <a
-                href="/flights"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 backdrop-blur-md border border-cyan-400/30 text-cyan-200 hover:text-white text-xs font-bold transition group shadow-md"
+                href="#discover-places"
+                className="px-6 py-3 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white text-xs sm:text-sm font-bold shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2"
               >
-                <Plane className="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
-                <span>לוח טיסות חגים מנתב"ג ✈️</span>
+                <Compass className="w-4 h-4 text-sky-300" />
+                <span>View Destinations</span>
+                <ArrowLeft className="w-4 h-4 text-white/70" />
               </a>
+            </div>
+          </div>
 
-              {/* Quick Inspiration Pills */}
-              <div className="hidden lg:flex items-center gap-1.5 mr-2">
-                <span className="text-[11px] font-bold text-slate-300 ml-1">
-                  השראה מהירה:
-                </span>
-                {QUICK_INSPIRATIONS.slice(0, 3).map((chip, idx) => (
+          {/* ========================================================
+              FLOATING LIQUID GLASS BOOKING CONSOLE (GlobalVista Style)
+          ======================================================== */}
+          <div className="w-full max-w-5xl mx-auto mt-6 mb-4 relative z-20">
+            <div className="relative group">
+              {/* Ambient specular bloom glow */}
+              <div className="absolute -inset-1.5 rounded-[36px] bg-gradient-to-r from-blue-500/25 via-cyan-500/20 to-indigo-500/25 blur-2xl opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+              {/* The Big Glass Card */}
+              <div className="relative rounded-[32px] bg-white/[0.14] backdrop-blur-2xl border border-white/30 p-4 sm:p-6 shadow-[0_25px_60px_rgba(0,0,0,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] space-y-4 sm:space-y-5">
+                
+                {/* Tab Bar: Flights, Hotels, Cars, Cruises */}
+                <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 text-xs sm:text-sm select-none">
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => handleSelectQuickInspiration(chip.destination, chip.duration)}
-                    className="px-3 py-1 rounded-full bg-black/40 hover:bg-amber-500/25 hover:border-amber-400/50 border border-white/20 text-[11px] text-slate-200 hover:text-amber-200 transition-all duration-200 flex items-center gap-1 group shadow-sm hover:scale-[1.02]"
+                    onClick={() => setActiveBookingTab("flights")}
+                    className={`px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 transition-all ${
+                      activeBookingTab === "flights"
+                        ? "bg-white text-blue-600 shadow-md shadow-black/10 scale-[1.02]"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
                   >
-                    <span>{chip.label}</span>
-                    <ArrowLeft className="w-2.5 h-2.5 text-slate-400 group-hover:text-amber-300 group-hover:-translate-x-0.5 transition-transform" />
+                    <Plane className="w-4 h-4 text-blue-600" />
+                    <span>Flights (טיסות)</span>
                   </button>
-                ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveBookingTab("hotels")}
+                    className={`px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 transition-all ${
+                      activeBookingTab === "hotels"
+                        ? "bg-white text-blue-600 shadow-md shadow-black/10 scale-[1.02]"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Hotel className="w-4 h-4" />
+                    <span>Hotels (מלונות)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveBookingTab("cars")}
+                    className={`px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 transition-all ${
+                      activeBookingTab === "cars"
+                        ? "bg-white text-blue-600 shadow-md shadow-black/10 scale-[1.02]"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Car className="w-4 h-4" />
+                    <span>Cars (רכבים)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveBookingTab("cruises")}
+                    className={`px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 transition-all ${
+                      activeBookingTab === "cruises"
+                        ? "bg-white text-blue-600 shadow-md shadow-black/10 scale-[1.02]"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Ship className="w-4 h-4" />
+                    <span>Cruises (קרוזים)</span>
+                  </button>
+                </div>
+
+                {/* Segmented Search Container */}
+                <div className="rounded-2xl sm:rounded-3xl bg-white text-slate-900 shadow-xl border border-white p-2.5 sm:p-3 flex flex-col lg:flex-row items-stretch lg:items-center gap-2 sm:gap-3">
+                  
+                  {/* From Field */}
+                  <div className="flex-1 flex items-center gap-2.5 px-3 py-1">
+                    <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div className="flex-1 text-right">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">From</span>
+                      <input
+                        type="text"
+                        value={searchOrigin}
+                        onChange={(e) => setSearchOrigin(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0"
+                        placeholder="מוצא טיסה"
+                      />
+                    </div>
+                    {/* Swap Button */}
+                    <button
+                      type="button"
+                      onClick={handleSwapOriginDestination}
+                      title="החלף כיוון"
+                      className="w-7 h-7 rounded-full bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition-colors shrink-0"
+                    >
+                      <ArrowLeftRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="h-8 w-px bg-slate-200 hidden lg:block" />
+
+                  {/* To Field */}
+                  <div className="flex-1 flex items-center gap-2.5 px-3 py-1">
+                    <div className="flex-1 text-right">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">To</span>
+                      <select
+                        value={searchDestination}
+                        onChange={(e) => setSearchDestination(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
+                      >
+                        <option value="לכל יעד בעולם (Anywhere)">Anywhere (לכל יעד בעולם)</option>
+                        <option value="באלי, אינדונזיה">Bali, Indonesia (באלי)</option>
+                        <option value="סנטוריני, יוון">Santorini, Greece (סנטוריני)</option>
+                        <option value="דובאי, איחוד האמירויות">Dubai, UAE (דובאי)</option>
+                        <option value="האיים המלדיביים">Maldives (המלדיביים)</option>
+                        <option value="טוקיו, יפן">Tokyo, Japan (טוקיו)</option>
+                        <option value="רומא, איטליה">Rome, Italy (רומא)</option>
+                        <option value="האלפים השוויצריים, שוויץ">Swiss Alps (שוויץ)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-slate-200 hidden lg:block" />
+
+                  {/* Depart Date Field */}
+                  <div className="flex-1 flex items-center gap-2 px-3 py-1">
+                    <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div className="flex-1 text-right">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">Depart</span>
+                      <input
+                        type="date"
+                        value={departDate}
+                        onChange={(e) => setDepartDate(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-slate-200 hidden lg:block" />
+
+                  {/* Return Date Field */}
+                  <div className="flex-1 flex items-center gap-2 px-3 py-1">
+                    <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div className="flex-1 text-right">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">Return</span>
+                      <input
+                        type="date"
+                        value={returnDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-slate-200 hidden lg:block" />
+
+                  {/* Travelers Count Field */}
+                  <div className="flex-1 flex items-center gap-2 px-3 py-1">
+                    <Users className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div className="flex-1 text-right">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">Travelers</span>
+                      <select
+                        value={travelersCount}
+                        onChange={(e) => setTravelersCount(e.target.value)}
+                        className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-900 focus:ring-0 cursor-pointer"
+                      >
+                        <option value="1 מבוגר">1 Adult</option>
+                        <option value="2 מבוגרים">2 Adults</option>
+                        <option value="2 מבוגרים, ילד 1">2 Adults, 1 Child</option>
+                        <option value="2 מבוגרים, 2 ילדים">2 Adults, 2 Children</option>
+                        <option value="קבוצה (4+)">Group (4+ Travelers)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Search Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const targetDest = searchDestination === "לכל יעד בעולם (Anywhere)" ? "באלי, אינדונזיה" : searchDestination;
+                      handleSelectQuickInspiration(targetDest, 8);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-md shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shrink-0"
+                  >
+                    <span>Search</span>
+                    <Search className="w-4 h-4" />
+                  </button>
+
+                </div>
+
+                {/* Lower Row: AI Suggestions for You */}
+                <div className="pt-2 space-y-2.5">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2 text-xs font-bold text-white">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-300 animate-pulse" />
+                      <span className="tracking-wider uppercase">AI Suggestions For You</span>
+                    </div>
+
+                    <a
+                      href="#discover-places"
+                      className="text-xs text-sky-200 hover:text-white hover:underline flex items-center gap-1 transition-colors"
+                    >
+                      <span>See more ideas</span>
+                      <ArrowLeft className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  {/* 4 Cards Grid */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      {
+                        id: "bali",
+                        title: "Bali, Indonesia",
+                        hebrewTitle: "באלי, אינדונזיה",
+                        price: "$899",
+                        image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=400&auto=format&fit=crop",
+                        duration: 8,
+                      },
+                      {
+                        id: "santorini",
+                        title: "Santorini, Greece",
+                        hebrewTitle: "סנטוריני, יוון",
+                        price: "$1,299",
+                        image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=400&auto=format&fit=crop",
+                        duration: 5,
+                      },
+                      {
+                        id: "dubai",
+                        title: "Dubai, UAE",
+                        hebrewTitle: "דובאי, איחוד האמירויות",
+                        price: "$1,099",
+                        image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=400&auto=format&fit=crop",
+                        duration: 6,
+                      },
+                      {
+                        id: "maldives",
+                        title: "Maldives",
+                        hebrewTitle: "האיים המלדיביים",
+                        price: "$1,499",
+                        image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?q=80&w=400&auto=format&fit=crop",
+                        duration: 7,
+                      },
+                    ].map((card) => {
+                      const isFav = favorites[card.id] || false;
+                      return (
+                        <div
+                          key={card.id}
+                          onClick={() => handleSelectQuickInspiration(card.hebrewTitle, card.duration)}
+                          className="group/card rounded-2xl bg-white/90 hover:bg-white text-slate-900 p-2 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer flex items-center gap-2.5 border border-white hover:scale-[1.02]"
+                        >
+                          {/* Thumbnail */}
+                          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0">
+                            <Image
+                              src={card.image}
+                              alt={card.title}
+                              fill
+                              unoptimized
+                              className="object-cover group-hover/card:scale-110 transition-transform duration-500"
+                            />
+                          </div>
+
+                          {/* Details */}
+                          <div className="flex-1 min-w-0 text-right">
+                            <h4 className="text-xs sm:text-sm font-bold truncate text-slate-900">
+                              {card.title}
+                            </h4>
+                            <span className="text-[11px] text-slate-500 font-medium block">
+                              from <strong className="text-blue-600 font-bold">{card.price}</strong>
+                            </span>
+                          </div>
+
+                          {/* Heart Icon */}
+                          <button
+                            type="button"
+                            onClick={(e) => toggleFavorite(card.id, e)}
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-rose-500 transition-colors shrink-0"
+                            title="שמור למועדפים"
+                          >
+                            <Heart
+                              className={`w-4 h-4 transition-colors ${
+                                isFav ? "fill-rose-500 text-rose-500" : ""
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
 
           {/* Full Width Trip Planning Glass Console (Spanning the entire width of the site) */}
-          <div className="w-full max-w-7xl mx-auto" id="planner-form" ref={formRef}>
+          <div className="w-full max-w-7xl mx-auto mt-6" id="planner-form" ref={formRef}>
             <div className="relative">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-mint-500/25 via-cyan-500/20 to-purple-500/25 rounded-[32px] blur-2xl opacity-75 pointer-events-none" />
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500/25 via-cyan-500/20 to-purple-500/25 rounded-[32px] blur-2xl opacity-75 pointer-events-none" />
               <div className="relative">
                 <TripForm
                   onSubmit={handleTripSubmit}
@@ -1034,80 +1256,52 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Social Proof & Guarantees Strip */}
-        <div className="relative z-10 w-full px-5 sm:px-10 lg:px-16 pb-8 pt-4">
-          <div className="max-w-7xl mx-auto space-y-4">
-            {/* Guarantees Grid */}
-            <div className="wanderlust-glass rounded-2xl p-4 sm:p-5 border border-white/15 shadow-2xl">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-right">
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-mint-500/15 text-mint-400 border border-mint-500/20">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-white">הבטחת מחיר מלאה</div>
-                    <div className="text-[10px] text-slate-400">כולל כבודה מראש וללא עמלות</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
-                    <Headphones className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-white">מענה ועדכונים 24/7</div>
-                    <div className="text-[10px] text-slate-400">סוכני AI זמינים לכל שינוי</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/20">
-                    <CalendarCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-white">סנכרון Google Workspace</div>
-                    <div className="text-[10px] text-slate-400">יומן Calendar, מייל ומסמכים</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-white">סליקה בתקן PCI-DSS</div>
-                    <div className="text-[10px] text-slate-400">פריסה לתשלומים, Apple Pay ו-bit</div>
-                  </div>
-                </div>
+        {/* ========================================================
+            TRUST & GUARANTEES BAR (GlobalVista 4 Columns)
+        ======================================================== */}
+        <div className="relative z-20 w-full bg-[#070c17]/95 backdrop-blur-xl border-t border-white/10 py-5 px-4 sm:px-8 text-white">
+          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-right">
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-500/15 border border-blue-400/25 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-white">Best Price Guarantee</h4>
+                <p className="text-[11px] text-slate-400">We match the best prices</p>
               </div>
             </div>
 
-            {/* Key Metrics Counter Strip */}
-            <div className="pt-3 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">500+</div>
-                <div className="text-xs text-slate-400 mt-0.5">יעדים ברחבי תבל</div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-sky-500/15 border border-sky-400/25 flex items-center justify-center text-sky-400 shrink-0 shadow-sm">
+                <Headphones className="w-5 h-5" />
               </div>
               <div>
-                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">12,450+</div>
-                <div className="text-xs text-slate-400 mt-0.5">מסלולי טיול שנבנו</div>
-              </div>
-              <div>
-                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">7 מומחים</div>
-                <div className="text-xs text-slate-400 mt-0.5">סוכני AI אוטונומיים בסנכרון</div>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">4.96</span>
-                  <div className="flex text-amber-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
-                    ))}
-                  </div>
-                </div>
-                <div className="text-xs text-slate-400 mt-0.5">דירוג שביעות רצון ממוצע</div>
+                <h4 className="text-xs sm:text-sm font-bold text-white">24/7 Travel Support</h4>
+                <p className="text-[11px] text-slate-400">Always here when you need us</p>
               </div>
             </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-400/25 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-white">Secure Booking</h4>
+                <p className="text-[11px] text-slate-400">Your data is 100% protected</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-400/25 flex items-center justify-center text-amber-400 shrink-0 shadow-sm">
+                <Star className="w-5 h-5 fill-amber-400" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-white">Trusted by Millions</h4>
+                <p className="text-[11px] text-slate-400">10M+ happy travelers worldwide</p>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
