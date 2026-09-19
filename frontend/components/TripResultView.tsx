@@ -32,7 +32,15 @@ import {
   Info,
   Layers,
   X,
+  Navigation,
+  Utensils,
+  ShoppingBag,
+  Radio,
+  Share2,
+  Download,
+  MessageSquare,
 } from "lucide-react";
+import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
 import { BookingPaymentModal } from "@/components/BookingPaymentModal";
@@ -94,6 +102,12 @@ interface TripResultViewProps {
   recommendedFlight?: any;
   selectedHotel?: any;
   startDateFormatted?: string;
+  transitGuide?: any;
+  culinaryGuide?: any;
+  shoppingTaxfree?: any;
+  calendarEvents?: any;
+  groundAlerts?: any;
+  whatsappBriefings?: any;
 }
 
 export const TripResultView: React.FC<TripResultViewProps> = ({
@@ -114,9 +128,28 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   recommendedFlight,
   selectedHotel,
   startDateFormatted,
+  transitGuide,
+  culinaryGuide,
+  shoppingTaxfree,
+  calendarEvents,
+  groundAlerts,
+  whatsappBriefings,
 }) => {
-  const [activeTab, setActiveTab] = useState<"itinerary" | "weather" | "safety" | "events" | "budget" | "raw">("itinerary");
+  const [activeTab, setActiveTab] = useState<
+    | "itinerary"
+    | "transit"
+    | "culinary"
+    | "shopping"
+    | "whatsapp"
+    | "sentinel"
+    | "weather"
+    | "safety"
+    | "events"
+    | "budget"
+    | "raw"
+  >("itinerary");
   const [copied, setCopied] = useState(false);
+  const [copiedBriefingIndex, setCopiedBriefingIndex] = useState<number | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isStickyDockDismissed, setIsStickyDockDismissed] = useState(false);
   const [openDays, setOpenDays] = useState<Record<number, boolean>>({ 1: true, 2: true });
@@ -211,6 +244,37 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
       window.open(calUrl, "_blank");
     } finally {
       setCalendarSyncLoading(false);
+    }
+  };
+
+  // Instant RFC 5545 .ics Calendar File Downloader
+  const handleDownloadIcs = () => {
+    const formattedDays = structuredDays?.map((d) => ({
+      day_number: d.day_number,
+      theme: d.title,
+      morning: { activity: d.morning?.activity, location: d.morning?.highlight || destination },
+      afternoon: { activity: d.afternoon?.activity, location: d.afternoon?.neighborhood || destination, dining: d.afternoon?.dining },
+      evening: { activity: d.evening?.activity, location: d.evening?.highlight || destination },
+      local_tip: d.local_tip,
+    }));
+
+    const success = downloadCalendarIcsFile({
+      destination: destination || "חופשה",
+      durationDays: durationDays || 7,
+      startDate: startDateFormatted,
+      flightNumber: recommendedFlight?.flight_number,
+      hotelName: selectedHotel?.name,
+      dailyItinerary: formattedDays,
+    });
+
+    if (!success) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      window.open(
+        `${apiBase}/api/workspace/download-ics?destination=${encodeURIComponent(
+          destination || "חופשה"
+        )}&days=${durationDays || 7}`,
+        "_blank"
+      );
     }
   };
 
@@ -356,6 +420,15 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
             <button
               type="button"
+              onClick={handleDownloadIcs}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition hover:scale-105 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-cyan-400" />
+              <span>📥 הורד קובץ יומן (.ics)</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsEmailModalOpen(true)}
               className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition hover:scale-105"
             >
@@ -440,6 +513,66 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           >
             <Calendar className="w-3.5 h-3.5" />
             <span>לוח זמנים יומי</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("transit")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeTab === "transit"
+                ? "bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            <span>תחבורה והתניידות</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("culinary")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeTab === "culinary"
+                ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Utensils className="w-3.5 h-3.5" />
+            <span>קולינריה וכשרות</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("shopping")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeTab === "shopping"
+                ? "bg-pink-500/20 text-pink-300 border border-pink-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>שופינג ו-Tax-Free</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("whatsapp")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeTab === "whatsapp"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>תדריכי WhatsApp</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("sentinel")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeTab === "sentinel"
+                ? "bg-red-500/20 text-red-300 border border-red-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5" />
+            <span>מודיעין שטח והתרעות</span>
           </button>
 
           <button
@@ -993,6 +1126,417 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
               </>
             ) : (
               <p className="text-slate-400 text-xs">אירועים נטענים...</p>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: TRANSIT & NAVIGATION SPECIALIST
+        ========================================================================= */}
+        {activeTab === "transit" && (
+          <div className="space-y-6 text-right">
+            {transitGuide ? (
+              <div className="space-y-5">
+                {/* Header Banner */}
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-sky-500/15 via-blue-500/10 to-transparent border border-sky-400/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                      <Navigation className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        <span>כרטיס תחבורה מומלץ: {transitGuide.pass_name}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                          ציון הליכה {transitGuide.walking_score}/10
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1">{transitGuide.local_transit_tip}</p>
+                    </div>
+                  </div>
+                  <div className="text-left md:text-right bg-black/40 px-4 py-2 rounded-xl border border-white/10">
+                    <div className="text-[11px] text-slate-400">עלות משוערת לכל הטיול</div>
+                    <div className="text-lg font-bold text-sky-300 font-serif">
+                      {formatPrice(transitGuide.total_transit_cost_usd)} {currencyConfig.code}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Airport Connection & Lines Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-white">
+                      <Plane className="w-4 h-4 text-sky-400" />
+                      <span>הגעה ושאטלים מנמל התעופה</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">{transitGuide.airport_transfer}</p>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-white">
+                      <Navigation className="w-4 h-4 text-emerald-400" />
+                      <span>אפליקציות ניווט מומלצות ביעד</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {transitGuide.recommended_apps?.map((app: string, idx: number) => (
+                        <span key={idx} className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-200">
+                          📱 {app}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Lines */}
+                <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-cyan-400" />
+                    <span>צירי מטרו ותחבורה מרכזיים</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {transitGuide.main_transit_lines?.map((line: string, idx: number) => (
+                      <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300">
+                        🚇 {line}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-slate-400 text-xs">מדריך התחבורה נטען...</div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: CULINARY, KOSHER & NIGHTLIFE SPECIALIST
+        ========================================================================= */}
+        {activeTab === "culinary" && (
+          <div className="space-y-6 text-right">
+            {culinaryGuide ? (
+              <div className="space-y-6">
+                {/* Specialties */}
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-transparent border border-amber-400/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-bold text-white">
+                      <Utensils className="w-4 h-4 text-amber-400" />
+                      <span>מנות דגל ומומחיות קולינרית מקומית</span>
+                    </div>
+                    <span className="text-[11px] text-amber-300">חובה לטעום ביעד</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {culinaryGuide.specialties?.map((spec: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-400/20 text-xs text-amber-200">
+                        ✨ {spec}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-300 pt-1">💡 {culinaryGuide.reservation_tip}</p>
+                </div>
+
+                {/* Kosher & Shabbat Options */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white">
+                    <Sparkles className="w-4 h-4 text-blue-400" />
+                    <span>אפשרויות כשרות וסעודות שבת (Kosher & Chabad Directory)</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {culinaryGuide.kosher_options?.map((k: any, idx: number) => (
+                      <div key={idx} className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-white text-xs">{k.name}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">{k.type}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-1">{k.address}</div>
+                          <p className="text-xs text-slate-300 mt-1">{k.specialty}</p>
+                        </div>
+                        {k.maps_url && (
+                          <a
+                            href={k.maps_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-mint-400 hover:underline flex items-center gap-1 mt-2"
+                          >
+                            <MapPin className="w-3 h-3" />
+                            <span>מיקום וניווט במפות</span>
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Gourmet & Nightlife */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <Utensils className="w-4 h-4 text-emerald-400" />
+                      <span>מסעדות גורמה וביסטרו נבחרות</span>
+                    </div>
+                    <div className="space-y-2">
+                      {culinaryGuide.gourmet_dining?.map((g: any, idx: number) => (
+                        <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                          <div>
+                            <div className="text-xs font-bold text-white">{g.name}</div>
+                            <div className="text-[10px] text-slate-400">{g.neighborhood} • {g.type}</div>
+                          </div>
+                          <span className="text-xs text-amber-400 font-bold">★ {g.rating}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <span>חיי לילה וברים מחתרתיים (Nightlife & Speakeasy)</span>
+                    </div>
+                    <div className="space-y-2">
+                      {culinaryGuide.nightlife_spots?.map((bar: any, idx: number) => (
+                        <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                          <div className="text-xs font-bold text-white">{bar.name}</div>
+                          <div className="text-[11px] text-purple-300">{bar.type}</div>
+                          <p className="text-[11px] text-slate-400">{bar.vibe}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tipping Culture */}
+                <div className="p-4 rounded-xl bg-black/30 border border-white/10 text-xs text-slate-300 flex items-center gap-3">
+                  <Info className="w-4 h-4 text-mint-400 flex-shrink-0" />
+                  <span><strong>מדיניות טיפים:</strong> {culinaryGuide.tipping_etiquette}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-slate-400 text-xs">המדריך הקולינרי נטען...</div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: SHOPPING & TAX-FREE SPECIALIST
+        ========================================================================= */}
+        {activeTab === "shopping" && (
+          <div className="space-y-6 text-right">
+            {shoppingTaxfree ? (
+              <div className="space-y-6">
+                {/* VAT Calculator Banner */}
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-transparent border border-pink-400/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-pink-500/20 text-pink-300 border border-pink-400/30">
+                      <ShoppingBag className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        <span>פטור ממס (Tax-Free) ב{shoppingTaxfree.country}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                          שיעור מע"מ: {shoppingTaxfree.vat_rate}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1">סף מינימום לחשבונית בודדת: {shoppingTaxfree.min_spend_per_receipt}</p>
+                    </div>
+                  </div>
+                  <div className="text-left md:text-right bg-black/40 px-4 py-2.5 rounded-xl border border-white/10">
+                    <div className="text-[11px] text-slate-400">החזר צפוי (על קניות של $350)</div>
+                    <div className="text-xl font-bold text-emerald-400 font-serif">
+                      ~${shoppingTaxfree.projected_vat_refund_usd} USD (₪{shoppingTaxfree.projected_vat_refund_ils})
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customs & Districts Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-pink-400" />
+                      <span>שדרות ומתחמי קניות מובילים</span>
+                    </div>
+                    <ul className="space-y-1.5 text-xs text-slate-300">
+                      {shoppingTaxfree.shopping_districts?.map((dist: string, idx: number) => (
+                        <li key={idx} className="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                          🛍️ {dist}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-400" />
+                      <span>מתחמי אאוטלט מומלצים</span>
+                    </div>
+                    <ul className="space-y-1.5 text-xs text-slate-300">
+                      {shoppingTaxfree.outlets?.map((out: string, idx: number) => (
+                        <li key={idx} className="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                          🏷️ {out}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Rules & Airport Customs */}
+                <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <Info className="w-4 h-4 text-mint-400" />
+                    <span>הוראות המכס וסריקת הקבלות בשדה התעופה</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/10">
+                    {shoppingTaxfree.customs_instructions}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    {shoppingTaxfree.key_rules?.map((rule: string, idx: number) => (
+                      <div key={idx} className="p-2.5 rounded-xl bg-white/5 text-[11px] text-slate-400">
+                        ✓ {rule}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-slate-400 text-xs">מדריך השופינג נטען...</div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: WHATSAPP BUTLER & DAILY BRIEFINGS
+        ========================================================================= */}
+        {activeTab === "whatsapp" && (
+          <div className="space-y-6 text-right">
+            {whatsappBriefings ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-green-500/10 to-transparent border border-emerald-400/30 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">תדריכים יומיים מוכנים לשיתוף בוואטסאפ</h4>
+                      <p className="text-[11px] text-slate-400">שתפו בלחיצה אחת ישירות לקבוצת הוואטסאפ של הנוסעים בכל בוקר.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {whatsappBriefings.briefings?.map((b: any, idx: number) => (
+                    <div key={idx} className="p-5 rounded-2xl bg-[#0b141a] border border-[#222e35] shadow-lg flex flex-col justify-between space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                          <span className="font-bold text-emerald-400 text-xs">{b.title}</span>
+                          <span className="text-[10px] text-slate-400">{b.date_formatted}</span>
+                        </div>
+                        <pre className="text-xs text-slate-200 font-sans whitespace-pre-wrap leading-relaxed bg-black/30 p-3 rounded-xl border border-white/5">
+                          {b.whatsapp_text}
+                        </pre>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                        <a
+                          href={b.whatsapp_share_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
+                          <span>שלח בוואטסאפ</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(b.whatsapp_text);
+                            setCopiedBriefingIndex(idx);
+                            setTimeout(() => setCopiedBriefingIndex(null), 2000);
+                          }}
+                          className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-medium border border-white/10 flex items-center gap-1"
+                        >
+                          {copiedBriefingIndex === idx ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>הועתק!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5 text-slate-400" />
+                              <span>העתק</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-slate-400 text-xs">תדריכי WhatsApp נטענים...</div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: GROUND SENTINEL & ALERTS SPECIALIST
+        ========================================================================= */}
+        {activeTab === "sentinel" && (
+          <div className="space-y-6 text-right">
+            {groundAlerts ? (
+              <div className="space-y-6">
+                {/* Status Banner */}
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-red-500/15 via-rose-500/10 to-transparent border border-red-400/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-red-500/20 text-red-300 border border-red-400/30">
+                      <Radio className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        <span>מודיעין שטח: {groundAlerts.safety_badge}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                          {groundAlerts.alert_level}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1">מדד סיכון שביתות: {groundAlerts.strike_risk_index}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Advisories & Consular */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-amber-400" />
+                      <span>אזהרות כייסים והונאות שכיחות ביעד</span>
+                    </div>
+                    <ul className="space-y-2 text-xs text-slate-300">
+                      {groundAlerts.security_advisories?.map((adv: string, idx: number) => (
+                        <li key={idx} className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                          <span>{adv}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-4">
+                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <PhoneCall className="w-4 h-4 text-blue-400" />
+                      <span>מוקד חירום ושגרירות ישראל</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-400/20 text-xs text-blue-200">
+                      {groundAlerts.embassy_emergency_contact}
+                    </div>
+                    <div className="text-xs font-bold text-white flex items-center gap-2 pt-2">
+                      <Navigation className="w-4 h-4 text-sky-400" />
+                      <span>סטטוס תנועה ושיבושי תחבורה</span>
+                    </div>
+                    <p className="text-xs text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
+                      {groundAlerts.transit_disruptions}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-slate-400 text-xs">התראות שטח נטענות...</div>
             )}
           </div>
         )}

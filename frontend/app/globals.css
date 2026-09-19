@@ -44,23 +44,86 @@ body {
   transform: translateY(-2px);
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Universal Luxury Input Styling across the entire platform */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+  background-color: rgba(10, 16, 26, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 0.85rem;
 }
 
-::-webkit-scrollbar-track {
-  background: rgba(9, 14, 20, 0.9);
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+input[type="number"]:hover,
+input[type="tel"]:hover,
+input[type="date"]:hover,
+select:hover,
+textarea:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background-color: rgba(14, 23, 36, 0.88);
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(45, 212, 191, 0.35);
-  border-radius: 9999px;
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #2dd4bf !important;
+  background-color: rgba(15, 26, 42, 0.95);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.25), 0 8px 24px -4px rgba(0, 0, 0, 0.5) !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(45, 212, 191, 0.65);
+/* Custom Inverted Datepicker Icon for Dark Luxury Theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) sepia(60%) saturate(300%) hue-rotate(120deg);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: transform 0.2s, opacity 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Chrome/Safari Autofill Dark Mode Fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0b1420 inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  border-color: rgba(45, 212, 191, 0.5) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Number Spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* Luxury Input Container Component Utility */
+.input-luxury-wrapper {
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.input-luxury-wrapper:focus-within {
+  transform: translateY(-1px);
 }
 
 /* Card hover zoom */

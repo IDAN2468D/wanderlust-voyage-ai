@@ -31,6 +31,11 @@ import {
   TrendingUp,
   CheckCircle2,
   Zap,
+  Navigation,
+  Utensils,
+  ShoppingBag,
+  Radio,
+  MessageSquare,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -231,6 +236,66 @@ const AGENTS_TEAM = [
     badgeColor: "bg-mint-400/10 text-mint-300 border-mint-400/20",
     metrics: "הגנה ובדיקת דרישות",
   },
+  {
+    id: "transit",
+    name: "Transit & Navigation Specialist",
+    role: "סוכן ניווט ותחבורה",
+    desc: "מתכנן חיבורי שדות תעופה, קווי מטרו, כרטיסי עיר יומיים (Pass) וציון נגישות רגלית.",
+    icon: Navigation,
+    color: "from-sky-400 to-blue-500",
+    badgeColor: "bg-sky-400/10 text-sky-300 border-sky-400/20",
+    metrics: "מטרו והתניידות אופטימלית",
+  },
+  {
+    id: "culinary",
+    name: "Gourmet & Kosher Concierge",
+    role: "סוכן קולינריה וכשרות",
+    desc: "ממפה מנות דגל, מסעדות שף, מוקדי כשרות וחב\"ד, וספיק-איזי מחתרתיים לשעות הלילה.",
+    icon: Utensils,
+    color: "from-amber-400 to-yellow-500",
+    badgeColor: "bg-amber-400/10 text-amber-300 border-amber-400/20",
+    metrics: "כשרות וחוויות שף",
+  },
+  {
+    id: "shopping",
+    name: "Smart Shopper & Tax-Free Auditor",
+    role: "סוכן שופינג ו-Tax-Free",
+    desc: "מחשב פטור ממע\"מ (VAT Refund), ספי מינימום לחשבונית, אאוטלטים ושדרות יוקרה.",
+    icon: ShoppingBag,
+    color: "from-pink-400 to-rose-500",
+    badgeColor: "bg-pink-400/10 text-pink-300 border-pink-400/20",
+    metrics: "חיסכון של 10-15% במע\"מ",
+  },
+  {
+    id: "calendar",
+    name: "Calendar & iCal Sync Specialist",
+    role: "סוכן סנכרון יומנים",
+    desc: "מייצר קובץ iCal (.ics) תקני וסנכרון בלחיצה ל-Google Calendar עם התראות שעה לפני.",
+    icon: CalendarCheck,
+    color: "from-indigo-400 to-cyan-500",
+    badgeColor: "bg-indigo-400/10 text-indigo-300 border-indigo-400/20",
+    metrics: "סנכרון ישיר לטלפון",
+  },
+  {
+    id: "sentinel",
+    name: "Live Ground Sentinel",
+    role: "סוכן מודיעין שטח והתרעות",
+    desc: "מנטר שביתות תעופה, תקלות תחבורה, אזהרות כייסים והונאות שכיחות ומוקדי חירום.",
+    icon: Radio,
+    color: "from-red-400 to-orange-500",
+    badgeColor: "bg-red-400/10 text-red-300 border-red-400/20",
+    metrics: "הגנת שטח רציפה",
+  },
+  {
+    id: "whatsapp",
+    name: "WhatsApp Daily Trip Butler",
+    role: "סוכן קונסיירז' לוואטסאפ",
+    desc: "מפיק תדריכים יומיים מלוטשים בבוקר, צהריים וערב עם כפתור שיתוף מיידי לוואטסאפ.",
+    icon: MessageSquare,
+    color: "from-emerald-400 to-teal-500",
+    badgeColor: "bg-emerald-400/10 text-emerald-300 border-emerald-400/20",
+    metrics: "שיתוף יומי בלחיצה",
+  },
 ];
 
 // Verified Traveler Testimonials
@@ -288,6 +353,12 @@ export default function Home() {
   const [recommendedFlight, setRecommendedFlight] = useState<any>(null);
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const [startDateFormatted, setStartDateFormatted] = useState<string>("");
+  const [transitGuide, setTransitGuide] = useState<any>(null);
+  const [culinaryGuide, setCulinaryGuide] = useState<any>(null);
+  const [shoppingTaxfree, setShoppingTaxfree] = useState<any>(null);
+  const [calendarEvents, setCalendarEvents] = useState<any>(null);
+  const [groundAlerts, setGroundAlerts] = useState<any>(null);
+  const [whatsappBriefings, setWhatsappBriefings] = useState<any>(null);
 
   const agentSectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -345,6 +416,12 @@ export default function Home() {
     setRecommendedFlight(null);
     setSelectedHotel(null);
     setStartDateFormatted("");
+    setTransitGuide(null);
+    setCulinaryGuide(null);
+    setShoppingTaxfree(null);
+    setCalendarEvents(null);
+    setGroundAlerts(null);
+    setWhatsappBriefings(null);
     setCurrentDestination(formData.destination);
     setCurrentDuration(formData.durationDays);
 
@@ -467,6 +544,12 @@ export default function Home() {
               setRecommendedFlight(data.recommended_flight || null);
               setSelectedHotel(data.selected_hotel || null);
               setStartDateFormatted(data.start_date_formatted || "");
+              setTransitGuide(data.transit_guide || null);
+              setCulinaryGuide(data.culinary_guide || null);
+              setShoppingTaxfree(data.shopping_taxfree || null);
+              setCalendarEvents(data.calendar_events || null);
+              setGroundAlerts(data.ground_alerts || null);
+              setWhatsappBriefings(data.whatsapp_briefings || null);
               setActiveAgent(null);
               setLogs((prev) => [
                 ...prev,
@@ -475,8 +558,8 @@ export default function Home() {
                   type: "done",
                   agent: "travel_orchestrator",
                   stage: "COMPLETE",
-                  title: "התוכנית הושלמה בהצלחה ע\"י 7 סוכני ה-AI",
-                  message: `כל משימות הסוכנים סוכמו במלואן. סטטוס תקציב: ${
+                  title: "התוכנית הושלמה בהצלחה ע\"י 13 סוכני ה-AI האוטונומיים",
+                  message: `כל משימות 13 הסוכנים סוכמו במלואן. סטטוס תקציב: ${
                     data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"
                   }`,
                   timestamp: nowTime,
@@ -534,6 +617,12 @@ export default function Home() {
           setRecommendedFlight(syncData.recommended_flight || null);
           setSelectedHotel(syncData.selected_hotel || null);
           setStartDateFormatted(syncData.start_date_formatted || "");
+          setTransitGuide(syncData.transit_guide || null);
+          setCulinaryGuide(syncData.culinary_guide || null);
+          setShoppingTaxfree(syncData.shopping_taxfree || null);
+          setCalendarEvents(syncData.calendar_events || null);
+          setGroundAlerts(syncData.ground_alerts || null);
+          setWhatsappBriefings(syncData.whatsapp_briefings || null);
 
           try {
             localStorage.setItem(
@@ -611,7 +700,7 @@ export default function Home() {
             <span className="text-white/20">|</span>
             <span className="text-amber-400 flex items-center gap-1">
               <Zap className="w-3 h-3" />
-              <span>7 סוכני AI פעילים כעת במקביל</span>
+              <span>13 סוכני AI פעילים כעת במקביל</span>
             </span>
           </div>
         </div>
@@ -635,94 +724,81 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/90 via-[#050811]/40 to-[#050811]/80" />
         </div>
 
-        {/* HERO MAIN CONTENT (Headline + Quick Prompts on Right, TripForm on Left) */}
-        <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-10 lg:py-16 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-            {/* Right Column: Hero Headline, Badges, Quick Prompt Chips */}
-            <div className="lg:col-span-7 space-y-6 text-right">
-              {/* Top Luxury Eyebrow */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
-                <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse" />
-                <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
-              </div>
-
-              {/* Massive Editorial Headline */}
-              <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.12]">
-                מסעות שנבנים <br />
-                במיוחד עבורך <br />
-                <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
-                  ע״י 7 סוכני AI
-                </span>
-              </h1>
-
-              {/* Subtitle */}
-              <p className="text-slate-300 text-sm sm:text-base max-w-xl leading-relaxed">
-                מערכת אוטונומית מתקדמת הסורקת לוחות טיסות חיים מנתב״ג, מאתרת מלונות בוטיק יוקרתיים, מבצעת אופטימיזציית תקציב מלאה ומסנכרנת את תיק המסע המלא ישירות ל-Google Calendar וכתובת המייל שלך.
-              </p>
-
-              {/* Quick Inspiration Pills */}
-              <div className="space-y-2 pt-1">
-                <span className="text-[11px] font-bold text-slate-400 block">
-                  השראה מיידית – לחץ ליצירת מסלול מותאם בלחיצה אחת:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {QUICK_INSPIRATIONS.map((chip, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleSelectQuickInspiration(chip.destination, chip.duration)}
-                      className="px-3.5 py-1.5 rounded-full bg-white/[0.07] hover:bg-mint-500/20 hover:border-mint-400/50 border border-white/15 text-xs text-slate-200 hover:text-mint-300 transition-all duration-200 flex items-center gap-1.5 group shadow-sm hover:scale-[1.02]"
-                    >
-                      <span>{chip.label}</span>
-                      <ArrowLeft className="w-3 h-3 text-slate-400 group-hover:text-mint-400 group-hover:-translate-x-0.5 transition-transform" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-3.5 pt-3">
-                <button
-                  type="button"
-                  onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  className="btn-mint px-7 py-3.5 rounded-full text-sm font-bold flex items-center gap-2.5 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-                >
-                  <span>התחל תכנון טיול עכשיו</span>
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsVideoModalOpen(true)}
-                  className="flex items-center gap-3 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-sm font-semibold transition group shadow-md"
-                >
-                  <div className="w-8 h-8 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
-                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                  </div>
-                  <span>צפה בהדגמת וידאו</span>
-                </button>
-
-                <a
-                  href="/flights"
-                  className="flex items-center gap-2 px-5 py-3 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-sm font-bold transition group shadow-md"
-                >
-                  <Plane className="w-4 h-4 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
-                  <span>לוח טיסות חגים מנתב"ג ✈️</span>
-                </a>
-              </div>
+        {/* HERO MAIN CONTENT - Full Width Panoramic Architecture */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-8 pb-12 w-full">
+          {/* Top Hero Section: Headline, Live Badges & Quick Inspiration */}
+          <div className="max-w-4xl mx-auto text-center space-y-4 mb-8">
+            {/* Top Luxury Eyebrow */}
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse" />
+              <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping" />
             </div>
 
-            {/* Left Column: Floating Trip Planning Glass Card */}
-            <div className="lg:col-span-5" id="planner-form" ref={formRef}>
-              <div className="relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-mint-500/30 to-cyan-500/30 rounded-3xl blur-xl opacity-60 pointer-events-none" />
-                <div className="relative">
-                  <TripForm
-                    onSubmit={handleTripSubmit}
-                    isLoading={isStreaming}
-                    selectedDestination={currentDestination}
-                  />
+            {/* Massive Editorial Headline */}
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.15]">
+              מסעות שנבנים במיוחד עבורך <br className="hidden sm:inline" />
+              <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
+                ע״י 13 סוכני AI אוטונומיים
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+              מערכת תזמור מתקדמת הסורקת טיסות חיות מנתב״ג, מאתרת מלונות בוטיק יוקרתיים, מחשבת החזרי Tax-Free ושופינג, מנגישה כשרות וסעודות שבת, ומסנכרנת את תיק המסע המלא ישירות ל-Google Calendar.
+            </p>
+
+            {/* Quick Inspiration Pills & Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-xs font-semibold transition group shadow-md"
+              >
+                <div className="w-5 h-5 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
+                  <Play className="w-3 h-3 fill-current ml-0.5" />
                 </div>
+                <span>צפה בהדגמת וידאו</span>
+              </button>
+
+              <a
+                href="/flights"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-xs font-bold transition group shadow-md"
+              >
+                <Plane className="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
+                <span>לוח טיסות חגים מנתב"ג ✈️</span>
+              </a>
+
+              {/* Quick Inspiration Pills */}
+              <div className="hidden lg:flex items-center gap-1.5 mr-2">
+                <span className="text-[11px] font-bold text-slate-400 ml-1">
+                  השראה מהירה:
+                </span>
+                {QUICK_INSPIRATIONS.slice(0, 3).map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectQuickInspiration(chip.destination, chip.duration)}
+                    className="px-3 py-1 rounded-full bg-white/[0.07] hover:bg-mint-500/20 hover:border-mint-400/50 border border-white/15 text-[11px] text-slate-200 hover:text-mint-300 transition-all duration-200 flex items-center gap-1 group shadow-sm hover:scale-[1.02]"
+                  >
+                    <span>{chip.label}</span>
+                    <ArrowLeft className="w-2.5 h-2.5 text-slate-400 group-hover:text-mint-400 group-hover:-translate-x-0.5 transition-transform" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Full Width Trip Planning Glass Console (Spanning the entire width of the site) */}
+          <div className="w-full max-w-7xl mx-auto" id="planner-form" ref={formRef}>
+            <div className="relative">
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-mint-500/25 via-cyan-500/20 to-purple-500/25 rounded-[32px] blur-2xl opacity-75 pointer-events-none" />
+              <div className="relative">
+                <TripForm
+                  onSubmit={handleTripSubmit}
+                  isLoading={isStreaming}
+                  selectedDestination={currentDestination}
+                />
               </div>
             </div>
           </div>
@@ -816,10 +892,10 @@ export default function Home() {
               חדר המבצעים האוטונומי
             </span>
             <h2 className="text-3xl font-serif font-bold text-white">
-              תהליך התכנון והסינתזה של 7 סוכני ה-AI
+              תהליך התכנון והסינתזה של 13 סוכני ה-AI האוטונומיים
             </h2>
             <p className="text-xs text-slate-400">
-              מעקב חי אחר קריאות לכלים, בירור לוחות זמנים מנתב״ג, בחירת מלונות ואישור תקציב.
+              מעקב חי אחר קריאות לכלים, בירור לוחות זמנים מנתב״ג, תחבורה, קולינריה, שופינג, אזהרות שטח וסנכרון יומנים.
             </p>
           </div>
 
@@ -844,6 +920,12 @@ export default function Home() {
               recommendedFlight={recommendedFlight}
               selectedHotel={selectedHotel}
               startDateFormatted={startDateFormatted}
+              transitGuide={transitGuide}
+              culinaryGuide={culinaryGuide}
+              shoppingTaxfree={shoppingTaxfree}
+              calendarEvents={calendarEvents}
+              groundAlerts={groundAlerts}
+              whatsappBriefings={whatsappBriefings}
             />
           )}
         </section>

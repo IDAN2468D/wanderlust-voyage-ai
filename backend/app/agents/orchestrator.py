@@ -12,6 +12,12 @@ from app.tools.budget_tools import calculate_trip_budget
 from app.tools.weather_tools import get_destination_weather, generate_packing_checklist
 from app.tools.safety_tools import get_safety_and_visa_info
 from app.tools.events_tools import search_seasonal_events_and_gems
+from app.tools.transit_tools import get_transit_guide
+from app.tools.culinary_tools import get_culinary_guide
+from app.tools.shopping_tools import get_shopping_and_tax_free
+from app.tools.calendar_tools import generate_trip_calendar_pack
+from app.tools.sentinel_tools import get_ground_sentinel_alerts
+from app.tools.briefing_tools import generate_whatsapp_daily_briefings
 
 logger = logging.getLogger("travel_orchestrator")
 
@@ -301,6 +307,64 @@ def synthesize_deterministic_plan(
     for rec in budget_report.get("recommendations", []):
         md_lines.append(f"- {rec}")
 
+    # 8. Specialized Agents: Transit, Culinary/Kosher, Shopping/Tax-Free, Calendar, Sentinel, Briefings
+    transit_raw = get_transit_guide(dest_clean, days)
+    transit_data = json.loads(transit_raw)
+
+    culinary_raw = get_culinary_guide(dest_clean, interests)
+    culinary_data = json.loads(culinary_raw)
+
+    shopping_raw = get_shopping_and_tax_free(dest_clean, estimated_shopping_budget_usd=350.0)
+    shopping_data = json.loads(shopping_raw)
+
+    calendar_data = generate_trip_calendar_pack(
+        dest_clean,
+        start_date,
+        days,
+        structured_days=structured_days,
+        flight_info=rec_flight,
+        hotel_info=selected_hotel,
+    )
+
+    sentinel_raw = get_ground_sentinel_alerts(dest_clean)
+    sentinel_data = json.loads(sentinel_raw)
+
+    briefing_raw = generate_whatsapp_daily_briefings(
+        dest_clean,
+        days,
+        structured_days,
+        weather_metrics=weather_data.get("metrics"),
+    )
+    briefing_data = json.loads(briefing_raw)
+
+    md_lines.extend([
+        "\n---",
+        "## 🚇 תחבורה והתניידות מקומית",
+        f"- **כרטיס תחבורה מומלץ**: {transit_data['pass_name']} (עלות יומית משוערת: ${transit_data['estimated_daily_cost_usd']:.2f})",
+        f"- **הגעה מנמל התעופה**: {transit_data['airport_transfer']}",
+        f"- **ציון נגישות בהליכה**: {transit_data['walking_score']}/10 | **אפליקציות ניווט מומלצות**: {', '.join(transit_data['recommended_apps'])}",
+        f"- **טיפ התניידות מקומי**: {transit_data['local_transit_tip']}\n",
+        "---",
+        "## 🍽️ קולינריה, כשרות וחיי לילה",
+        f"- **מנות דגל שחובה לטעום**: {', '.join(culinary_data['specialties'])}",
+        f"- **אפשרויות כשרות / חב\"ד**: {culinary_data['kosher_options'][0]['name']} ({culinary_data['kosher_options'][0]['specialty']})",
+        f"- **מוסד גורמה נבחר**: {culinary_data['gourmet_dining'][0]['name']} ({culinary_data['gourmet_dining'][0]['neighborhood']})",
+        f"- **בר וחיי לילה מומלצים**: {culinary_data['nightlife_spots'][0]['name']} — {culinary_data['nightlife_spots'][0]['vibe']}",
+        f"- **מדיניות טיפים**: {culinary_data['tipping_etiquette']}\n",
+        "---",
+        "## 🛍️ שופינג ופטור ממס (Tax-Free)",
+        f"- **שיעור מע\"מ (VAT)**: {shopping_data['vat_rate']} | **סף מינימום לחשבונית**: {shopping_data['min_spend_per_receipt']}",
+        f"- **החזר מע\"מ צפוי לקנייה של $350**: ~${shopping_data['projected_vat_refund_usd']:.2f} USD ({shopping_data['projected_vat_refund_ils']:.0f} ₪)",
+        f"- **מערכת אימות בשדה**: {shopping_data['kiosk_system']}",
+        f"- **מתחמי שופינג מובילים**: {', '.join(shopping_data['shopping_districts'][:2])}\n",
+        "---",
+        "## 🚨 מודיעין שטח ובטיחות מקומית",
+        f"- **מדד סיכון לשביתות**: {sentinel_data['strike_risk_index']}",
+        f"- **סטטוס בטיחות כללי**: {sentinel_data['safety_badge']}",
+        f"- **מוקד חירום קונסולרי**: {sentinel_data['embassy_emergency_contact']}",
+        f"- **אזהרת כייסים/הונאות**: {sentinel_data['security_advisories'][0]}\n",
+    ])
+
     full_markdown = "\n".join(md_lines)
 
     return {
@@ -320,6 +384,12 @@ def synthesize_deterministic_plan(
         "recommended_flight": rec_flight,
         "selected_hotel": selected_hotel,
         "start_date_formatted": israeli_start_date,
+        "transit_guide": transit_data,
+        "culinary_guide": culinary_data,
+        "shopping_taxfree": shopping_data,
+        "calendar_events": calendar_data,
+        "ground_alerts": sentinel_data,
+        "whatsapp_briefings": briefing_data,
     }
 
 
@@ -484,15 +554,117 @@ async def stream_multi_agent_execution(
         "tool": "calculate_trip_budget",
         "summary": f"סטטוס: {plan_data['budget_status']} | סך הכל: ${plan_data['total_estimated']:,.2f} (כרית ביטחון 10% כלולה).",
     })
+    await asyncio.sleep(0.2)
+
+    # Stage 8: Transit & Navigation Specialist (NEW AGENT)
+    yield format_sse("step", {
+        "agent": "transit_agent",
+        "stage": "TRANSIT",
+        "status": "running",
+        "title": "[STAGE: TRANSIT] סוכן ניווט ותחבורה מקומית",
+        "message": f"מנתח חיבורי שדה תעופה, קווי מטרו וכרטיסי מעבר יומיים מומלצים עבור {destination}...",
+    })
     await asyncio.sleep(0.25)
 
-    # Stage 8: Final Synthesis & Markdown Stream
+    yield format_sse("tool_call", {
+        "agent": "transit_agent",
+        "tool": "get_transit_guide",
+        "summary": f"כרטיס מומלץ: {plan_data['transit_guide']['pass_name']} | ציון הליכה: {plan_data['transit_guide']['walking_score']}/10.",
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 9: Culinary, Kosher & Nightlife Specialist (NEW AGENT)
+    yield format_sse("step", {
+        "agent": "culinary_agent",
+        "stage": "CULINARY",
+        "status": "running",
+        "title": "[STAGE: CULINARY] סוכן קולינריה, כשרות וחיי לילה",
+        "message": f"סורק מסעדות שף אותנטיות, מוקדי כשרות / חב\"ד וברים מחתרתיים ב{destination}...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "culinary_agent",
+        "tool": "get_culinary_guide",
+        "summary": f"נמצאו אפשרויות כשרות: {plan_data['culinary_guide']['kosher_options'][0]['name']} ומסעדות גורמה מובילות.",
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 10: Smart Shopper & Tax-Free Specialist (NEW AGENT)
+    yield format_sse("step", {
+        "agent": "shopping_taxfree_agent",
+        "stage": "SHOPPING",
+        "status": "running",
+        "title": "[STAGE: SHOPPING] סוכן שופינג ופטור ממס (Tax-Free)",
+        "message": f"מחשב ספי החזר מע\"מ, שיעורי Tax-Free ואאוטלטים מובילים עבור {destination}...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "shopping_taxfree_agent",
+        "tool": "get_shopping_and_tax_free",
+        "summary": f"שיעור מע\"מ: {plan_data['shopping_taxfree']['vat_rate']} | החזר צפוי: ${plan_data['shopping_taxfree']['projected_vat_refund_usd']:.2f} USD.",
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 11: Calendar & Workspace Specialist (NEW AGENT)
+    yield format_sse("step", {
+        "agent": "calendar_sync_agent",
+        "stage": "CALENDAR",
+        "status": "running",
+        "title": "[STAGE: CALENDAR] סוכן סנכרון יומנים ומסמכים",
+        "message": f"יוצר קישורי סנכרון ל-Google Calendar וקובץ iCalendar (.ics) מלא לכל ימי המסע...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "calendar_sync_agent",
+        "tool": "generate_trip_calendar_pack",
+        "summary": "הופק קובץ יומן מלא (.ics) עם התראות שעה לפני פעילויות וקישור Google Calendar.",
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 12: Ground Sentinel & Realtime Alerts (NEW AGENT)
+    yield format_sse("step", {
+        "agent": "ground_sentinel_agent",
+        "stage": "SENTINEL",
+        "status": "running",
+        "title": "[STAGE: SENTINEL] סוכן מודיעין שטח והתרעות חיות",
+        "message": f"מנטר סיכוני שביתות, עומסי תחבורה ופרוטוקול כייסים מקומי ב{destination}...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "ground_sentinel_agent",
+        "tool": "get_ground_sentinel_alerts",
+        "summary": f"מדד שביתות: {plan_data['ground_alerts']['strike_risk_index']} | סטטוס: {plan_data['ground_alerts']['safety_badge']}.",
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 13: WhatsApp Butler & Daily Briefings (NEW AGENT)
+    yield format_sse("step", {
+        "agent": "whatsapp_butler_agent",
+        "stage": "WHATSAPP",
+        "status": "running",
+        "title": "[STAGE: WHATSAPP] סוכן קונסיירז' יומי לוואטסאפ",
+        "message": f"מכין הודעות תדריך יומיות ערוכות לבוקר, צהריים וערב עם קישורי שיתוף בלחיצה אחת...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "whatsapp_butler_agent",
+        "tool": "generate_whatsapp_daily_briefings",
+        "summary": f"נוצרו {plan_data['whatsapp_briefings']['total_briefings']} תדריכי וואטסאפ מוכנים לשיתוף ישיר.",
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 14: Final Synthesis & Markdown Stream
     yield format_sse("step", {
         "agent": "travel_orchestrator",
         "stage": "SYNTHESIS",
         "status": "synthesizing",
         "title": "[STAGE: SYNTHESIS] סינתזה סופית ואיחוד דוחות",
-        "message": "מרכיב דוח מסע אינטראקטיבי הכולל צ'קליסט אריזה, מפות, טיסות וסנכרון Google Workspace...",
+        "message": "מרכיב דוח מסע אינטראקטיבי הכולל צ'קליסט אריזה, תחבורה, קולינריה, Tax-Free וסנכרון יומן...",
     })
     await asyncio.sleep(0.25)
 
@@ -503,9 +675,9 @@ async def stream_multi_agent_execution(
     for i in range(0, len(words), chunk_size):
         chunk = " ".join(words[i : i + chunk_size]) + " "
         yield format_sse("chunk", {"text": chunk})
-        await asyncio.sleep(0.03)
+        await asyncio.sleep(0.02)
 
-    # Stage 9: Completion
+    # Stage 15: Completion
     yield format_sse("done", {
         "session_id": session_id,
         "stage": "COMPLETE",
@@ -524,6 +696,12 @@ async def stream_multi_agent_execution(
         "recommended_flight": plan_data["recommended_flight"],
         "selected_hotel": plan_data["selected_hotel"],
         "start_date_formatted": plan_data["start_date_formatted"],
+        "transit_guide": plan_data["transit_guide"],
+        "culinary_guide": plan_data["culinary_guide"],
+        "shopping_taxfree": plan_data["shopping_taxfree"],
+        "calendar_events": plan_data["calendar_events"],
+        "ground_alerts": plan_data["ground_alerts"],
+        "whatsapp_briefings": plan_data["whatsapp_briefings"],
     })
 
 

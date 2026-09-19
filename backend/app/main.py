@@ -69,6 +69,19 @@ async def health_check():
 app.include_router(auth_router, prefix="/api")
 app.include_router(trip_router, prefix="/api")
 
+
+@app.get("/api/workspace/download-ics", tags=["Workspace Integration"])
+async def download_calendar_ics_alias(
+    destination: str,
+    start_date: str = "2026-10-15",
+    duration_days: int = 7,
+    days: int | None = None,
+):
+    """Direct alias for /api/v1/workspace/download-ics for backward compatibility."""
+    from app.api.routes import download_calendar_ics
+    return await download_calendar_ics(destination, start_date, duration_days, days)
+
+
 if __name__ == "__main__":
     import uvicorn
 

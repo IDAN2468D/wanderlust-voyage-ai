@@ -21,9 +21,19 @@ import {
   Zap,
   Info,
   ExternalLink,
+  Phone,
+  User,
+  Download,
+  Share2,
+  FileText,
+  Printer,
+  Copy,
+  Clock,
+  Luggage,
 } from "lucide-react";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
+import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
 
 interface BookingPaymentModalProps {
   isOpen: boolean;
@@ -106,6 +116,12 @@ function getDestinationImage(dest: string): string {
   if (d.includes("אלפים") || d.includes("swiss") || d.includes("שוויץ")) {
     return "/images/swiss_alps.jpg";
   }
+  if (d.includes("פריז") || d.includes("paris")) {
+    return "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=800&auto=format&fit=crop";
+  }
+  if (d.includes("ברצלונה") || d.includes("barcelona")) {
+    return "https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=800&auto=format&fit=crop";
+  }
   return "/images/hero-bg.jpg";
 }
 
@@ -117,9 +133,11 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
   const { currency, setCurrency, currencyConfig, convert, formatRaw } = useCurrency();
   const { user } = useAuth();
 
-  // Contact / Passenger state (for Resend tickets dispatch)
+  // Contact / Passenger state (for Resend tickets dispatch & flight check-in)
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [passportNumber, setPassportNumber] = useState("");
 
   // Payment method selection
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("card");
@@ -144,6 +162,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingRef, setBookingRef] = useState("");
+  const [copiedRef, setCopiedRef] = useState(false);
 
   // Populate logged-in user details
   useEffect(() => {
@@ -188,6 +207,12 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
         if (val.trim().length < 2) return "שם הנוסע חייב להכיל לפחות 2 תווים";
         return "";
       }
+      case "customerPhone": {
+        if (!val.trim()) return "";
+        const clean = val.replace(/\D/g, "");
+        if (!/^05\d{8}$/.test(clean)) return "מספר טלפון אינו תקין (לדוגמה: 0501234567)";
+        return "";
+      }
       case "cardHolder": {
         if (paymentMethod !== "card") return "";
         if (!val.trim()) return "נא להזין את השם המלא כפי שמופיע על גבי הכרטיס";
@@ -208,13 +233,13 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
         const [mmStr, yyStr] = val.split("/");
         const mm = parseInt(mmStr, 10);
         const yy = parseInt(yyStr, 10);
-        if (isNaN(mm) || mm < 1 || mm > 12) return "חודש תוקף לא תקין (חייב להיות בין 01 ל-12)";
+        if (isNaN(mm) || mm < 1 || mm > 12) return "חודש תוקף לא תקין (01-12)";
         if (isNaN(yy)) return "שנת תוקף לא תקינה";
         const now = new Date();
         const currentYear2Digit = now.getFullYear() % 100;
         const currentMonth = now.getMonth() + 1;
         if (yy < currentYear2Digit || (yy === currentYear2Digit && mm < currentMonth)) {
-          return "כרטיס זה פג תוקף (תאריך בעבר)";
+          return "כרטיס זה פג תוקף";
         }
         if (yy > currentYear2Digit + 25) {
           return "שנת תוקף אינה הגיונית";
@@ -225,21 +250,21 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
         if (paymentMethod !== "card") return "";
         const clean = val.replace(/\D/g, "");
         if (!clean) return "נא להזין קוד CVV (3 ספרות)";
-        if (clean.length !== 3) return "קוד CVV חייב להכיל בדיוק 3 ספרות בגב הכרטיס";
+        if (clean.length !== 3) return "קוד CVV חייב להכיל 3 ספרות בגב הכרטיס";
         return "";
       }
       case "idNumber": {
         if (paymentMethod !== "card" || !val.trim()) return "";
         const clean = val.replace(/\D/g, "");
-        if (clean.length < 8 || clean.length > 9) return "מספר תעודת זהות חייב להכיל 8 או 9 ספרות";
-        if (!isValidIsraeliId(clean)) return "מספר תעודת זהות אינו תקין (ספרת ביקורת שגויה)";
+        if (clean.length < 8 || clean.length > 9) return "תעודת זהות חייבת להכיל 8 או 9 ספרות";
+        if (!isValidIsraeliId(clean)) return "מספר תעודת זהות אינו תקין";
         return "";
       }
       case "bitPhone": {
         if (paymentMethod !== "bit") return "";
         const clean = val.replace(/\D/g, "");
         if (!clean) return "נא להזין מספר טלפון נייד לאישור ב-bit";
-        if (!/^05\d{8}$/.test(clean)) return "מספר נייד אינו תקין (חייב להתחיל ב-05 ולהכיל 10 ספרות)";
+        if (!/^05\d{8}$/.test(clean)) return "מספר נייד אינו תקין (חייב להתחיל ב-05)";
         return "";
       }
       default:
@@ -304,6 +329,35 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     }
   };
 
+  // 1-Click Demo Autofill for Instant Test Booking
+  const handleFillDemoData = () => {
+    const demoEmail = user?.email || "israel.traveler@example.com";
+    const demoName = user?.full_name || "ישראל ישראלי";
+    setCustomerName(demoName);
+    setCustomerEmail(demoEmail);
+    setCustomerPhone("054-8921100");
+    setPassportNumber("IL9482104");
+    setPaymentMethod("card");
+    setCardHolder("ISRAEL ISRAELI");
+    setCardNumber("4580 1234 5678 9010");
+    setExpiry("12/28");
+    setCvv("770");
+    setIdNumber("012345678");
+    setBitPhone("0548921100");
+    setTouched({
+      customerEmail: true,
+      customerName: true,
+      customerPhone: true,
+      cardHolder: true,
+      cardNumber: true,
+      expiry: true,
+      cvv: true,
+      idNumber: true,
+      bitPhone: true,
+    });
+    setErrors({});
+  };
+
   // Main Submit Handler with complete validation
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,6 +367,10 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
       customerEmail: validateField("customerEmail", customerEmail),
       customerName: validateField("customerName", customerName),
     };
+
+    if (customerPhone) {
+      newErrors.customerPhone = validateField("customerPhone", customerPhone);
+    }
 
     if (paymentMethod === "card") {
       newErrors.cardHolder = validateField("cardHolder", cardHolder);
@@ -328,6 +386,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     setTouched({
       customerEmail: true,
       customerName: true,
+      customerPhone: true,
       cardHolder: true,
       cardNumber: true,
       expiry: true,
@@ -384,6 +443,8 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
           currency: currency,
           recipient_email: targetEmail,
           customer_name: targetName,
+          customer_phone: customerPhone,
+          passport_number: passportNumber,
           payment_method: paymentMethod,
           installments: installments > 1 ? installments : 1,
           booking_date: new Date().toISOString(),
@@ -399,6 +460,38 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     }
   };
 
+  const handleCopyRef = () => {
+    navigator.clipboard.writeText(bookingRef);
+    setCopiedRef(true);
+    setTimeout(() => setCopiedRef(false), 2000);
+  };
+
+  const handleDownloadIcs = () => {
+    if (!tripDetails) return;
+    const success = downloadCalendarIcsFile({
+      destination: tripDetails.destination || "חופשה",
+      durationDays: tripDetails.durationDays || 7,
+      hotelName: tripDetails.title,
+    });
+
+    if (!success) {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      window.open(
+        `${apiBase}/api/workspace/download-ics?destination=${encodeURIComponent(
+          tripDetails.destination
+        )}&days=${tripDetails.durationDays}`,
+        "_blank"
+      );
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = `🎉 סגרתי חופשה ל-${tripDetails.destination}! מס׳ סימוכין: ${bookingRef}, משך: ${
+      tripDetails.durationDays
+    } ימים, סה"כ: ${formatRaw(totalInSelectedCurrency, true)}. מחכה לטיסה! ✈️`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
   const handleResetAndClose = () => {
     setIsSuccess(false);
     setIsProcessing(false);
@@ -412,63 +505,89 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto"
       dir="rtl"
     >
-      <div className="relative w-full max-w-5xl wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-5 sm:p-7 text-white max-h-[92vh] overflow-y-auto bg-[#0a101b]/95 my-auto">
+      <div className="relative w-full max-w-5xl wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-5 sm:p-8 text-white max-h-[94vh] overflow-y-auto bg-[#0a101b]/95 my-auto">
         {/* Close Button */}
         <button
           type="button"
           onClick={handleResetAndClose}
-          className="absolute top-5 left-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition shadow-sm z-20"
+          className="absolute top-5 left-5 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition shadow-sm z-20"
           aria-label="סגור חלון"
         >
           <X className="w-5 h-5" />
         </button>
 
         {isSuccess ? (
-          /* ================= SUCCESS CONFIRMATION SCREEN ================= */
-          <div className="text-center py-8 space-y-6 animate-fade-in max-w-2xl mx-auto">
-            <div className="relative w-24 h-24 mx-auto">
+          /* ================= SUCCESS BOARDING PASS CONFIRMATION SCREEN ================= */
+          <div className="text-center py-6 space-y-6 animate-fade-in max-w-2xl mx-auto">
+            <div className="relative w-20 h-20 mx-auto">
               <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
-              <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-600/30 to-mint-400/20 border-2 border-emerald-400/50 text-emerald-400 flex items-center justify-center shadow-2xl shadow-emerald-500/30">
-                <CheckCircle2 className="w-12 h-12" />
+              <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-600/30 to-mint-400/20 border-2 border-emerald-400/60 text-emerald-400 flex items-center justify-center shadow-2xl shadow-emerald-500/30">
+                <CheckCircle2 className="w-10 h-10" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 text-xs px-3.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                תשלום בוצע בהצלחה וכרטיסים הונפקו
+              <span className="inline-flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold tracking-wide">
+                <ShieldCheck className="w-4 h-4" />
+                אישור הזמנה ותשלום מאומת • כרטיסים הונפקו
               </span>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                החופשה שלך ל-{tripDetails.destination} שוריינה!
+                החופשה שלך ל-{tripDetails.destination} שוריינה בהצלחה!
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                אישור ההזמנה המלא, כרטיסי הטיסה ושובר המלון נשלחו ישירות לתיבת הדואר שלך:{" "}
-                <strong className="text-mint-300 font-mono underline block mt-1" dir="ltr">
+                שובר הנופש המלא, כרטיסי העלייה למטוס ופרטי המלון נשלחו ישירות לתיבת הדואר שלך:{" "}
+                <strong className="text-mint-300 font-mono underline block mt-1 text-sm" dir="ltr">
                   {customerEmail || user?.email || "האימייל שהזנת"}
                 </strong>
               </p>
             </div>
 
-            {/* Official Receipt Card */}
-            <div className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-white/15 rounded-2xl p-5 text-right space-y-3 shadow-inner">
-              <div className="flex justify-between items-center text-xs pb-2.5 border-b border-white/10">
-                <span className="text-slate-400">מספר סימוכין בינלאומי:</span>
-                <span className="font-mono font-bold text-mint-300 bg-mint-500/10 px-2.5 py-1 rounded-lg border border-mint-500/20 text-sm">
-                  {bookingRef}
-                </span>
+            {/* Official Boarding Pass Ticket Card */}
+            <div className="bg-gradient-to-b from-white/[0.08] to-black/50 border border-white/20 rounded-3xl p-6 text-right space-y-4 shadow-2xl relative overflow-hidden">
+              <div className="flex justify-between items-center pb-3 border-b border-white/10">
+                <div>
+                  <span className="text-[11px] text-slate-400 block">מספר סימוכין בינלאומי:</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="font-mono font-black text-mint-300 text-lg tracking-wider">
+                      {bookingRef}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyRef}
+                      className="p-1 rounded bg-white/10 hover:bg-white/20 text-slate-300 text-[10px] flex items-center gap-1 transition"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>{copiedRef ? "הועתק!" : "העתק"}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-left">
+                  <span className="text-[11px] text-slate-400 block">סטטוס כרטיס:</span>
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 justify-end mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    מאושר ומסונכרן
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between text-xs pb-2 border-b border-white/10">
-                <span className="text-slate-400">יעד ומסלול:</span>
-                <span className="font-semibold text-white">
-                  {tripDetails.destination} ({tripDetails.durationDays} ימים)
-                </span>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs py-1">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">יעד הטיול:</span>
+                  <span className="font-bold text-white text-sm">{tripDetails.destination}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">משך החופשה:</span>
+                  <span className="font-bold text-white text-sm">{tripDetails.durationDays} ימים מלאים</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">שם הנוסע הראשי:</span>
+                  <span className="font-bold text-white text-sm">{customerName || cardHolder}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-xs pb-2 border-b border-white/10">
-                <span className="text-slate-400">שם הנוסע הראשי:</span>
-                <span className="font-semibold text-white">{customerName || cardHolder}</span>
-              </div>
-              <div className="flex justify-between text-xs pb-2 border-b border-white/10">
-                <span className="text-slate-400">אמצעי תשלום:</span>
+
+              <div className="flex justify-between items-center pt-3 border-t border-white/10 text-xs">
+                <span className="text-slate-300">אמצעי תשלום:</span>
                 <span className="font-semibold text-white">
                   {paymentMethod === "card"
                     ? `כרטיס אשראי (${cardNumber.slice(-4) ? `•••• ${cardNumber.slice(-4)}` : "סליקה מאובטחת"})`
@@ -480,38 +599,77 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                   {installments > 1 && ` ב-${installments} תשלומים`}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xs pt-1">
-                <span className="text-slate-400">סכום כולל שחויב:</span>
-                <span className="font-bold text-emerald-400 text-base">
+
+              <div className="flex justify-between items-center pt-2 text-sm font-bold">
+                <span className="text-white">סה״כ שחויב:</span>
+                <span className="text-2xl font-black text-mint-400 font-heading">
                   {formatRaw(totalInSelectedCurrency, true)}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-3">
+            {/* Direct Action Runway */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleDownloadIcs}
+                className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold flex items-center gap-2 transition shadow-md"
+              >
+                <Download className="w-4 h-4 text-mint-400" />
+                <span>הורד קובץ יומן (.ics)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShareWhatsApp}
+                className="px-5 py-3 rounded-2xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2 transition shadow-md"
+              >
+                <Share2 className="w-4 h-4 text-emerald-400" />
+                <span>שתף שובר ב-WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition"
+              >
+                <Printer className="w-4 h-4" />
+                <span>הדפס אישור</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="btn-mint px-8 py-3.5 rounded-full text-xs font-bold tracking-wide shadow-xl"
+                className="btn-mint px-7 py-3 rounded-2xl text-xs font-black shadow-xl"
               >
                 סגור וחזור לאתר
               </button>
             </div>
           </div>
         ) : (
-          /* ================= MODERN PRODUCTIVE 2-COLUMN CHECKOUT COCKPIT ================= */
-          <div className="space-y-4">
+          /* ================= 2-COLUMN CHECKOUT COCKPIT ================= */
+          <div className="space-y-5">
             {/* Modal Header Bar */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 pl-10 text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 pl-10 text-right gap-2">
               <div>
-                <div className="flex items-center gap-2 text-xs font-bold text-mint-400">
+                <div className="inline-flex items-center gap-2 text-xs font-bold text-mint-400 mb-1">
                   <ShieldCheck className="w-4 h-4 text-mint-400" />
                   <span>סליקה מאובטחת בתקן PCI-DSS Level 1 • הצפנת SSL 256-Bit</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
-                  אישור הזמנה ותשלום • {tripDetails.destination}
+                  אישור הזמנה ותשלום מאובטח • {tripDetails.destination}
                 </h2>
               </div>
+
+              {/* Fast Demo Fill Button */}
+              <button
+                type="button"
+                onClick={handleFillDemoData}
+                className="self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-mint-500/15 hover:bg-mint-500/25 border border-mint-400/40 text-mint-300 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+              >
+                <Zap className="w-3.5 h-3.5 text-mint-400 fill-current" />
+                <span>מלא פרטי דמו לבדיקה מהירה</span>
+              </button>
             </div>
 
             {/* Split 2-Column Grid */}
@@ -521,75 +679,131 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
               ======================================================== */}
               <div className="lg:col-span-5 space-y-4 text-right">
                 {/* Destination Hero Card */}
-                <div className="relative rounded-2xl overflow-hidden border border-white/15 h-36 w-full shadow-lg">
+                <div className="relative rounded-2xl overflow-hidden border border-white/15 h-40 w-full shadow-lg">
                   <img
                     src={destinationImage}
                     alt={tripDetails.destination}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a101b] via-[#0a101b]/40 to-transparent" />
-                  <div className="absolute bottom-3 right-3 left-3 flex items-end justify-between">
+                  <div className="absolute bottom-3.5 right-3.5 left-3.5 flex items-end justify-between">
                     <div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-mint-500/20 text-mint-300 font-bold border border-mint-500/30">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-mint-500/20 text-mint-300 font-bold border border-mint-500/30">
                         חבילת נופש מאומתת
                       </span>
-                      <h3 className="text-lg font-serif font-bold text-white mt-1">
+                      <h3 className="text-xl font-serif font-bold text-white mt-1">
                         {tripDetails.destination}
                       </h3>
                     </div>
-                    <span className="text-xs font-bold text-slate-300 bg-black/60 px-2 py-1 rounded-lg border border-white/10 font-mono">
+                    <span className="text-xs font-bold text-slate-200 bg-black/60 backdrop-blur-md px-3 py-1 rounded-xl border border-white/15 font-mono">
                       {tripDetails.durationDays} ימים
                     </span>
                   </div>
                 </div>
 
-                {/* Passenger / Contact Information Inputs */}
-                <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/15 space-y-2.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-mint-400">
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>כתובת לשליחת הכרטיסים והשובר (Resend):</span>
+                {/* Currency Switcher Buttons */}
+                <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-300">בחר מטבע לחיוב סופי:</span>
+                    <span className="text-mint-400 font-semibold text-[11px]">
+                      {currencyConfig.flag} {currencyConfig.hebrewName} ({currencyConfig.label})
+                    </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <div>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          value={customerEmail}
-                          onChange={(e) => {
-                            setCustomerEmail(e.target.value);
-                            if (touched.customerEmail) {
-                              setErrors((prev) => ({
-                                ...prev,
-                                customerEmail: validateField("customerEmail", e.target.value),
-                              }));
-                            }
-                          }}
-                          onBlur={() => handleBlur("customerEmail", customerEmail)}
-                          placeholder="traveler@example.com"
-                          className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/50 border text-white text-xs focus:outline-none transition ${
-                            touched.customerEmail && errors.customerEmail
-                              ? "border-rose-500/80 bg-rose-950/10"
-                              : touched.customerEmail && !errors.customerEmail
-                              ? "border-emerald-500/60"
-                              : "border-white/15 focus:border-mint-400"
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["ILS", "USD", "EUR"] as CurrencyCode[]).map((code) => {
+                      const item = CURRENCIES[code];
+                      const isCurrent = currency === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setCurrency(code)}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                            isCurrent
+                              ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-md"
+                              : "bg-black/40 text-slate-300 border-white/10 hover:bg-white/10"
                           }`}
-                          dir="ltr"
-                        />
-                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {touched.customerEmail && errors.customerEmail ? (
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-                          ) : touched.customerEmail && !errors.customerEmail ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          ) : null}
-                        </div>
-                      </div>
-                      {touched.customerEmail && errors.customerEmail && (
-                        <p className="text-[10px] text-rose-400 mt-0.5">{errors.customerEmail}</p>
-                      )}
-                    </div>
+                        >
+                          <span className="text-sm">{item.flag}</span>
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                    <div>
+                {/* Itemized Price Breakdown */}
+                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2.5 text-xs shadow-inner">
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Plane className="w-4 h-4 text-cyan-400" />
+                      טיסות הלוך ושוב (כולל כבודה 23kg):
+                    </span>
+                    <span className="font-bold text-white font-mono">{formatRaw(flightInSelected)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-emerald-400" />
+                      לינה במלון נבחר ({tripDetails.durationDays} לילות):
+                    </span>
+                    <span className="font-bold text-white font-mono">{formatRaw(hotelInSelected)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      דמי טיפול וסנכרון 13 סוכנים:
+                    </span>
+                    <span className="font-bold text-white font-mono">{formatRaw(feesInSelected)}</span>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between text-sm font-bold">
+                    <span className="text-white">סה״כ לתשלום סופי:</span>
+                    <span className="text-2xl font-heading font-black text-mint-400">
+                      {formatRaw(totalInSelectedCurrency, true)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Guarantees Badges */}
+                <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1.5 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <ShieldCheck className="w-3.5 h-3.5 text-mint-400 shrink-0" />
+                    <span>הבטחת מחיר מלאה ללא תוספות נסתרות</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Clock className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span>ביטול חינם בכפוף למדיניות הספק עד 48 שעות לפני ההמראה</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>מוקד חירום ותמיכה קונסיירז' זמין 24/7 בעברית</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ========================================================
+                  COLUMN 2 (lg:col-span-7): PASSENGER DETAILS & PAYMENT INPUTS
+              ======================================================== */}
+              <div className="lg:col-span-7 space-y-5 text-right">
+                {/* Section A: Passenger Information (Comfortable, Inviting Inputs) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.04] border border-white/15 space-y-3.5 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-mint-300">
+                      <User className="w-4 h-4 text-mint-400" />
+                      <span>פרטי הנוסע הראשי וקבלת הכרטיסים</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">שדות חובה מסומנים ב-*</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Full Name Input */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300 flex items-center justify-between">
+                        <span>שם מלא (באנגלית / דרכון) <span className="text-rose-400">*</span></span>
+                      </label>
                       <div className="relative">
                         <input
                           type="text"
@@ -605,175 +819,211 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                             }
                           }}
                           onBlur={() => handleBlur("customerName", customerName)}
-                          placeholder="שם הנוסע הראשי (ישראל ישראלי)"
-                          className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/50 border text-white text-xs focus:outline-none transition ${
+                          placeholder="ישראל ישראלי / ISRAEL ISRAELI"
+                          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs focus:outline-none transition ${
                             touched.customerName && errors.customerName
-                              ? "border-rose-500/80 bg-rose-950/10"
+                              ? "border-rose-500/80 bg-rose-950/20"
                               : touched.customerName && !errors.customerName
                               ? "border-emerald-500/60"
-                              : "border-white/15 focus:border-mint-400"
+                              : "border-white/15"
                           }`}
                         />
-                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                           {touched.customerName && errors.customerName ? (
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                            <AlertCircle className="w-4 h-4 text-rose-400" />
                           ) : touched.customerName && !errors.customerName ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          ) : null}
+                            <Check className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <User className="w-3.5 h-3.5 text-slate-500" />
+                          )}
                         </div>
                       </div>
                       {touched.customerName && errors.customerName && (
-                        <p className="text-[10px] text-rose-400 mt-0.5">{errors.customerName}</p>
+                        <p className="text-[10px] text-rose-400">{errors.customerName}</p>
                       )}
+                    </div>
+
+                    {/* Email Input */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300 flex items-center justify-between">
+                        <span>כתובת דואר אלקטרוני (אימייל) <span className="text-rose-400">*</span></span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={customerEmail}
+                          onChange={(e) => {
+                            setCustomerEmail(e.target.value);
+                            if (touched.customerEmail) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                customerEmail: validateField("customerEmail", e.target.value),
+                              }));
+                            }
+                          }}
+                          onBlur={() => handleBlur("customerEmail", customerEmail)}
+                          placeholder="traveler@example.com"
+                          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs focus:outline-none transition ${
+                            touched.customerEmail && errors.customerEmail
+                              ? "border-rose-500/80 bg-rose-950/20"
+                              : touched.customerEmail && !errors.customerEmail
+                              ? "border-emerald-500/60"
+                              : "border-white/15"
+                          }`}
+                          dir="ltr"
+                        />
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {touched.customerEmail && errors.customerEmail ? (
+                            <AlertCircle className="w-4 h-4 text-rose-400" />
+                          ) : touched.customerEmail && !errors.customerEmail ? (
+                            <Check className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Mail className="w-3.5 h-3.5 text-slate-500" />
+                          )}
+                        </div>
+                      </div>
+                      {touched.customerEmail && errors.customerEmail && (
+                        <p className="text-[10px] text-rose-400">{errors.customerEmail}</p>
+                      )}
+                    </div>
+
+                    {/* Mobile Phone for Flight SMS Updates */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300">
+                        <span>טלפון נייד לעדכוני שער וטיסה ב-SMS</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="tel"
+                          value={customerPhone}
+                          onChange={(e) => {
+                            setCustomerPhone(e.target.value);
+                            if (touched.customerPhone) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                customerPhone: validateField("customerPhone", e.target.value),
+                              }));
+                            }
+                          }}
+                          onBlur={() => handleBlur("customerPhone", customerPhone)}
+                          placeholder="050-1234567"
+                          className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs focus:outline-none transition ${
+                            touched.customerPhone && errors.customerPhone
+                              ? "border-rose-500/80 bg-rose-950/20"
+                              : touched.customerPhone && !errors.customerPhone
+                              ? "border-emerald-500/60"
+                              : "border-white/15"
+                          }`}
+                          dir="ltr"
+                        />
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <Phone className="w-3.5 h-3.5 text-slate-500" />
+                        </div>
+                      </div>
+                      {touched.customerPhone && errors.customerPhone && (
+                        <p className="text-[10px] text-rose-400">{errors.customerPhone}</p>
+                      )}
+                    </div>
+
+                    {/* Passport Number (Optional for Airline Check-in) */}
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-300 flex items-center justify-between">
+                        <span>מספר דרכון (לצ'ק-אין מוקדם בשדה)</span>
+                        <span className="text-[9px] text-slate-400">אופציונלי</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={passportNumber}
+                          onChange={(e) => setPassportNumber(e.target.value.toUpperCase())}
+                          placeholder="IL1234567"
+                          className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-white/15 text-white text-xs font-mono uppercase focus:outline-none transition"
+                          dir="ltr"
+                        />
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <FileText className="w-3.5 h-3.5 text-slate-500" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Currency Switcher Buttons */}
-                <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-300">בחר מטבע חיוב:</span>
-                    <span className="text-mint-400 font-medium text-[11px]">
-                      {currencyConfig.flag} {currencyConfig.hebrewName} ({currencyConfig.label})
-                    </span>
+                {/* Section B: Payment Method Selection Tabs */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-300">
+                    בחר אמצעי תשלום מועדף:
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {/* 1. Credit Card */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("card")}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition ${
+                        paymentMethod === "card"
+                          ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-lg shadow-mint-500/10 scale-[1.02]"
+                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>כרטיס אשראי</span>
+                    </button>
+
+                    {/* 2. Apple Pay */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("apple_pay")}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition ${
+                        paymentMethod === "apple_pay"
+                          ? "bg-white/20 border-white text-white shadow-md scale-[1.02]"
+                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <span className="text-base leading-none"></span>
+                      <span dir="ltr">Apple Pay</span>
+                    </button>
+
+                    {/* 3. Google Pay */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("google_pay")}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition ${
+                        paymentMethod === "google_pay"
+                          ? "bg-blue-600/25 border-blue-400 text-white shadow-md scale-[1.02]"
+                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <span className="text-xs font-black" dir="ltr">GPay</span>
+                      <span dir="ltr">Google Pay</span>
+                    </button>
+
+                    {/* 4. Bit */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("bit")}
+                      className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition ${
+                        paymentMethod === "bit"
+                          ? "bg-cyan-600/30 border-cyan-400 text-cyan-300 shadow-md scale-[1.02]"
+                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <Zap className="w-4 h-4 text-cyan-400 fill-current" />
+                      <span>ביט bit</span>
+                    </button>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    {(["ILS", "USD", "EUR"] as CurrencyCode[]).map((code) => {
-                      const item = CURRENCIES[code];
-                      const isCurrent = currency === code;
-                      return (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => setCurrency(code)}
-                          className={`py-1.5 px-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                            isCurrent
-                              ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-sm"
-                              : "bg-black/30 text-slate-300 border-white/10 hover:bg-white/10"
-                          }`}
-                        >
-                          <span className="text-sm">{item.flag}</span>
-                          <span>{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Itemized Price Breakdown */}
-                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="flex items-center gap-1.5">
-                      <Plane className="w-3.5 h-3.5 text-blue-400" />
-                      טיסות הלוך ושוב (כולל כבודה):
-                    </span>
-                    <span className="font-semibold text-white">{formatRaw(flightInSelected)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-cyan-400" />
-                      לינה במלון נבחר ({tripDetails.durationDays} לילות):
-                    </span>
-                    <span className="font-semibold text-white">{formatRaw(hotelInSelected)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      דמי טיפול וסנכרון סוכנים:
-                    </span>
-                    <span className="font-semibold text-white">{formatRaw(feesInSelected)}</span>
-                  </div>
-
-                  <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-sm font-bold">
-                    <span className="text-white">סה״כ לתשלום סופי:</span>
-                    <span className="text-xl font-heading font-black text-mint-400">
-                      {formatRaw(totalInSelectedCurrency, true)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ========================================================
-                  COLUMN 2 (lg:col-span-7): PAYMENT EXECUTION COCKPIT (LEFT IN RTL)
-              ======================================================== */}
-              <div className="lg:col-span-7 space-y-4 text-right">
-                {/* Horizontal Payment Method Tabs */}
-                <div className="grid grid-cols-4 gap-2">
-                  {/* 1. Credit Card */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("card")}
-                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
-                      paymentMethod === "card"
-                        ? "bg-mint-500/25 text-mint-300 border-mint-400 shadow-lg shadow-mint-500/10"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    <span>כרטיס אשראי</span>
-                  </button>
-
-                  {/* 2. Apple Pay */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("apple_pay")}
-                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
-                      paymentMethod === "apple_pay"
-                        ? "bg-white/20 border-white text-white shadow-md"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <span className="text-sm leading-none"></span>
-                    <span dir="ltr">Apple Pay</span>
-                  </button>
-
-                  {/* 3. Google Pay (Fixed LTR order, no yaPG) */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("google_pay")}
-                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
-                      paymentMethod === "google_pay"
-                        ? "bg-blue-600/20 border-blue-400 text-white shadow-md"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <span className="text-xs font-extrabold" dir="ltr">
-                      GPay
-                    </span>
-                    <span dir="ltr">Google Pay</span>
-                  </button>
-
-                  {/* 4. Bit */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("bit")}
-                    className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
-                      paymentMethod === "bit"
-                        ? "bg-cyan-600/25 border-cyan-400 text-cyan-300 shadow-md"
-                        : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <Zap className="w-4 h-4 text-cyan-400" />
-                    <span>ביט bit</span>
-                  </button>
                 </div>
 
                 {/* ================= CREDIT CARD INPUT FORM ================= */}
                 {paymentMethod === "card" && (
-                  <form onSubmit={handlePay} className="space-y-3.5">
+                  <form onSubmit={handlePay} className="space-y-4">
                     {/* Compact Interactive Virtual Credit Card Preview */}
                     <div className="relative mx-auto w-full select-none">
                       <div
-                        className={`relative w-full aspect-[2.7/1] rounded-2xl p-4 transition-all duration-300 shadow-xl border overflow-hidden flex flex-col justify-between ${
+                        className={`relative w-full aspect-[2.8/1] rounded-2xl p-4 transition-all duration-300 shadow-xl border overflow-hidden flex flex-col justify-between ${
                           showCardBack
                             ? "bg-gradient-to-br from-[#121c2c] to-[#080d15] border-white/20"
                             : "bg-gradient-to-br from-[#162438] via-[#101b2a] to-[#090f19] border-white/25 shadow-mint-500/5"
                         }`}
                       >
-                        {/* Foil Ambient Glow */}
                         <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-mint-500/10 blur-xl pointer-events-none" />
 
                         {!showCardBack ? (
@@ -796,9 +1046,9 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                                     <div className="w-4 h-4 rounded-full bg-amber-400/90" />
                                   </div>
                                 )}
-                                {cardBrand === "isracard" && <span className="text-[11px] text-blue-300">ישראכרט</span>}
-                                {cardBrand === "amex" && <span className="text-[10px] bg-blue-600 px-1.5 py-0.5 rounded">AMEX</span>}
-                                {cardBrand === "generic" && <span className="text-[10px] text-mint-400">LUXE CARD</span>}
+                                {cardBrand === "isracard" && <span className="text-[11px] text-blue-300 font-bold">ישראכרט</span>}
+                                {cardBrand === "amex" && <span className="text-[10px] bg-blue-600 px-1.5 py-0.5 rounded font-bold">AMEX</span>}
+                                {cardBrand === "generic" && <span className="text-[10px] text-mint-400">LUXURY PASS</span>}
                               </div>
                             </div>
 
@@ -853,11 +1103,11 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Inputs Grid */}
-                    <div className="space-y-2.5 pt-1">
+                    {/* Inputs Grid with Ergonomic Spacing */}
+                    <div className="space-y-3 pt-1">
                       {/* Cardholder Name */}
-                      <div>
-                        <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                      <div className="space-y-1">
+                        <label className="block text-[11px] text-slate-300 font-semibold">
                           שם מלא כפי שמופיע על גבי הכרטיס: <span className="text-rose-400">*</span>
                         </label>
                         <div className="relative">
@@ -875,35 +1125,37 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                             }}
                             onBlur={() => handleBlur("cardHolder", cardHolder)}
                             placeholder="ישראל ישראלי / ISRAEL ISRAELI"
-                            className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs focus:outline-none transition ${
+                            className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs focus:outline-none transition ${
                               touched.cardHolder && errors.cardHolder
-                                ? "border-rose-500/80 bg-rose-950/10"
+                                ? "border-rose-500/80 bg-rose-950/20"
                                 : touched.cardHolder && !errors.cardHolder
                                 ? "border-emerald-500/60"
-                                : "border-white/10 focus:border-mint-400"
+                                : "border-white/15"
                             }`}
                           />
-                          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                             {touched.cardHolder && errors.cardHolder ? (
-                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                              <AlertCircle className="w-4 h-4 text-rose-400" />
                             ) : touched.cardHolder && !errors.cardHolder ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            ) : null}
+                              <Check className="w-4 h-4 text-emerald-400" />
+                            ) : (
+                              <User className="w-3.5 h-3.5 text-slate-500" />
+                            )}
                           </div>
                         </div>
                         {touched.cardHolder && errors.cardHolder && (
-                          <p className="text-[10px] text-rose-400 mt-0.5">{errors.cardHolder}</p>
+                          <p className="text-[10px] text-rose-400">{errors.cardHolder}</p>
                         )}
                       </div>
 
                       {/* Card Number */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="text-[11px] text-slate-300 font-medium">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] text-slate-300 font-semibold">
                             מספר כרטיס אשראי (16 ספרות): <span className="text-rose-400">*</span>
                           </label>
                           {cardBrand !== "generic" && (
-                            <span className="text-[10px] font-bold text-mint-400 uppercase">
+                            <span className="text-[10px] font-bold text-mint-400 uppercase bg-mint-500/10 px-2 py-0.5 rounded-md border border-mint-500/20">
                               {cardBrand}
                             </span>
                           )}
@@ -917,33 +1169,35 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                             onChange={handleCardNumberChange}
                             onBlur={() => handleBlur("cardNumber", cardNumber)}
                             placeholder="4580 •••• •••• ••••"
-                            className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
+                            className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs font-mono focus:outline-none transition tracking-wider ${
                               touched.cardNumber && errors.cardNumber
-                                ? "border-rose-500/80 bg-rose-950/10"
+                                ? "border-rose-500/80 bg-rose-950/20"
                                 : touched.cardNumber && !errors.cardNumber
                                 ? "border-emerald-500/60"
-                                : "border-white/10 focus:border-mint-400"
+                                : "border-white/15"
                             }`}
                             dir="ltr"
                           />
-                          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                             {touched.cardNumber && errors.cardNumber ? (
-                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                              <AlertCircle className="w-4 h-4 text-rose-400" />
                             ) : touched.cardNumber && !errors.cardNumber ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            ) : null}
+                              <Check className="w-4 h-4 text-emerald-400" />
+                            ) : (
+                              <CreditCard className="w-3.5 h-3.5 text-slate-500" />
+                            )}
                           </div>
                         </div>
                         {touched.cardNumber && errors.cardNumber && (
-                          <p className="text-[10px] text-rose-400 mt-0.5">{errors.cardNumber}</p>
+                          <p className="text-[10px] text-rose-400">{errors.cardNumber}</p>
                         )}
                       </div>
 
-                      {/* Expiry & CVV (strictly 3 digits) in 2 columns */}
+                      {/* Expiry & CVV in 2 columns */}
                       <div className="grid grid-cols-2 gap-3">
                         {/* Expiry */}
-                        <div>
-                          <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                        <div className="space-y-1">
+                          <label className="block text-[11px] text-slate-300 font-semibold">
                             תוקף (MM/YY): <span className="text-rose-400">*</span>
                           </label>
                           <div className="relative">
@@ -955,32 +1209,32 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                               onChange={handleExpiryChange}
                               onBlur={() => handleBlur("expiry", expiry)}
                               placeholder="12/28"
-                              className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs font-mono focus:outline-none transition ${
+                              className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs font-mono focus:outline-none transition text-center ${
                                 touched.expiry && errors.expiry
-                                  ? "border-rose-500/80 bg-rose-950/10"
-                                  : touched.expiry && !errors.expiry
-                                  ? "border-emerald-500/60"
-                                  : "border-white/10 focus:border-mint-400"
+                                ? "border-rose-500/80 bg-rose-950/20"
+                                : touched.expiry && !errors.expiry
+                                ? "border-emerald-500/60"
+                                : "border-white/15"
                               }`}
                               dir="ltr"
                             />
-                            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               {touched.expiry && errors.expiry ? (
-                                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                                <AlertCircle className="w-4 h-4 text-rose-400" />
                               ) : touched.expiry && !errors.expiry ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <Check className="w-4 h-4 text-emerald-400" />
                               ) : null}
                             </div>
                           </div>
                           {touched.expiry && errors.expiry && (
-                            <p className="text-[10px] text-rose-400 mt-0.5">{errors.expiry}</p>
+                            <p className="text-[10px] text-rose-400">{errors.expiry}</p>
                           )}
                         </div>
 
-                        {/* CVV (strictly 3 digits) */}
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="text-[11px] text-slate-300 font-medium">
+                        {/* CVV */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] text-slate-300 font-semibold">
                               קוד CVV: <span className="text-rose-400">*</span>
                             </label>
                             <span className="text-[10px] text-slate-400">3 ספרות בגב</span>
@@ -992,36 +1246,40 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                               maxLength={3}
                               value={cvv}
                               onChange={handleCvvChange}
-                              onBlur={() => handleBlur("cvv", cvv)}
+                              onFocus={() => setShowCardBack(true)}
+                              onBlur={() => {
+                                setShowCardBack(false);
+                                handleBlur("cvv", cvv);
+                              }}
                               placeholder="•••"
-                              className={`w-full pl-8 pr-3 py-2 rounded-xl bg-black/40 border text-white text-xs font-mono tracking-widest focus:outline-none transition ${
+                              className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl border text-white text-xs font-mono tracking-widest focus:outline-none transition text-center ${
                                 touched.cvv && errors.cvv
-                                  ? "border-rose-500/80 bg-rose-950/10"
+                                  ? "border-rose-500/80 bg-rose-950/20"
                                   : touched.cvv && !errors.cvv
                                   ? "border-emerald-500/60"
-                                  : "border-white/10 focus:border-mint-400"
+                                  : "border-white/15"
                               }`}
                               dir="ltr"
                             />
-                            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               {touched.cvv && errors.cvv ? (
-                                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                                <AlertCircle className="w-4 h-4 text-rose-400" />
                               ) : touched.cvv && !errors.cvv ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <Check className="w-4 h-4 text-emerald-400" />
                               ) : null}
                             </div>
                           </div>
                           {touched.cvv && errors.cvv && (
-                            <p className="text-[10px] text-rose-400 mt-0.5">{errors.cvv}</p>
+                            <p className="text-[10px] text-rose-400">{errors.cvv}</p>
                           )}
                         </div>
                       </div>
 
-                      {/* ID & Installments in 2 columns */}
+                      {/* Israeli ID & Installments in 2 columns */}
                       <div className="grid grid-cols-2 gap-3">
                         {/* Israeli ID */}
-                        <div>
-                          <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                        <div className="space-y-1">
+                          <label className="block text-[11px] text-slate-300 font-semibold">
                             ת.ז. בעל הכרטיס (אופציונלי):
                           </label>
                           <input
@@ -1032,20 +1290,23 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                             onChange={handleIdChange}
                             onBlur={() => handleBlur("idNumber", idNumber)}
                             placeholder="012345678"
-                            className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-mint-400 transition"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 text-white text-xs font-mono focus:outline-none transition"
                             dir="ltr"
                           />
+                          {touched.idNumber && errors.idNumber && (
+                            <p className="text-[10px] text-rose-400">{errors.idNumber}</p>
+                          )}
                         </div>
 
                         {/* Installments */}
-                        <div>
-                          <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                        <div className="space-y-1">
+                          <label className="block text-[11px] text-slate-300 font-semibold">
                             פריסה לתשלומים:
                           </label>
                           <select
                             value={installments}
                             onChange={(e) => setInstallments(Number(e.target.value))}
-                            className="w-full px-2.5 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-mint-400 transition"
+                            className="w-full px-3 py-2.5 rounded-xl border border-white/15 text-white text-xs focus:outline-none transition cursor-pointer"
                           >
                             <option value={1} className="bg-slate-900">1 תשלום (ללא ריבית)</option>
                             <option value={2} className="bg-slate-900">2 תשלומים ({formatRaw(Math.round(totalInSelectedCurrency / 2))}/חודש)</option>
@@ -1057,26 +1318,26 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Submit Button */}
+                    {/* Submit Payment CTA */}
                     <button
                       type="submit"
                       disabled={isProcessing}
-                      className="w-full py-3.5 rounded-2xl btn-mint text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition disabled:opacity-50 mt-3"
+                      className="w-full py-4 rounded-2xl btn-mint text-slate-950 font-black text-sm flex items-center justify-center gap-2.5 shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition disabled:opacity-50 mt-4"
                     >
                       {isProcessing ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                          <span>מבצע סליקה מאובטחת והפקת שובר...</span>
+                          <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                          <span>מבצע סליקה מאובטחת והפקת כרטיסים...</span>
                         </>
                       ) : (
                         <>
+                          <Lock className="w-4 h-4 text-slate-950" />
                           <span>
-                            אישור ותשלום סופי בסך{" "}
+                            אישור סופי והנפקת כרטיסים בסך{" "}
                             {installments > 1
                               ? `${installments} תשלומים של ${formatRaw(installmentAmount)} (${formatRaw(totalInSelectedCurrency, true)})`
                               : formatRaw(totalInSelectedCurrency, true)}
                           </span>
-                          <Lock className="w-4 h-4" />
                         </>
                       )}
                     </button>
@@ -1091,7 +1352,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                         
                       </div>
                       <h3 className="text-base font-bold text-white">תשלום מאובטח עם Apple Pay</h3>
-                      <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                      <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                         אימות ביומטרי בלחיצה אחת ב-Touch ID / Face ID. השובר והכרטיסים יישלחו מיד לכתובת הדואר שלך.
                       </p>
                       <div className="text-xl font-heading font-black text-mint-400 pt-1">
@@ -1103,10 +1364,10 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       type="button"
                       onClick={handlePay}
                       disabled={isProcessing}
-                      className="w-full py-3.5 rounded-2xl bg-white text-black font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-200 transition disabled:opacity-50"
+                      className="w-full py-4 rounded-2xl bg-white text-black font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-200 transition disabled:opacity-50"
                     >
                       {isProcessing ? (
-                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                       ) : (
                         <>
                           <span className="text-base"></span>
@@ -1125,7 +1386,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                         <span dir="ltr">GPay</span>
                       </div>
                       <h3 className="text-base font-bold text-white">חיוב ישיר מ-Google Wallet</h3>
-                      <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                      <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                         תשלום מהיר ומאובטח באמצעות כרטיסי האשראי המוגדרים בחשבון ה-Google שלך.
                       </p>
                       <div className="text-xl font-heading font-black text-mint-400 pt-1">
@@ -1137,10 +1398,10 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       type="button"
                       onClick={handlePay}
                       disabled={isProcessing}
-                      className="w-full py-3.5 rounded-2xl bg-slate-900 text-white border border-white/20 hover:border-white/40 font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-800 transition disabled:opacity-50"
+                      className="w-full py-4 rounded-2xl bg-slate-900 text-white border border-white/20 hover:border-white/40 font-bold text-sm flex items-center justify-center gap-2 shadow-2xl hover:bg-slate-800 transition disabled:opacity-50"
                     >
                       {isProcessing ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
                         <span dir="ltr">Pay with Google Pay</span>
                       )}
@@ -1153,10 +1414,10 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                   <div className="space-y-4 pt-2 text-center animate-fade-in">
                     <div className="p-6 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-3">
                       <div className="w-14 h-14 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center mx-auto text-cyan-300">
-                        <Zap className="w-7 h-7" />
+                        <Zap className="w-7 h-7 fill-current" />
                       </div>
                       <h3 className="text-base font-bold text-white">תשלום מהיר באפליקציית ביט (bit)</h3>
-                      <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                      <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                         הזן מספר טלפון נייד לקבלת בקשת אישור תשלום מיידית באפליקציית bit.
                       </p>
                       <div className="text-xl font-heading font-black text-cyan-400 pt-1">
@@ -1164,23 +1425,28 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="max-w-xs mx-auto text-right">
-                      <label className="block text-[11px] text-slate-300 mb-1 font-medium">
+                    <div className="max-w-xs mx-auto text-right space-y-1">
+                      <label className="block text-[11px] text-slate-300 font-semibold">
                         מספר נייד הרשום ב-bit: <span className="text-rose-400">*</span>
                       </label>
-                      <input
-                        type="tel"
-                        inputMode="tel"
-                        maxLength={10}
-                        value={bitPhone}
-                        onChange={handleBitPhoneChange}
-                        onBlur={() => handleBlur("bitPhone", bitPhone)}
-                        placeholder="0501234567"
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-cyan-400"
-                        dir="ltr"
-                      />
+                      <div className="relative">
+                        <input
+                          type="tel"
+                          inputMode="tel"
+                          maxLength={10}
+                          value={bitPhone}
+                          onChange={handleBitPhoneChange}
+                          onBlur={() => handleBlur("bitPhone", bitPhone)}
+                          placeholder="0501234567"
+                          className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-cyan-400"
+                          dir="ltr"
+                        />
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <Smartphone className="w-3.5 h-3.5 text-slate-500" />
+                        </div>
+                      </div>
                       {touched.bitPhone && errors.bitPhone && (
-                        <p className="text-[10px] text-rose-400 mt-1">{errors.bitPhone}</p>
+                        <p className="text-[10px] text-rose-400">{errors.bitPhone}</p>
                       )}
                     </div>
 
@@ -1188,14 +1454,14 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       type="button"
                       onClick={handlePay}
                       disabled={isProcessing}
-                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/20 hover:brightness-110 transition disabled:opacity-50"
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/20 hover:brightness-110 transition disabled:opacity-50"
                     >
                       {isProcessing ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
                         <>
                           <Smartphone className="w-4 h-4" />
-                          <span>שלח בקשת אישור ב-bit</span>
+                          <span>שלח בקשת אישור תשלום ל-bit</span>
                         </>
                       )}
                     </button>

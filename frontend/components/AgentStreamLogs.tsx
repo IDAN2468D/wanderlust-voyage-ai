@@ -14,6 +14,12 @@ import {
   CloudSun,
   ShieldCheck,
   Compass,
+  Navigation,
+  Utensils,
+  ShoppingBag,
+  CalendarCheck,
+  Radio,
+  MessageSquare,
 } from "lucide-react";
 
 export interface StreamLogItem {
@@ -98,6 +104,54 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
       color: "text-emerald-400",
       activeBg: "from-emerald-600/30 to-teal-600/20 border-emerald-500",
     },
+    {
+      id: "transit_agent",
+      name: "ניווט ותחבורה",
+      role: "מטרו, העברות וכרטיסי עיר",
+      icon: Navigation,
+      color: "text-sky-400",
+      activeBg: "from-sky-600/30 to-blue-600/20 border-sky-500",
+    },
+    {
+      id: "culinary_agent",
+      name: "קולינריה וכשרות",
+      role: "מסעדות שף, כשרות וברים",
+      icon: Utensils,
+      color: "text-amber-300",
+      activeBg: "from-amber-500/30 to-yellow-600/20 border-amber-400",
+    },
+    {
+      id: "shopping_taxfree_agent",
+      name: "שופינג ו-Tax-Free",
+      role: "החזרי מע\"מ ואאוטלטים",
+      icon: ShoppingBag,
+      color: "text-pink-400",
+      activeBg: "from-pink-600/30 to-rose-600/20 border-pink-500",
+    },
+    {
+      id: "calendar_sync_agent",
+      name: "סנכרון יומנים",
+      role: "Google Calendar ו-iCal",
+      icon: CalendarCheck,
+      color: "text-blue-300",
+      activeBg: "from-blue-500/30 to-indigo-600/20 border-blue-400",
+    },
+    {
+      id: "ground_sentinel_agent",
+      name: "מודיעין שטח והתרעות",
+      role: "שביתות, כייסים וחירום",
+      icon: Radio,
+      color: "text-red-400",
+      activeBg: "from-red-600/30 to-orange-600/20 border-red-500",
+    },
+    {
+      id: "whatsapp_butler_agent",
+      name: "קונסיירז' WhatsApp",
+      role: "תדריכים יומיים לשיתוף",
+      icon: MessageSquare,
+      color: "text-emerald-300",
+      activeBg: "from-emerald-500/30 to-green-600/20 border-emerald-400",
+    },
   ];
 
   // Derive current execution stage
@@ -119,14 +173,14 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-serif text-lg font-bold text-white tracking-tight">
-                מוניטור חשיבה וסנכרון של 7 סוכני ה-AI
+                מוניטור חשיבה וסנכרון של 13 סוכני ה-AI האוטונומיים
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10">
                 STAGE: {currentStage}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              טלמטריה, הפעלת כלים בזמן אמת, אימות טיסות וכרית ביטחון 10% בהזרמת SSE
+              טלמטריה, הפעלת כלים בזמן אמת, תחבורה, קולינריה, שופינג וסנכרון יומנים בהזרמת SSE
             </p>
           </div>
         </div>

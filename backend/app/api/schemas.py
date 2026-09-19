@@ -56,6 +56,12 @@ class TripPlanResponse(BaseModel):
     recommended_flight: Optional[Dict[str, Any]] = None
     selected_hotel: Optional[Dict[str, Any]] = None
     start_date_formatted: Optional[str] = None
+    transit_guide: Optional[Dict[str, Any]] = None
+    culinary_guide: Optional[Dict[str, Any]] = None
+    shopping_taxfree: Optional[Dict[str, Any]] = None
+    calendar_events: Optional[Dict[str, Any]] = None
+    ground_alerts: Optional[Dict[str, Any]] = None
+    whatsapp_briefings: Optional[Dict[str, Any]] = None
 
 
 class WorkspaceCalendarSyncRequest(BaseModel):

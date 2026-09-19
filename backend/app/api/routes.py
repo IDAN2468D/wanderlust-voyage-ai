@@ -396,4 +396,33 @@ async def send_booking_confirmation(payload: BookingConfirmationRequest):
     )
 
 
+@router.get("/workspace/download-ics")
+async def download_calendar_ics(
+    destination: str,
+    start_date: str = "2026-10-15",
+    duration_days: int = 7,
+    days: int | None = None,
+):
+    """
+    Downloads full RFC 5545 iCalendar (.ics) file directly for importing into phone/calendar.
+    Handles non-ASCII / Hebrew destination names safely according to RFC 5987.
+    """
+    from app.tools.calendar_tools import generate_trip_calendar_pack
+    effective_days = days if days is not None else duration_days
+    cal_pack = generate_trip_calendar_pack(destination, start_date, effective_days)
+    
+    # Safely format filename for Latin-1 HTTP header compatibility (RFC 5987)
+    safe_ascii_name = "wanderlust_trip.ics"
+    quoted_name = urllib.parse.quote(destination.strip().replace(" ", "_"))
+    
+    return Response(
+        content=cal_pack["ical_data"].encode("utf-8"),
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_ascii_name}"; filename*=UTF-8\'\'{quoted_name}.ics',
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+    )
+
+
 
