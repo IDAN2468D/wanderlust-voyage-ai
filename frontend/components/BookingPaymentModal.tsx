@@ -519,12 +519,12 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto"
       dir="rtl"
     >
-      <div className="relative w-full max-w-5xl wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-5 sm:p-8 text-white max-h-[94vh] overflow-y-auto bg-[#0a101b]/95 my-auto">
+      <div className="relative w-full max-w-5xl wanderlust-glass rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl p-4 sm:p-8 text-white max-h-[92dvh] overflow-y-auto bg-[#0a101b]/95 my-auto">
         {/* Close Button */}
         <button
           type="button"
           onClick={handleResetAndClose}
-          className="absolute top-5 left-5 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition shadow-sm z-20"
+          className="absolute top-4 left-4 sm:top-5 sm:left-5 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition shadow-sm z-20"
           aria-label="סגור חלון"
         >
           <X className="w-5 h-5" />
@@ -768,7 +768,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                   <div className="flex items-center justify-between text-slate-300">
                     <span className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      דמי טיפול וסנכרון 13 סוכנים:
+                      דמי טיפול וסנכרון 15 סוכנים:
                     </span>
                     <span className="font-bold text-white font-mono">{formatRaw(feesInSelected)}</span>
                   </div>
@@ -967,7 +967,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                   <label className="block text-xs font-bold text-slate-300">
                     בחר אמצעי תשלום מועדף:
                   </label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {/* 1. Credit Card */}
                     <button
                       type="button"
@@ -1032,7 +1032,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                     {/* Compact Interactive Virtual Credit Card Preview */}
                     <div className="relative mx-auto w-full select-none">
                       <div
-                        className={`relative w-full aspect-[2.8/1] rounded-2xl p-4 transition-all duration-300 shadow-xl border overflow-hidden flex flex-col justify-between ${
+                        className={`relative w-full min-h-[155px] sm:aspect-[2.8/1] rounded-2xl p-4 transition-all duration-300 shadow-xl border overflow-hidden flex flex-col justify-between ${
                           showCardBack
                             ? "bg-gradient-to-br from-[#121c2c] to-[#080d15] border-white/20"
                             : "bg-gradient-to-br from-[#162438] via-[#101b2a] to-[#090f19] border-white/25 shadow-mint-500/5"
@@ -1208,7 +1208,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       </div>
 
                       {/* Expiry & CVV in 2 columns */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Expiry */}
                         <div className="space-y-1">
                           <label className="block text-[11px] text-slate-300 font-semibold">
@@ -1290,7 +1290,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                       </div>
 
                       {/* Israeli ID & Installments in 2 columns */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Israeli ID */}
                         <div className="space-y-1">
                           <label className="block text-[11px] text-slate-300 font-semibold">

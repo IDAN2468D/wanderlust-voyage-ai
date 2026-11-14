@@ -138,11 +138,11 @@ export default function ExperiencesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070c12] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
       <Navbar />
 
       {/* Hero Banner */}
-      <section className="relative py-20 px-6 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
+      <section className="relative py-12 sm:py-20 px-4 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-20">
           <Image
             src="/images/bali.jpg"
@@ -151,7 +151,7 @@ export default function ExperiencesPage() {
             unoptimized
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050811]/85 via-[#050811] to-[#050811]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center space-y-4">
@@ -160,7 +160,7 @@ export default function ExperiencesPage() {
             <span>חוויות יוצאות דופן</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
             מסעות שנבנים סביב התשוקות שלך
           </h1>
 
@@ -169,7 +169,7 @@ export default function ExperiencesPage() {
           </p>
 
           {/* Category Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-6">
+          <div className="snap-strip no-scrollbar sm:flex sm:flex-wrap sm:overflow-visible items-center sm:justify-center gap-2.5 pt-4 sm:pt-6 pb-1">
             {[
               { id: "all", label: "כל החוויות" },
               { id: "adventure", label: "🏄 אקסטרים והרפתקאות" },
@@ -182,9 +182,9 @@ export default function ExperiencesPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setSelectedCategory(tab.id)}
-                className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+                className={`shrink-0 whitespace-nowrap px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
                   selectedCategory === tab.id
-                    ? "btn-mint shadow-lg shadow-mint-500/20 scale-105"
+                    ? "btn-mint shadow-lg shadow-mint-500/20 sm:scale-105"
                     : "bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10"
                 }`}
               >
@@ -196,15 +196,15 @@ export default function ExperiencesPage() {
       </section>
 
       {/* Main Experience Cards */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-14 space-y-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-12 lg:px-16 py-10 sm:py-14 space-y-10 sm:space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {filtered.map((item) => (
             <div
               key={item.id}
               className="wanderlust-glass-card rounded-3xl overflow-hidden border border-white/15 hover:border-mint-500/30 transition-all flex flex-col justify-between group"
             >
               {/* Image with overlay */}
-              <div className="relative h-64 sm:h-72 w-full overflow-hidden">
+              <div className="relative h-56 sm:h-72 w-full overflow-hidden">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -212,7 +212,7 @@ export default function ExperiencesPage() {
                   unoptimized
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-black/30 to-transparent" />
 
                 {/* Rating Badge */}
                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 flex items-center gap-1.5 text-xs font-bold text-white">
@@ -234,10 +234,10 @@ export default function ExperiencesPage() {
               </div>
 
               {/* Content Body */}
-              <div className="p-6 sm:p-8 space-y-6 flex-1 flex flex-col justify-between">
+              <div className="p-5 sm:p-8 space-y-5 sm:space-y-6 flex-1 flex flex-col justify-between">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-serif text-2xl font-bold text-white group-hover:text-mint-300 transition-colors">
+                    <h3 className="font-serif text-xl sm:text-2xl font-bold text-white group-hover:text-mint-300 transition-colors">
                       {item.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
@@ -269,7 +269,7 @@ export default function ExperiencesPage() {
                 </div>
 
                 {/* Plan Button */}
-                <div className="pt-6 border-t border-white/10">
+                <div className="pt-5 sm:pt-6 border-t border-white/10">
                   <button
                     type="button"
                     onClick={() => handlePlanExperience(item)}
@@ -285,10 +285,10 @@ export default function ExperiencesPage() {
         </div>
 
         {/* Quality Guarantee Strip */}
-        <section className="wanderlust-glass rounded-3xl p-8 border border-white/15 text-center">
+        <section className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-white/15 text-center">
           <div className="max-w-3xl mx-auto space-y-4">
             <ShieldCheck className="w-10 h-10 text-mint-400 mx-auto" />
-            <h3 className="font-serif text-2xl font-bold text-white">
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-white">
               הבטחת החוויה המושלמת של Wanderlust
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">

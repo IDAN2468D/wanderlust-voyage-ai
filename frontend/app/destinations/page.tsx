@@ -132,11 +132,11 @@ export default function DestinationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070c12] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
       <Navbar />
 
       {/* Header Banner */}
-      <section className="relative py-20 px-6 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
+      <section className="relative py-12 sm:py-20 px-4 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-25">
           <Image
             src="/images/hero-bg.jpg"
@@ -145,7 +145,7 @@ export default function DestinationsPage() {
             unoptimized
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/80 via-[#070c12] to-[#070c12]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050811]/80 via-[#050811] to-[#050811]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center space-y-4">
@@ -154,7 +154,7 @@ export default function DestinationsPage() {
             <span>העולם בכף ידך</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
             יעדים נבחרים בעולם
           </h1>
 
@@ -163,7 +163,7 @@ export default function DestinationsPage() {
           </p>
 
           {/* Search bar inside header */}
-          <div className="max-w-xl mx-auto pt-4">
+          <div className="max-w-xl mx-auto pt-3 sm:pt-4">
             <div className="wanderlust-glass rounded-2xl p-2 flex items-center gap-3 border border-white/15">
               <input
                 type="text"
@@ -176,7 +176,7 @@ export default function DestinationsPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="text-xs text-slate-400 hover:text-white px-2"
+                  className="text-xs text-slate-400 hover:text-white px-2 shrink-0"
                 >
                   נקה
                 </button>
@@ -187,9 +187,9 @@ export default function DestinationsPage() {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-12 space-y-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-12 lg:px-16 py-8 sm:py-12 space-y-8 sm:space-y-10">
         {/* Category Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+        <div className="snap-strip no-scrollbar sm:flex sm:flex-wrap sm:overflow-visible items-center sm:justify-center gap-2.5 sm:gap-3 pb-1">
           {[
             { id: "all", label: "כל היעדים" },
             { id: "tropical", label: "🏝️ איים טרופיים וחופים" },
@@ -201,9 +201,9 @@ export default function DestinationsPage() {
               key={cat.id}
               type="button"
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+              className={`shrink-0 whitespace-nowrap px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
                 activeCategory === cat.id
-                  ? "btn-mint shadow-lg shadow-mint-500/20 scale-105"
+                  ? "btn-mint shadow-lg shadow-mint-500/20 sm:scale-105"
                   : "bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10"
               }`}
             >
@@ -213,7 +213,7 @@ export default function DestinationsPage() {
         </div>
 
         {/* Results Counter */}
-        <div className="flex items-center justify-between text-xs text-slate-400 border-b border-white/5 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 border-b border-white/5 pb-4">
           <span>נמצאו {filteredDestinations.length} יעדים מובילים</span>
           <span className="flex items-center gap-1.5 text-mint-400 font-medium">
             <Sparkles className="w-3.5 h-3.5" />
@@ -222,14 +222,14 @@ export default function DestinationsPage() {
         </div>
 
         {/* Destinations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredDestinations.map((dest) => (
             <div
               key={dest.id}
               className="wanderlust-glass-card rounded-3xl overflow-hidden border border-white/15 group hover:border-mint-500/40 transition-all flex flex-col justify-between"
             >
               {/* Image Container */}
-              <div className="relative h-64 w-full overflow-hidden">
+              <div className="relative h-56 sm:h-64 w-full overflow-hidden">
                 <Image
                   src={dest.image}
                   alt={dest.name}
@@ -237,7 +237,7 @@ export default function DestinationsPage() {
                   unoptimized
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-black/25 to-transparent" />
 
                 {/* Rating Badge */}
                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 flex items-center gap-1.5 text-xs font-bold text-white">
@@ -254,9 +254,9 @@ export default function DestinationsPage() {
               </div>
 
               {/* Card Body */}
-              <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+              <div className="p-5 sm:p-6 space-y-4 flex-1 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="font-serif text-2xl font-bold text-white group-hover:text-mint-300 transition-colors">
+                  <h3 className="font-serif text-xl sm:text-2xl font-bold text-white group-hover:text-mint-300 transition-colors">
                     {dest.name}
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
@@ -305,7 +305,7 @@ export default function DestinationsPage() {
         </div>
 
         {/* Custom Destination Banner */}
-        <section className="wanderlust-glass rounded-3xl p-8 sm:p-12 border border-white/20 text-center relative overflow-hidden my-12">
+        <section className="wanderlust-glass rounded-3xl p-6 sm:p-12 border border-white/20 text-center relative overflow-hidden my-8 sm:my-12">
           <div className="absolute inset-0 bg-gradient-to-r from-mint-500/10 via-transparent to-indigo-500/10 pointer-events-none" />
           <div className="relative z-10 max-w-2xl mx-auto space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-mint-400/20 text-mint-400 flex items-center justify-center mx-auto">
@@ -321,7 +321,7 @@ export default function DestinationsPage() {
               <button
                 type="button"
                 onClick={() => router.push("/#planner-form")}
-                className="btn-mint px-8 py-3.5 rounded-full text-xs font-bold inline-flex items-center gap-2 shadow-xl"
+                className="btn-mint w-full sm:w-auto px-8 py-3.5 rounded-full text-xs font-bold inline-flex items-center justify-center gap-2 shadow-xl"
               >
                 <span>הזן יעד אישי במערכת</span>
                 <ArrowLeft className="w-4 h-4" />

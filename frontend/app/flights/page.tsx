@@ -370,7 +370,7 @@ export default function TLVHolidayFlightBoardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#05080e] text-slate-100 selection:bg-cyan-500/30 font-sans" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#050811] text-slate-100 selection:bg-cyan-500/30 font-sans" dir="rtl">
       <Navbar />
 
       {/* Hero Ambient Glows */}
@@ -379,14 +379,14 @@ export default function TLVHolidayFlightBoardPage() {
         <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-teal-500/10 blur-[160px]" />
       </div>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-28 md:pb-24">
         {/* Page Title & Intro */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-semibold mb-4 backdrop-blur-md">
             <Plane className="w-3.5 h-3.5 animate-pulse" />
             <span>סוכן נתב״ג החכם • TLV Live Holiday Flight Board</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3 sm:mb-4">
             לוח טיסות חגים מנתב״ג
           </h1>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
@@ -395,8 +395,8 @@ export default function TLVHolidayFlightBoardPage() {
         </div>
 
         {/* Holiday Selection Tabs */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3 px-1">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-cyan-400" />
               בחר חופשה או חג ישראלי (2026):
@@ -435,9 +435,9 @@ export default function TLVHolidayFlightBoardPage() {
         </div>
 
         {/* Main Interactive Filter Card (Liquid Glass) */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-2xl mb-12">
-          <form onSubmit={handleRunSearch} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/[0.03] backdrop-blur-2xl border border-white/10 shadow-2xl mb-10 sm:mb-12">
+          <form onSubmit={handleRunSearch} className="space-y-5 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
               {/* Destination Input & Quick Pick */}
               <div className="md:col-span-1 space-y-2">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
@@ -454,13 +454,13 @@ export default function TLVHolidayFlightBoardPage() {
                   />
                 </div>
                 {/* Quick Chips */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="snap-strip no-scrollbar sm:flex sm:flex-wrap sm:overflow-visible gap-1.5 pt-1">
                   {QUICK_DESTINATIONS.map((qd) => (
                     <button
                       key={qd.value}
                       type="button"
                       onClick={() => setDestination(qd.value)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition ${
+                      className={`shrink-0 whitespace-nowrap text-[11px] px-2.5 py-1.5 rounded-lg border transition ${
                         destination === qd.value
                           ? "bg-cyan-500/20 border-cyan-400/40 text-cyan-300"
                           : "bg-white/[0.02] hover:bg-white/[0.06] border-white/5 text-slate-400"
@@ -478,7 +478,7 @@ export default function TLVHolidayFlightBoardPage() {
                   <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                   תאריכי יציאה וחזרה מנתב״ג:
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
                     <span className="text-[10px] text-slate-400 block mb-1">המראה:</span>
                     <input
@@ -509,19 +509,19 @@ export default function TLVHolidayFlightBoardPage() {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-[#0a101b]/60 border border-white/10 rounded-xl p-2 text-center">
                     <span className="text-[10px] text-slate-400 block">מבוגרים</span>
-                    <div className="flex items-center justify-center gap-2 mt-1">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-1">
                       <button
                         type="button"
                         onClick={() => setAdults(Math.max(1, adults - 1))}
-                        className="w-6 h-6 rounded-md bg-white/10 text-white hover:bg-white/20 text-xs font-bold"
+                        className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center justify-center"
                       >
                         -
                       </button>
-                      <span className="text-xs font-bold text-cyan-300">{adults}</span>
+                      <span className="text-xs font-bold text-cyan-300 min-w-[14px]">{adults}</span>
                       <button
                         type="button"
                         onClick={() => setAdults(Math.min(9, adults + 1))}
-                        className="w-6 h-6 rounded-md bg-white/10 text-white hover:bg-white/20 text-xs font-bold"
+                        className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center justify-center"
                       >
                         +
                       </button>
@@ -530,19 +530,19 @@ export default function TLVHolidayFlightBoardPage() {
 
                   <div className="bg-[#0a101b]/60 border border-white/10 rounded-xl p-2 text-center">
                     <span className="text-[10px] text-slate-400 block">ילדים</span>
-                    <div className="flex items-center justify-center gap-2 mt-1">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-1">
                       <button
                         type="button"
                         onClick={() => setChildren(Math.max(0, children - 1))}
-                        className="w-6 h-6 rounded-md bg-white/10 text-white hover:bg-white/20 text-xs font-bold"
+                        className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center justify-center"
                       >
                         -
                       </button>
-                      <span className="text-xs font-bold text-cyan-300">{children}</span>
+                      <span className="text-xs font-bold text-cyan-300 min-w-[14px]">{children}</span>
                       <button
                         type="button"
                         onClick={() => setChildren(Math.min(9, children + 1))}
-                        className="w-6 h-6 rounded-md bg-white/10 text-white hover:bg-white/20 text-xs font-bold"
+                        className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center justify-center"
                       >
                         +
                       </button>
@@ -551,19 +551,19 @@ export default function TLVHolidayFlightBoardPage() {
 
                   <div className="bg-[#0a101b]/60 border border-white/10 rounded-xl p-2 text-center">
                     <span className="text-[10px] text-slate-400 block">תינוקות</span>
-                    <div className="flex items-center justify-center gap-2 mt-1">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-1">
                       <button
                         type="button"
                         onClick={() => setInfants(Math.max(0, infants - 1))}
-                        className="w-6 h-6 rounded-md bg-white/10 text-white hover:bg-white/20 text-xs font-bold"
+                        className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center justify-center"
                       >
                         -
                       </button>
-                      <span className="text-xs font-bold text-cyan-300">{infants}</span>
+                      <span className="text-xs font-bold text-cyan-300 min-w-[14px]">{infants}</span>
                       <button
                         type="button"
                         onClick={() => setInfants(Math.min(4, infants + 1))}
-                        className="w-6 h-6 rounded-md bg-white/10 text-white hover:bg-white/20 text-xs font-bold"
+                        className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center justify-center"
                       >
                         +
                       </button>
@@ -585,13 +585,13 @@ export default function TLVHolidayFlightBoardPage() {
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Luggage className={`w-4 h-4 ${checkedBagNeeded ? "text-cyan-400" : "text-slate-500"}`} />
+                  <Luggage className={`w-4 h-4 shrink-0 ${checkedBagNeeded ? "text-cyan-400" : "text-slate-500"}`} />
                   <div>
                     <span className="text-xs font-bold block">דרושה מזוודה (20-23 ק״ג)</span>
                     <span className="text-[10px] text-slate-400 block">חישוב תוספת עלות מלאה לכל נוסע</span>
                   </div>
                 </div>
-                <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center border shrink-0 ${
                   checkedBagNeeded ? "bg-cyan-400 border-cyan-400 text-black font-bold" : "border-white/20"
                 }`}>
                   {checkedBagNeeded && "✓"}
@@ -608,13 +608,13 @@ export default function TLVHolidayFlightBoardPage() {
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Plane className={`w-4 h-4 ${nonstopOnly ? "text-teal-400" : "text-slate-500"}`} />
+                  <Plane className={`w-4 h-4 shrink-0 ${nonstopOnly ? "text-teal-400" : "text-slate-500"}`} />
                   <div>
                     <span className="text-xs font-bold block">טיסות ישירות בלבד (Nonstop)</span>
                     <span className="text-[10px] text-slate-400 block">סינון טיסות ללא עצירת ביניים</span>
                   </div>
                 </div>
-                <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center border shrink-0 ${
                   nonstopOnly ? "bg-teal-400 border-teal-400 text-black font-bold" : "border-white/20"
                 }`}>
                   {nonstopOnly && "✓"}
@@ -632,7 +632,7 @@ export default function TLVHolidayFlightBoardPage() {
                   value={budgetCeilingNis}
                   onChange={(e) => setBudgetCeilingNis(e.target.value)}
                   placeholder="ללא הגבלה (או הזן סכום בשקלים)"
-                  className="w-full bg-[#0a101b]/80 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 transition"
+                  className="w-full bg-[#0a101b]/80 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 transition"
                 />
               </div>
             </div>
@@ -662,10 +662,10 @@ export default function TLVHolidayFlightBoardPage() {
 
         {/* Real-time Agent Thought Stream Console */}
         {(isStreaming || logs.length > 0) && (
-          <div className="mb-12 p-6 rounded-3xl bg-[#070c14]/90 border border-cyan-500/20 shadow-2xl backdrop-blur-xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+          <div className="mb-10 sm:mb-12 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#070c14]/90 border border-cyan-500/20 shadow-2xl backdrop-blur-xl">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3 mb-4">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping shrink-0" />
                 <span className="text-xs font-bold text-cyan-300">
                   קונסולת הזרמת מחשבות סוכן (7-Step Thought Stream)
                 </span>
@@ -675,17 +675,17 @@ export default function TLVHolidayFlightBoardPage() {
               </span>
             </div>
 
-            <div className="max-h-60 overflow-y-auto space-y-2 text-xs font-mono pr-2">
+            <div className="max-h-60 overflow-y-auto space-y-2 text-xs font-mono pr-1 sm:pr-2">
               {logs.map((log) => (
                 <div
                   key={log.id}
-                  className="flex items-start gap-2 py-1 border-b border-white/[0.03] text-slate-300"
+                  className="flex flex-wrap items-start gap-2 py-1 border-b border-white/[0.03] text-slate-300"
                 >
                   <span className="text-slate-500 text-[10px] shrink-0">{log.timestamp}</span>
                   <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-semibold shrink-0">
                     [{log.agent}]
                   </span>
-                  <span className="text-slate-200">{log.message}</span>
+                  <span className="text-slate-200 break-words">{log.message}</span>
                 </div>
               ))}
               <div ref={consoleEndRef} />
@@ -703,9 +703,9 @@ export default function TLVHolidayFlightBoardPage() {
 
         {/* Flight Board Results Section */}
         {boardData && (
-          <div ref={boardResultsRef} className="space-y-10">
+          <div ref={boardResultsRef} className="space-y-8 sm:space-y-10">
             {/* Top Action Banner with Email Dispatch (Resend Integration) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-gradient-to-r from-cyan-500/10 via-[#0a101f] to-teal-500/10 border border-cyan-500/20 backdrop-blur-xl shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-cyan-500/10 via-[#0a101f] to-teal-500/10 border border-cyan-500/20 backdrop-blur-xl shadow-xl">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <span>🛫</span>
@@ -721,7 +721,7 @@ export default function TLVHolidayFlightBoardPage() {
                   if (!emailInput && user?.email) setEmailInput(user.email);
                   setIsEmailModalOpen(true);
                 }}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/25 hover:scale-105 active:scale-95 transition whitespace-nowrap cursor-pointer"
+                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-300 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/25 hover:scale-105 active:scale-95 transition whitespace-nowrap cursor-pointer"
               >
                 <Mail className="w-4 h-4 text-slate-950" />
                 <span>שלח לוח טיסות למייל שלי (Resend)</span>
@@ -729,10 +729,10 @@ export default function TLVHolidayFlightBoardPage() {
             </div>
 
             {/* Top Picks Hero Cards (3-column) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
               {/* 1. Best Value */}
               {boardData.top_picks.best_value && (
-                <div className="p-6 rounded-3xl bg-gradient-to-b from-cyan-500/15 to-transparent border border-cyan-400/30 backdrop-blur-xl relative overflow-hidden">
+                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-cyan-500/15 to-transparent border border-cyan-400/30 backdrop-blur-xl relative overflow-hidden">
                   <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-cyan-400 text-black text-[10px] font-black uppercase tracking-wider">
                     Best Value
                   </div>
@@ -769,7 +769,7 @@ export default function TLVHolidayFlightBoardPage() {
 
               {/* 2. Best for Families with Bags */}
               {boardData.top_picks.best_for_families && (
-                <div className="p-6 rounded-3xl bg-gradient-to-b from-teal-500/15 to-transparent border border-teal-400/30 backdrop-blur-xl relative overflow-hidden">
+                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-teal-500/15 to-transparent border border-teal-400/30 backdrop-blur-xl relative overflow-hidden">
                   <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-teal-400 text-black text-[10px] font-black uppercase tracking-wider">
                     Family Choice
                   </div>
@@ -810,7 +810,7 @@ export default function TLVHolidayFlightBoardPage() {
 
               {/* 3. Cheapest Nonstop */}
               {boardData.top_picks.cheapest_nonstop && (
-                <div className="p-6 rounded-3xl bg-gradient-to-b from-blue-500/15 to-transparent border border-blue-400/30 backdrop-blur-xl relative overflow-hidden">
+                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-blue-500/15 to-transparent border border-blue-400/30 backdrop-blur-xl relative overflow-hidden">
                   <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-blue-400 text-black text-[10px] font-black uppercase tracking-wider">
                     Nonstop
                   </div>
@@ -848,9 +848,9 @@ export default function TLVHolidayFlightBoardPage() {
 
             {/* Shabbat & Jewish Holiday Conflict Warning (Step 2 of Skill) */}
             {boardData.shabbat_audit.has_shabbat_or_holiday_conflict && (
-              <div className="p-6 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-200 backdrop-blur-xl">
+              <div className="p-4 sm:p-6 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-200 backdrop-blur-xl">
                 <div className="flex items-center gap-2 mb-3 font-bold text-sm text-amber-300">
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
                   <span>אזהרת מגבלת שבת / חג (אי-טיסה של אל על וישראייר)</span>
                 </div>
                 <div className="space-y-2 text-xs leading-relaxed text-amber-100">
@@ -879,10 +879,10 @@ export default function TLVHolidayFlightBoardPage() {
             {/* Departure Board Table (Step 6 of Skill) */}
             <div className="rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-2xl overflow-hidden shadow-2xl">
               {/* Header & Tabs */}
-              <div className="p-6 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4 sm:p-6 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Plane className="w-5 h-5 text-cyan-400" />
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <Plane className="w-5 h-5 text-cyan-400 shrink-0" />
                     <span>לוח המראות מדורג לחג: {boardData.holiday.name_he}</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-1">
@@ -891,7 +891,7 @@ export default function TLVHolidayFlightBoardPage() {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex flex-wrap gap-1.5">
+                <div className="snap-strip no-scrollbar sm:flex sm:flex-wrap sm:overflow-visible gap-1.5">
                   {[
                     { key: "all", label: "כל הטיסות" },
                     { key: "israeli", label: "חברות ישראליות" },
@@ -903,7 +903,7 @@ export default function TLVHolidayFlightBoardPage() {
                       key={tab.key}
                       type="button"
                       onClick={() => setFilterAirline(tab.key)}
-                      className={`text-xs px-3 py-1.5 rounded-lg border transition ${
+                      className={`shrink-0 whitespace-nowrap text-xs px-3 py-2 rounded-lg border transition ${
                         filterAirline === tab.key
                           ? "bg-cyan-500/20 border-cyan-400/40 text-cyan-300 font-bold"
                           : "bg-white/[0.02] hover:bg-white/[0.06] border-white/5 text-slate-400"
@@ -922,11 +922,11 @@ export default function TLVHolidayFlightBoardPage() {
                   return (
                     <div
                       key={`${flight.flight_number}_${flight.rank}`}
-                      className="p-5 sm:p-6 hover:bg-white/[0.02] transition"
+                      className="p-4 sm:p-6 hover:bg-white/[0.02] transition"
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         {/* Rank & Airline Info */}
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-3 sm:gap-4">
                           <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 font-black text-sm flex items-center justify-center shrink-0">
                             #{flight.rank}
                           </div>
@@ -948,7 +948,7 @@ export default function TLVHolidayFlightBoardPage() {
                             <p className="text-xs text-slate-400 mt-1">
                               {flight.route} • {flight.tier_name} • משך טיסה: {flight.duration}
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-slate-400 mt-2">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2">
                               <span>🛫 המראה: {flight.depart_date} ב-{flight.depart_time}</span>
                               <span>🛬 חזרה: {flight.return_date} ב-{flight.return_time}</span>
                             </div>
@@ -956,8 +956,8 @@ export default function TLVHolidayFlightBoardPage() {
                         </div>
 
                         {/* Cost & Booking Buttons */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6 self-end lg:self-center">
-                          <div className="text-left sm:text-right">
+                        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-3 sm:gap-4 lg:gap-6 self-stretch lg:self-center pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5">
+                          <div className="text-right sm:text-left lg:text-right">
                             <div className="text-xs text-slate-400">עלות אמיתית לאדם:</div>
                             <div className="text-xl font-black text-cyan-300">
                               ₪{flight.true_total_nis.toLocaleString()}
@@ -971,7 +971,7 @@ export default function TLVHolidayFlightBoardPage() {
                             <button
                               type="button"
                               onClick={() => setExpandedDetailsId(isExpanded ? null : `${flight.flight_number}_${flight.rank}`)}
-                              className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 transition flex items-center gap-1"
+                              className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 transition flex items-center gap-1"
                             >
                               <span>פירוט כבודה</span>
                               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -981,7 +981,7 @@ export default function TLVHolidayFlightBoardPage() {
                               href={flight.booking_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs tracking-wide transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/10 cursor-pointer"
+                              className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs tracking-wide transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/10 cursor-pointer"
                             >
                               <span>הזמן עכשיו</span>
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -1021,7 +1021,7 @@ export default function TLVHolidayFlightBoardPage() {
             </div>
 
             {/* Direct Multi-Platform Deep Links Box (Step 3 of Skill) */}
-            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl">
+            <div className="p-4 sm:p-6 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                 <ExternalLink className="w-4 h-4 text-cyan-400" />
                 <span>קישורי חיפוש ישירים מוכנים להשוואת מחירים (Step 3):</span>
@@ -1061,7 +1061,7 @@ export default function TLVHolidayFlightBoardPage() {
             </div>
 
             {/* Official Ben Gurion Warnings & Guidelines (Step 7 of Skill) */}
-            <div className="p-6 rounded-3xl bg-[#0a0f19] border border-white/10 text-xs space-y-3">
+            <div className="p-4 sm:p-6 rounded-3xl bg-[#0a0f19] border border-white/10 text-xs space-y-3">
               <h3 className="font-bold text-white text-sm flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-cyan-400" />
                 <span>הנחיות התייצבות בנתב״ג והתראות חגים רשמיות:</span>
@@ -1084,8 +1084,8 @@ export default function TLVHolidayFlightBoardPage() {
 
         {/* Send Flight Board Modal (Resend Integration) */}
         {isEmailModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
-            <div className="w-full max-w-md p-6 sm:p-7 rounded-3xl bg-[#080d1a] border border-cyan-500/30 shadow-2xl relative text-right">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
+            <div className="w-full max-w-md p-5 sm:p-7 rounded-3xl bg-[#080d1a] border border-cyan-500/30 shadow-2xl relative text-right max-h-[90dvh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">

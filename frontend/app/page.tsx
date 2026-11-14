@@ -726,7 +726,7 @@ export default function Home() {
             <span className="text-white/20 shrink-0">|</span>
             <span className="text-amber-400 flex items-center gap-1 shrink-0">
               <Zap className="w-3 h-3" />
-              <span>13 סוכני AI פעילים כעת במקביל</span>
+              <span>15 סוכני AI פעילים כעת במקביל</span>
             </span>
           </div>
         </div>
@@ -735,7 +735,7 @@ export default function Home() {
       {/* ========================================================
           HERO WRAPPER WITH FULL BLEED LUXURY BACKGROUND IMAGE
       ======================================================== */}
-      <div className="relative min-h-[920px] lg:min-h-[1020px] w-full overflow-hidden flex flex-col justify-between">
+      <div className="relative min-h-[100dvh] lg:min-h-[980px] w-full overflow-hidden flex flex-col justify-between">
         {/* Background Image with Vignette & Specular Gradient */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -747,66 +747,68 @@ export default function Home() {
             className="object-cover object-center scale-105 transition-transform duration-1000 ease-out"
           />
           {/* Multi-layer Cinematic Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/60 to-black/70" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/90 via-[#050811]/40 to-[#050811]/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-[#050811]/65 to-black/75" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050811]/90 via-[#050811]/45 to-[#050811]/85" />
         </div>
 
         {/* HERO MAIN CONTENT - Full Width Panoramic Architecture */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-8 pb-12 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-3.5 sm:px-8 lg:px-12 pt-5 sm:pt-8 pb-8 sm:pb-12 w-full">
           {/* Top Hero Section: Headline, Live Badges & Quick Inspiration */}
-          <div className="max-w-4xl mx-auto text-center space-y-4 mb-8">
+          <div className="max-w-4xl mx-auto text-center space-y-3.5 sm:space-y-4 mb-6 sm:mb-8">
             {/* Top Luxury Eyebrow */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-xs font-bold tracking-wide shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse" />
-              <span>פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-[11px] sm:text-xs font-bold tracking-wide shadow-lg max-w-full">
+              <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse shrink-0" />
+              <span className="truncate">פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping shrink-0" />
             </div>
 
             {/* Massive Editorial Headline */}
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.15]">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.16]">
               מסעות שנבנים במיוחד עבורך <br className="hidden sm:inline" />
               <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
-                ע״י 13 סוכני AI אוטונומיים
+                ע״י 15 סוכני AI אוטונומיים
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            <p className="text-slate-300 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed px-1">
               מערכת תזמור מתקדמת הסורקת טיסות חיות מנתב״ג, מאתרת מלונות בוטיק יוקרתיים, מחשבת החזרי Tax-Free ושופינג, מנגישה כשרות וסעודות שבת, ומסנכרנת את תיק המסע המלא ישירות ל-Google Calendar.
             </p>
 
             {/* Quick Inspiration Pills & Action Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsVideoModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-xs font-semibold transition group shadow-md"
-              >
-                <div className="w-5 h-5 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
-                  <Play className="w-3 h-3 fill-current ml-0.5" />
-                </div>
-                <span>צפה בהדגמת וידאו</span>
-              </button>
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-1">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsVideoModalOpen(true)}
+                  className="min-h-[40px] flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white text-xs font-semibold transition group shadow-md"
+                >
+                  <div className="w-5 h-5 rounded-full bg-mint-500/20 border border-mint-400/40 flex items-center justify-center text-mint-300 shadow-inner group-hover:scale-110 transition-transform">
+                    <Play className="w-3 h-3 fill-current ml-0.5" />
+                  </div>
+                  <span>צפה בהדגמת וידאו</span>
+                </button>
 
-              <a
-                href="/flights"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-xs font-bold transition group shadow-md"
-              >
-                <Plane className="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
-                <span>לוח טיסות חגים מנתב"ג ✈️</span>
-              </a>
+                <a
+                  href="/flights"
+                  className="min-h-[40px] flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 backdrop-blur-md border border-cyan-400/30 text-cyan-300 hover:text-white text-xs font-bold transition group shadow-md"
+                >
+                  <Plane className="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-y-0.5 transition-transform" />
+                  <span>לוח טיסות חגים מנתב&quot;ג ✈️</span>
+                </a>
+              </div>
 
-              {/* Quick Inspiration Pills */}
-              <div className="hidden lg:flex items-center gap-1.5 mr-2">
-                <span className="text-[11px] font-bold text-slate-400 ml-1">
+              {/* Quick Inspiration Pills - visible on mobile as swipe strip too! */}
+              <div className="snap-strip no-scrollbar items-center gap-1.5 w-full lg:w-auto justify-start sm:justify-center pt-1 lg:pt-0 lg:mr-2">
+                <span className="text-[11px] font-bold text-slate-400 ml-1 shrink-0">
                   השראה מהירה:
                 </span>
-                {QUICK_INSPIRATIONS.slice(0, 3).map((chip, idx) => (
+                {QUICK_INSPIRATIONS.slice(0, 4).map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSelectQuickInspiration(chip.destination, chip.duration)}
-                    className="px-3 py-1 rounded-full bg-white/[0.07] hover:bg-mint-500/20 hover:border-mint-400/50 border border-white/15 text-[11px] text-slate-200 hover:text-mint-300 transition-all duration-200 flex items-center gap-1 group shadow-sm hover:scale-[1.02]"
+                    className="px-3 py-1.5 rounded-full bg-white/[0.08] hover:bg-mint-500/20 hover:border-mint-400/50 border border-white/15 text-[11px] text-slate-200 hover:text-mint-300 transition-all duration-200 flex items-center gap-1 group shadow-sm shrink-0"
                   >
                     <span>{chip.label}</span>
                     <ArrowLeft className="w-2.5 h-2.5 text-slate-400 group-hover:text-mint-400 group-hover:-translate-x-0.5 transition-transform" />
@@ -819,7 +821,7 @@ export default function Home() {
           {/* Full Width Trip Planning Glass Console (Spanning the entire width of the site) */}
           <div className="w-full max-w-7xl mx-auto" id="planner-form" ref={formRef}>
             <div className="relative">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-mint-500/25 via-cyan-500/20 to-purple-500/25 rounded-[32px] blur-2xl opacity-75 pointer-events-none" />
+              <div className="absolute -inset-1 sm:-inset-1.5 bg-gradient-to-r from-mint-500/25 via-cyan-500/20 to-purple-500/25 rounded-[32px] blur-2xl opacity-75 pointer-events-none" />
               <div className="relative">
                 <TripForm
                   onSubmit={handleTripSubmit}
@@ -832,48 +834,48 @@ export default function Home() {
         </div>
 
         {/* Social Proof & Guarantees Strip */}
-        <div className="relative z-10 w-full px-5 sm:px-10 lg:px-16 pb-8 pt-4">
+        <div className="relative z-10 w-full px-3.5 sm:px-10 lg:px-16 pb-8 pt-2 sm:pt-4">
           <div className="max-w-7xl mx-auto space-y-4">
             {/* Guarantees Grid */}
-            <div className="wanderlust-glass rounded-2xl p-4 sm:p-5 border border-white/15 shadow-2xl">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-right">
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-mint-500/15 text-mint-400 border border-mint-500/20">
-                    <ShieldCheck className="w-5 h-5" />
+            <div className="wanderlust-glass rounded-2xl p-3.5 sm:p-5 border border-white/15 shadow-2xl">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 text-right">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-mint-500/15 text-mint-400 border border-mint-500/20 shrink-0">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
                     <div className="font-bold text-xs text-white">הבטחת מחיר מלאה</div>
-                    <div className="text-[10px] text-slate-400">כולל כבודה מראש וללא עמלות</div>
+                    <div className="text-[10px] text-slate-400 leading-snug">כולל כבודה מראש וללא עמלות</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
-                    <Headphones className="w-5 h-5" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 shrink-0">
+                    <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
                     <div className="font-bold text-xs text-white">מענה ועדכונים 24/7</div>
-                    <div className="text-[10px] text-slate-400">סוכני AI זמינים לכל שינוי</div>
+                    <div className="text-[10px] text-slate-400 leading-snug">סוכני AI זמינים לכל שינוי</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/20">
-                    <CalendarCheck className="w-5 h-5" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/20 shrink-0">
+                    <CalendarCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
                     <div className="font-bold text-xs text-white">סנכרון Google Workspace</div>
-                    <div className="text-[10px] text-slate-400">יומן Calendar, מייל ומסמכים</div>
+                    <div className="text-[10px] text-slate-400 leading-snug">יומן Calendar, מייל ומסמכים</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                    <Lock className="w-5 h-5" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 shrink-0">
+                    <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div>
                     <div className="font-bold text-xs text-white">סליקה בתקן PCI-DSS</div>
-                    <div className="text-[10px] text-slate-400">פריסה לתשלומים, Apple Pay ו-bit</div>
+                    <div className="text-[10px] text-slate-400 leading-snug">פריסה לתשלומים, Apple Pay ו-bit</div>
                   </div>
                 </div>
               </div>
@@ -882,27 +884,27 @@ export default function Home() {
             {/* Key Metrics Counter Strip */}
             <div className="pt-3 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">500+</div>
-                <div className="text-xs text-slate-400 mt-0.5">יעדים ברחבי תבל</div>
+                <div className="font-serif text-xl sm:text-3xl font-black text-white tracking-tight">500+</div>
+                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5">יעדים ברחבי תבל</div>
               </div>
               <div>
-                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">12,450+</div>
-                <div className="text-xs text-slate-400 mt-0.5">מסלולי טיול שנבנו</div>
+                <div className="font-serif text-xl sm:text-3xl font-black text-white tracking-tight">12,450+</div>
+                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5">מסלולי טיול שנבנו</div>
               </div>
               <div>
-                <div className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">7 מומחים</div>
-                <div className="text-xs text-slate-400 mt-0.5">סוכני AI אוטונומיים בסנכרון</div>
+                <div className="font-serif text-xl sm:text-3xl font-black text-white tracking-tight">15 מומחים</div>
+                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5">סוכני AI אוטונומיים בסנכרון</div>
               </div>
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-serif text-2xl sm:text-3xl font-black text-white tracking-tight">4.96</span>
+                  <span className="font-serif text-xl sm:text-3xl font-black text-white tracking-tight">4.96</span>
                   <div className="flex text-amber-400">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                      <Star key={i} className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400" />
                     ))}
                   </div>
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">דירוג שביעות רצון ממוצע</div>
+                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5">דירוג שביעות רצון ממוצע</div>
               </div>
             </div>
           </div>
@@ -913,12 +915,12 @@ export default function Home() {
           MULTI-AGENT EXECUTION & TELEMETRY STREAM SECTION (If Active)
       ======================================================== */}
       {(isStreaming || logs.length > 0 || markdownPlan) && (
-        <section ref={agentSectionRef} className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-14 space-y-10 relative z-20">
+        <section ref={agentSectionRef} className="max-w-7xl mx-auto px-3.5 sm:px-10 lg:px-16 py-10 sm:py-14 space-y-8 sm:space-y-10 relative z-20">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs px-3 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-500/30 font-bold uppercase tracking-wider">
               חדר המבצעים האוטונומי
             </span>
-            <h2 className="text-3xl font-serif font-bold text-white">
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
               תהליך התכנון והסינתזה של 15 סוכני ה-AI האוטונומיים
             </h2>
             <p className="text-xs text-slate-400">
@@ -963,14 +965,14 @@ export default function Home() {
       {/* ========================================================
           EXPLORE DESTINATIONS SECTION (MotionSites "Scenic Travel" & "Travel Explorer" Style)
       ======================================================== */}
-      <section id="destinations" className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-8 relative z-10">
+      <section id="destinations" className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 py-12 sm:py-16 space-y-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
           <div className="space-y-2 text-right">
             <div className="flex items-center gap-2 text-xs font-bold text-mint-400 uppercase tracking-wider">
               <Compass className="w-3.5 h-3.5" />
               <span>אוסף מסעות עולמי</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
               יעדים מובילים ומסלולים מבוקשים
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 max-w-xl">
@@ -979,7 +981,7 @@ export default function Home() {
           </div>
 
           {/* Category Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="snap-strip no-scrollbar items-center gap-2 pb-1">
             {[
               { id: "all", label: "כל היעדים" },
               { id: "islands", label: "🏝️ איים ונופש" },
@@ -991,7 +993,7 @@ export default function Home() {
                 key={tab.id}
                 type="button"
                 onClick={() => setSelectedCategory(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all min-h-[40px] ${
                   selectedCategory === tab.id
                     ? "bg-mint-500/25 text-mint-300 border border-mint-400 shadow-md shadow-mint-500/10"
                     : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-white"
@@ -1004,7 +1006,7 @@ export default function Home() {
         </div>
 
         {/* 6 Destination Cards Grid with Liquid Glass treatment */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {filteredDestinations.map((dest) => (
             <div
               key={dest.id}
@@ -1012,7 +1014,7 @@ export default function Home() {
               className="group wanderlust-glass-card rounded-3xl overflow-hidden border border-white/15 hover:border-mint-400/60 shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer flex flex-col justify-between"
             >
               {/* Image Container */}
-              <div className="relative h-60 w-full overflow-hidden">
+              <div className="relative h-52 sm:h-60 w-full overflow-hidden">
                 <Image
                   src={dest.image}
                   alt={dest.name}
@@ -1024,7 +1026,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a101b] via-[#0a101b]/30 to-transparent" />
 
                 {/* Top Badges */}
-                <div className="absolute top-3.5 right-3.5 left-3.5 flex items-center justify-between">
+                <div className="absolute top-3.5 right-3.5 left-3.5 flex items-center justify-between gap-2">
                   <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white flex items-center gap-1.5 shadow-md">
                     <Sparkles className="w-3 h-3 text-mint-400" />
                     <span>{dest.moments} רגעי מפתח</span>
@@ -1038,25 +1040,25 @@ export default function Home() {
                 </div>
 
                 {/* Bottom of Image: Flight time from TLV */}
-                <div className="absolute bottom-3 right-3.5 left-3.5 flex items-center justify-between text-[11px] text-slate-300">
-                  <span className="bg-black/60 px-2.5 py-0.5 rounded-md backdrop-blur-sm border border-white/10 flex items-center gap-1 font-mono">
-                    <Plane className="w-3 h-3 text-cyan-400" />
-                    <span>מנתב״ג: {dest.flightHoursFromTlv}</span>
+                <div className="absolute bottom-3 right-3.5 left-3.5 flex items-center justify-between gap-2 text-[11px] text-slate-300">
+                  <span className="bg-black/60 px-2.5 py-0.5 rounded-md backdrop-blur-sm border border-white/10 flex items-center gap-1 font-mono truncate">
+                    <Plane className="w-3 h-3 text-cyan-400 shrink-0" />
+                    <span className="truncate">מנתב״ג: {dest.flightHoursFromTlv}</span>
                   </span>
-                  <span className="bg-mint-500/20 text-mint-300 font-bold px-2 py-0.5 rounded-md border border-mint-500/30 text-[10px]">
+                  <span className="bg-mint-500/20 text-mint-300 font-bold px-2 py-0.5 rounded-md border border-mint-500/30 text-[10px] shrink-0">
                     {dest.durationDays} ימים מומלצים
                   </span>
                 </div>
               </div>
 
               {/* Card Body */}
-              <div className="p-5 space-y-3.5 text-right flex-1 flex flex-col justify-between">
+              <div className="p-4 sm:p-5 space-y-3.5 text-right flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline justify-between gap-2">
                     <h3 className="text-xl font-bold text-white font-serif group-hover:text-mint-300 transition-colors">
                       {dest.name}
                     </h3>
-                    <span className="text-xs text-slate-400">{dest.country}</span>
+                    <span className="text-xs text-slate-400 shrink-0">{dest.country}</span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed mt-1.5">
                     {dest.tagline}
@@ -1084,23 +1086,23 @@ export default function Home() {
       </section>
 
       {/* ========================================================
-          MULTI-AGENT ORCHESTRATION COCKPIT (How the 7 AI Agents Work)
+          MULTI-AGENT ORCHESTRATION COCKPIT (How the AI Agents Work)
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-10 relative z-10">
+      <section className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 py-12 sm:py-16 space-y-8 sm:space-y-10 relative z-10">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
             <Cpu className="w-3.5 h-3.5" />
             <span>הארכיטקטורה הרב-סוכנית</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">
-            צוות של 7 סוכני בינה מלאכותית אוטונומיים
+          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white">
+            מערך של 15 סוכני בינה מלאכותית אוטונומיים
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            במקום מודל גנרי בודד, Wanderlust מפעילה 7 סוכנים מומחים הפועלים בסינרגיה מתמדת ומונעים טעויות בתכנון, בטיסות ובתקציב.
+            במקום מודל גנרי בודד, Wanderlust מפעילה צוות סוכנים מומחים עם מנוע RAG ו-Reasoning הפועלים בסינרגיה מתמדת ומונעים טעויות בתכנון, בטיסות ובתקציב.
           </p>
         </div>
 
-        {/* 7 Agents Cards Grid */}
+        {/* Agents Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {AGENTS_TEAM.map((agent, idx) => {
             const Icon = agent.icon;
@@ -1110,7 +1112,7 @@ export default function Home() {
                 onMouseEnter={() => setActiveAgentCard(idx)}
                 className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between text-right space-y-3 ${
                   activeAgentCard === idx
-                    ? "wanderlust-glass border-mint-400/60 shadow-xl shadow-mint-500/10 scale-[1.02]"
+                    ? "wanderlust-glass border-mint-400/60 shadow-xl shadow-mint-500/10 sm:scale-[1.02]"
                     : "bg-white/[0.03] border-white/10 hover:border-white/20"
                 }`}
               >
@@ -1176,24 +1178,24 @@ export default function Home() {
       {/* ========================================================
           TLV HOLIDAY FLIGHT BOARD SPOTLIGHT BANNER
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-8 relative z-10">
-        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#0a121e]/80 to-teal-950/40 border border-cyan-500/30 backdrop-blur-2xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 py-6 sm:py-8 relative z-10">
+        <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#0a121e]/80 to-teal-950/40 border border-cyan-500/30 backdrop-blur-2xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>בלעדי: סוכן טיסות חגים מנתב"ג</span>
+              <span>בלעדי: סוכן טיסות חגים מנתב&quot;ג</span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h3 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
               מתכננים חופשה בפסח, שבועות, קיץ או סוכות?
             </h3>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              סוכן נתב"ג החכם משווה את כל הטיסות מכל חברות התעופה הישראליות והזרות, בודק מועדי כניסת שבת וחג שבהם אל על וישראייר אינן טסות, מנרמל את עלויות הכבודה המלאות ובונה לוח המראות חי.
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              סוכן נתב&quot;ג החכם משווה את כל הטיסות מכל חברות התעופה הישראליות והזרות, בודק מועדי כניסת שבת וחג שבהם אל על וישראייר אינן טסות, מנרמל את עלויות הכבודה המלאות ובונה לוח המראות חי.
             </p>
           </div>
 
           <a
             href="/flights"
-            className="shrink-0 px-7 py-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-3 cursor-pointer"
+            className="w-full md:w-auto shrink-0 px-6 sm:px-7 py-3.5 sm:py-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-sm tracking-wide shadow-lg shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-3 cursor-pointer"
           >
             <Plane className="w-4 h-4" />
             <span>פתח את לוח המראות החגים ✈️</span>
@@ -1204,7 +1206,7 @@ export default function Home() {
       {/* ========================================================
           TRAVELER REVIEWS & SOCIAL PROOF
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 py-16 space-y-10 relative z-10">
+      <section className="max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 py-12 sm:py-16 space-y-8 sm:space-y-10 relative z-10">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-mint-500/10 border border-mint-400/20 text-mint-300 text-xs font-bold">
             <Users className="w-3.5 h-3.5" />

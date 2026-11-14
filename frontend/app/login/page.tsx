@@ -348,7 +348,7 @@ function LoginForm() {
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-8 selection:bg-teal-400 selection:text-slate-900 overflow-hidden font-sans"
+      className="min-h-[100dvh] relative flex flex-col items-center justify-center p-3 sm:p-6 md:p-8 selection:bg-teal-400 selection:text-slate-900 overflow-x-hidden overflow-y-auto font-sans"
       dir="rtl"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDropVideo}
@@ -357,7 +357,7 @@ function LoginForm() {
       {/* AMBIENT BACKGROUND & AURORA GLOWS                                      */}
       {/* ====================================================================== */}
       <div
-        className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/demo_preview.jpg')" }}
       >
         <video
@@ -373,18 +373,18 @@ function LoginForm() {
         >
           <source src={customVideoUrl || "/videos/demo.mp4"} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#060a10]/80 via-[#070c14]/40 to-[#070c14]/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#060a10]/85 via-[#070c14]/45 to-[#070c14]/65 pointer-events-none" />
       </div>
 
       {/* Luminous Atmospheric Glows */}
-      <div className="absolute w-[680px] h-[680px] rounded-full bg-gradient-to-tr from-teal-500/20 via-cyan-400/15 to-transparent blur-[140px] pointer-events-none -top-36 -right-20 z-0 mix-blend-screen" />
-      <div className="absolute w-[620px] h-[620px] rounded-full bg-gradient-to-bl from-indigo-500/20 via-emerald-500/15 to-transparent blur-[130px] pointer-events-none -bottom-36 -left-20 z-0 mix-blend-screen" />
+      <div className="fixed w-[680px] h-[680px] rounded-full bg-gradient-to-tr from-teal-500/20 via-cyan-400/15 to-transparent blur-[140px] pointer-events-none -top-36 -right-20 z-0 mix-blend-screen" />
+      <div className="fixed w-[620px] h-[620px] rounded-full bg-gradient-to-bl from-indigo-500/20 via-emerald-500/15 to-transparent blur-[130px] pointer-events-none -bottom-36 -left-20 z-0 mix-blend-screen" />
 
-      {/* Top Floating Navigation: Back to Home */}
-      <div className="absolute top-5 right-5 sm:top-7 sm:right-8 z-20">
+      {/* Top Navigation: Back to Home (flow positioned so zero overlap on small viewports) */}
+      <div className="w-full max-w-[1060px] flex justify-start mb-3 sm:mb-4 relative z-20">
         <a
           href="/"
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-slate-200 hover:text-white border border-white/15 backdrop-blur-md transition shadow-lg text-xs font-medium group"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/50 hover:bg-black/70 text-slate-200 hover:text-white border border-white/15 backdrop-blur-md transition shadow-lg text-xs font-medium group"
         >
           <Home className="w-3.5 h-3.5 text-mint-400 group-hover:scale-110 transition-transform" />
           <span>חזרה לדף הבית</span>
@@ -394,12 +394,12 @@ function LoginForm() {
       {/* ====================================================================== */}
       {/* CENTER MASTER CARD (SPLIT-SCREEN LUXURY LIQUID GLASS)                  */}
       {/* ====================================================================== */}
-      <div className="w-full max-w-[1060px] bg-white rounded-[2.5rem] shadow-[0_35px_100px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col md:flex-row relative z-10 border border-white/30 backdrop-blur-xl">
+      <div className="w-full max-w-[1060px] bg-white rounded-3xl sm:rounded-[2.5rem] shadow-[0_35px_100px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col md:flex-row relative z-10 border border-white/30 backdrop-blur-xl">
         
         {/* ====================================================================== */}
         {/* RIGHT COLUMN IN RTL (AUTHENTICATION FORM)                              */}
         {/* ====================================================================== */}
-        <div className="w-full md:w-[48%] lg:w-[46%] p-8 sm:p-11 flex flex-col justify-between bg-white text-slate-900 text-right">
+        <div className="w-full md:w-[48%] lg:w-[46%] p-5 sm:p-11 flex flex-col justify-between bg-white text-slate-900 text-right">
           
           <div>
             {/* Original Brand Header: Wanderlust Voyage AI */}
@@ -631,7 +631,7 @@ function LoginForm() {
               )}
 
               {/* Options Row (Remember Me & Forgot Password / Terms) */}
-              <div className="flex items-center justify-between text-xs text-slate-600 pt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 pt-1">
                 {activeTab === "login" ? (
                   <>
                     <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -639,7 +639,7 @@ function LoginForm() {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-3.5 h-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 accent-teal-600"
+                        className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 accent-teal-600"
                       />
                       <span>זכור אותי במכשיר זה</span>
                     </label>
@@ -658,7 +658,7 @@ function LoginForm() {
                       type="checkbox"
                       checked={termsAccepted}
                       onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 accent-teal-600"
+                      className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 accent-teal-600"
                     />
                     <span className="text-[11px]">
                       קראתי ואני מאשר/ת את תנאי השימוש ומדיניות הפרטיות
@@ -694,7 +694,7 @@ function LoginForm() {
           </div>
 
           {/* Clean Security Badge Footer */}
-          <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] text-slate-400 select-none">
+          <div className="mt-6 sm:mt-8 pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] text-slate-400 select-none">
             <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
             <span>התחברות מאובטחת תחת תקן SSL & TLS 256-bit</span>
           </div>
@@ -705,7 +705,7 @@ function LoginForm() {
         {/* ====================================================================== */}
         <div className="w-full md:w-[52%] lg:w-[54%] p-3 sm:p-4 bg-white relative">
           <div
-            className="relative rounded-[2rem] overflow-hidden min-h-[580px] h-full flex flex-col justify-between p-6 sm:p-8 select-none transition-all duration-700 bg-slate-900 shadow-inner"
+            className="relative rounded-3xl sm:rounded-[2rem] overflow-hidden min-h-[300px] sm:min-h-[420px] md:min-h-[580px] h-full flex flex-col justify-between p-5 sm:p-8 select-none transition-all duration-700 bg-slate-900 shadow-inner"
             style={{
               backgroundImage: `url(${currentSlide.imageUrl})`,
               backgroundSize: "cover",
@@ -723,7 +723,7 @@ function LoginForm() {
 
             {/* Top Floating Badge Card */}
             <div className="relative z-10 self-start max-w-[240px]">
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/40 text-right relative animate-fade-in">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-xl border border-white/40 text-right relative animate-fade-in">
                 <div className="absolute top-3.5 left-3.5 w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center text-white shadow-sm">
                   <Heart className="w-3.5 h-3.5 fill-current" />
                 </div>
@@ -743,13 +743,13 @@ function LoginForm() {
             </div>
 
             {/* Bottom Content & Navigation */}
-            <div className="relative z-10 mt-auto pt-12 text-right">
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight drop-shadow-md max-w-sm mb-3">
+            <div className="relative z-10 mt-auto pt-8 sm:pt-12 text-right">
+              <h2 className="font-serif text-xl sm:text-3xl font-bold text-white leading-tight drop-shadow-md max-w-sm mb-2.5 sm:mb-3">
                 {currentSlide.title}
               </h2>
 
-              <div className="flex items-center gap-2 mb-6">
-                <span className="inline-block px-3.5 py-1 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 text-white text-xs font-medium transition">
+              <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6">
+                <span className="inline-block px-3 sm:px-3.5 py-1 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/35 text-white text-xs font-medium transition">
                   {currentSlide.subtitle}
                 </span>
                 <span className="text-white/60 text-xs">•</span>
@@ -778,7 +778,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={handleNextSlide}
-                    className="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-100 transition shadow-md group cursor-pointer"
+                    className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-100 transition shadow-md group cursor-pointer"
                     aria-label="יעד הבא"
                     title="היעד הבא"
                   >
@@ -787,7 +787,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={handlePrevSlide}
-                    className="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-100 transition shadow-md group cursor-pointer"
+                    className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-100 transition shadow-md group cursor-pointer"
                     aria-label="יעד קודם"
                     title="היעד הקודם"
                   >
@@ -804,7 +804,7 @@ function LoginForm() {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-white/20 text-right">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-white/20 text-right max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h4 className="font-bold text-slate-900 text-base">איפוס סיסמה</h4>
               <button
@@ -825,7 +825,7 @@ function LoginForm() {
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-right"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-right"
                 dir="ltr"
               />
               <div className="flex items-center gap-2 pt-2">
@@ -852,7 +852,7 @@ function LoginForm() {
       {/* Set New Password Modal (from Resend Email Token) */}
       {resetToken && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-white/20 text-right">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-white/20 text-right max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-teal-500/15 text-teal-600 flex items-center justify-center">
@@ -882,7 +882,7 @@ function LoginForm() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                   dir="ltr"
                 />
               </div>
@@ -895,7 +895,7 @@ function LoginForm() {
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-base sm:text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                   dir="ltr"
                 />
               </div>
@@ -922,7 +922,7 @@ function LoginForm() {
       )}
 
       {/* Subtle Bottom Ambient Watermark */}
-      <div className="absolute bottom-3 text-center text-[10px] text-slate-400/70 flex items-center gap-2 select-none">
+      <div className="mt-4 sm:mt-5 relative z-10 text-center text-[10px] text-slate-400/80 flex flex-wrap items-center justify-center gap-2 select-none px-4">
         <span className="flex items-center gap-1">
           <Compass className="w-3 h-3 text-teal-400/80" />
           <span>מונע בטכנולוגיית Google Flow & Multi-Agent AI</span>

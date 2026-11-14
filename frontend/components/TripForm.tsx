@@ -204,82 +204,82 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
   };
 
   return (
-    <div className="wanderlust-glass rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 shadow-2xl relative border border-white/15 text-right font-sans w-full">
+    <div className="wanderlust-glass rounded-3xl sm:rounded-[32px] p-4 sm:p-7 lg:p-8 shadow-2xl relative border border-white/15 text-right font-sans w-full">
       {/* Header & Tabs Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5 pb-4 border-b border-white/10">
         <div>
-          <div className="flex items-center gap-3">
-            <h3 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h3 className="text-lg sm:text-2xl font-serif font-bold text-white tracking-tight">
               לאן היעד הבא שלך?
             </h3>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-500/15 border border-mint-400/30 text-mint-300 text-xs font-semibold shrink-0 shadow-sm">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-500/15 border border-mint-400/30 text-mint-300 text-[11px] sm:text-xs font-semibold shrink-0 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-pulse" />
-              <span>13 סוכני AI פעילים</span>
+              <span>15 סוכני AI פעילים</span>
             </div>
           </div>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            תכנון חופשה אוטונומי, השוואת טיסות מנתב"ג, מלונות בוטיק, ניווט, כשרות, שופינג ללא מע"מ וסנכרון יומן
+          <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+            תכנון חופשה אוטונומי, השוואת טיסות מנתב&quot;ג, מלונות בוטיק, ניווט, כשרות, שופינג ללא מע&quot;מ וסנכרון יומן
           </p>
         </div>
 
         {/* Tabs Row (Mode selector) */}
-        <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 text-xs font-semibold shrink-0">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2 bg-black/45 p-1.5 rounded-2xl border border-white/10 text-[11px] sm:text-xs font-semibold shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab("all_in_one")}
-            className={`py-2 px-3.5 rounded-xl flex items-center justify-center gap-1.5 transition ${
+            className={`min-h-[40px] py-2 px-2 sm:px-3.5 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition text-center ${
               activeTab === "all_in_one"
                 ? "bg-mint-400 text-slate-950 shadow-md font-bold"
                 : "text-slate-300 hover:text-white"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>חבילה מלאה (All-in-One)</span>
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">חבילה מלאה</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("flights")}
-            className={`py-2 px-3.5 rounded-xl flex items-center justify-center gap-1.5 transition ${
+            className={`min-h-[40px] py-2 px-2 sm:px-3.5 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition text-center ${
               activeTab === "flights"
                 ? "bg-mint-400 text-slate-950 shadow-md font-bold"
                 : "text-slate-300 hover:text-white"
             }`}
           >
-            <Plane className="w-3.5 h-3.5" />
-            <span>טיסות ונתב"ג</span>
+            <Plane className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">טיסות ונתב&quot;ג</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("hotels")}
-            className={`py-2 px-3.5 rounded-xl flex items-center justify-center gap-1.5 transition ${
+            className={`min-h-[40px] py-2 px-2 sm:px-3.5 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 transition text-center ${
               activeTab === "hotels"
                 ? "bg-mint-400 text-slate-950 shadow-md font-bold"
                 : "text-slate-300 hover:text-white"
             }`}
           >
-            <Hotel className="w-3.5 h-3.5" />
-            <span>מלונות וקולינריה</span>
+            <Hotel className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">מלונות ואוכל</span>
           </button>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Quick Trending Destination Chips Strip */}
-        <div className="flex items-center gap-2 overflow-x-auto py-2 px-3 rounded-2xl bg-white/[0.02] border border-white/5 scrollbar-none text-xs">
-          <span className="text-slate-400 text-xs shrink-0 font-medium ml-1 flex items-center gap-1">
+        <div className="snap-strip no-scrollbar items-center gap-2 py-2 px-2.5 sm:px-3 rounded-2xl bg-white/[0.03] border border-white/10 text-xs">
+          <span className="text-slate-400 text-[11px] sm:text-xs shrink-0 font-medium ml-1 flex items-center gap-1">
             <Compass className="w-3.5 h-3.5 text-mint-400" />
-            יעדים מבוקשים בלחיצה:
+            יעדים מבוקשים:
           </span>
           {POPULAR_DESTINATIONS.map((dest) => (
             <button
               key={dest.name}
               type="button"
               onClick={() => setFormData({ ...formData, destination: dest.name })}
-              className={`px-3 py-1.5 rounded-full shrink-0 transition border flex items-center gap-1.5 font-medium ${
+              className={`px-3 py-1.5 min-h-[34px] rounded-full shrink-0 transition border flex items-center gap-1.5 font-medium ${
                 formData.destination === dest.name
-                  ? "bg-mint-400 text-slate-950 border-mint-400 font-bold shadow-sm scale-105"
+                  ? "bg-mint-400 text-slate-950 border-mint-400 font-bold shadow-sm"
                   : "bg-white/5 hover:bg-white/10 text-slate-200 border-white/10 hover:border-mint-400/30"
               }`}
             >
@@ -289,10 +289,10 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
           ))}
         </div>
 
-        {/* PRIMARY SEARCH ROW 1 (4 Wide Panoramic Cards: Origin, Destination, Dates, Duration) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 relative">
+        {/* PRIMARY SEARCH ROW 1 (4 Panoramic Cards: Origin, Destination, Dates, Duration) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative">
           {/* Card 1: Origin */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
                 <Plane className="w-3.5 h-3.5 text-cyan-400" />
@@ -302,9 +302,10 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                 type="button"
                 onClick={handleSwap}
                 title="החלף מוצא ויעד"
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/15 text-mint-400 hover:rotate-180 transition-all duration-300"
+                aria-label="החלף מוצא ויעד"
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 text-mint-400 hover:rotate-180 transition-all duration-300 flex items-center justify-center"
               >
-                <ArrowRightLeft className="w-3 h-3" />
+                <ArrowRightLeft className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="flex items-center gap-2 mt-2">
@@ -316,23 +317,23 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                 value={formData.origin}
                 onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
                 placeholder="תל אביב (TLV)"
-                className="bg-transparent border-none text-white text-sm font-semibold focus:outline-none w-full placeholder-slate-500"
+                className="bg-transparent border-none text-white text-base sm:text-sm font-semibold focus:outline-none w-full placeholder-slate-500"
               />
             </div>
-            <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/5 text-[10px] text-slate-400">
-              <span>קיצור מהיר:</span>
+            <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/5 text-[11px] text-slate-400">
+              <span>קיצור:</span>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, origin: "תל אביב (TLV)" })}
-                className="hover:text-cyan-300 transition underline font-medium"
+                className="hover:text-cyan-300 transition underline font-medium py-0.5"
               >
-                נתב"ג (TLV)
+                נתב&quot;ג (TLV)
               </button>
               <span>•</span>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, origin: "רמון אילת (ETM)" })}
-                className="hover:text-cyan-300 transition underline font-medium"
+                className="hover:text-cyan-300 transition underline font-medium py-0.5"
               >
                 רמון (ETM)
               </button>
@@ -340,7 +341,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
           </div>
 
           {/* Card 2: Destination */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-mint-400/40 transition flex flex-col justify-between shadow-inner">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-mint-400/40 transition flex flex-col justify-between shadow-inner">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400" />
@@ -357,16 +358,16 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                 value={formData.destination}
                 onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
                 placeholder="באלי, רומא, פריז, טוקיו..."
-                className="bg-transparent border-none text-white text-sm font-semibold focus:outline-none w-full placeholder-slate-500"
+                className="bg-transparent border-none text-white text-base sm:text-sm font-semibold focus:outline-none w-full placeholder-slate-500"
               />
             </div>
-            <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/5 truncate">
+            <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-white/5 truncate">
               {formData.destination ? `יעד נבחר: ${formData.destination}` : "הקלד עיר, אי, חוף או מדינה"}
             </div>
           </div>
 
           {/* Card 3: Departure Date & Return Date */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
             <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-mint-400" />
               תאריך המראה
@@ -377,76 +378,78 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
               disabled={isLoading}
               value={formData.startDate}
               onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              className="bg-transparent border-none text-white text-xs font-semibold focus:outline-none w-full mt-2"
+              className="bg-transparent border-none text-white text-base sm:text-xs font-semibold focus:outline-none w-full mt-2 py-1"
             />
-            <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+            <div className="text-[11px] text-slate-400 mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
               <span>חזרה משוערת:</span>
-              <span className="text-white font-medium">{getReturnDateFormatted()}</span>
+              <span className="text-white font-medium font-mono">{getReturnDateFormatted()}</span>
             </div>
           </div>
 
           {/* Card 4: Duration Stepper */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
-            <div className="flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-mint-400" />
-                משך החופשה (ימים)
+                משך החופשה
               </span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, durationDays: 4 })}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 hover:text-white"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-slate-200 hover:text-white"
                 >
-                  סופ"ש
+                  סופ&quot;ש
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, durationDays: 7 })}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 hover:text-white"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-slate-200 hover:text-white"
                 >
                   שבוע
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, durationDays: 14 })}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 hover:text-white"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-slate-200 hover:text-white"
                 >
                   14
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2.5">
               <button
                 type="button"
                 onClick={() => adjustDays(-1)}
-                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                aria-label="הפחת ימים"
+                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
               >
-                <Minus className="w-3.5 h-3.5" />
+                <Minus className="w-4 h-4" />
               </button>
-              <div className="text-sm font-bold text-white font-mono">
+              <div className="text-base sm:text-sm font-bold text-white font-mono">
                 {formData.durationDays} <span className="text-xs font-normal text-slate-400">ימים</span>
               </div>
               <button
                 type="button"
                 onClick={() => adjustDays(1)}
-                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                aria-label="הוסף ימים"
+                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/5">
+            <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-white/5">
               {formData.durationDays <= 4 ? "גיחה קצרה" : formData.durationDays <= 9 ? "חופשה שבועית קלאסית" : "מסע עומק מקיף"}
             </div>
           </div>
         </div>
 
-        {/* PRIMARY SEARCH ROW 2 (4 Wide Panoramic Cards: Travelers, Travel Style, Budget, Submit CTA) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* PRIMARY SEARCH ROW 2 (4 Panoramic Cards: Travelers, Travel Style, Budget, Submit CTA) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card 5: Travelers */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
-            <div className="flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
+            <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-mint-400" />
                 הרכב נוסעים
@@ -455,53 +458,55 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                 <button
                   type="button"
                   onClick={() => { setTravelers(1); setFormData((p) => ({ ...p, travelers: 1 })); }}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 hover:text-white"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-slate-200 hover:text-white"
                 >
                   יחיד
                 </button>
                 <button
                   type="button"
                   onClick={() => { setTravelers(2); setFormData((p) => ({ ...p, travelers: 2 })); }}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 hover:text-white"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-slate-200 hover:text-white"
                 >
                   זוג
                 </button>
                 <button
                   type="button"
                   onClick={() => { setTravelers(4); setFormData((p) => ({ ...p, travelers: 4 })); }}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 hover:text-white"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-slate-200 hover:text-white"
                 >
                   משפחה
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2.5">
               <button
                 type="button"
                 onClick={() => adjustTravelers(-1)}
-                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                aria-label="הפחת נוסעים"
+                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
               >
-                <Minus className="w-3.5 h-3.5" />
+                <Minus className="w-4 h-4" />
               </button>
-              <div className="text-sm font-bold text-white">
+              <div className="text-base sm:text-sm font-bold text-white">
                 {travelers} {travelers === 1 ? "נוסע יחיד" : "נוסעים"}
               </div>
               <button
                 type="button"
                 onClick={() => adjustTravelers(1)}
-                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+                aria-label="הוסף נוסעים"
+                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/5">
+            <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-white/5">
               חישוב עלות טיסה ומלונות לכל הנוסעים
             </div>
           </div>
 
           {/* Card 6: Travel Style */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
             <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5 text-mint-400" />
               סגנון נסיעה ולינה
@@ -510,20 +515,20 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
               value={formData.travelStyle}
               onChange={(e) => setFormData({ ...formData, travelStyle: e.target.value as any })}
               disabled={isLoading}
-              className="bg-black/50 border border-white/10 rounded-xl px-2 py-1.5 text-white text-xs font-semibold focus:outline-none w-full mt-2 cursor-pointer"
+              className="bg-black/50 border border-white/10 rounded-xl px-2.5 py-2.5 sm:py-2 text-white text-base sm:text-xs font-semibold focus:outline-none w-full mt-2 cursor-pointer"
             >
               <option value="balanced" className="bg-slate-900 text-white">מאוזן (מלונות 3-4 כוכבים, מרכזי)</option>
               <option value="budget" className="bg-slate-900 text-white">חסכוני (הוסטלים, דירות, תחבורה ציבורית)</option>
               <option value="luxury" className="bg-slate-900 text-white">יוקרתי (ריזורטים ומלונות 5 כוכבים, פרימיום)</option>
             </select>
-            <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/5">
+            <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-white/5">
               התאמת מלונות ודירוג כוכבים
             </div>
           </div>
 
           {/* Card 7: Budget & Currency */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
-            <div className="flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-black/45 border border-white/12 hover:border-white/25 transition flex flex-col justify-between shadow-inner">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                 תקציב כולל
@@ -536,18 +541,18 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                     key={cur}
                     type="button"
                     onClick={() => setCurrency(cur)}
-                    className={`px-1.5 py-0.5 rounded-md font-bold transition ${
+                    className={`px-2 py-1 rounded-lg font-bold transition ${
                       currency === cur ? "bg-mint-400 text-slate-950 shadow-sm" : "text-slate-300 hover:text-white"
                     }`}
                   >
-                    {cur === "ILS" ? "₪ ILS" : cur === "USD" ? "$ USD" : "€ EUR"}
+                    {cur === "ILS" ? "₪" : cur === "USD" ? "$" : "€"} {cur}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex-1 flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-xl border border-white/10">
+            <div className="flex items-center gap-2 mt-2.5">
+              <div className="flex-1 flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 min-w-0">
                 <input
                   type="number"
                   min={currency === "ILS" ? 1000 : 200}
@@ -556,38 +561,38 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                   disabled={isLoading}
                   value={enteredBudget}
                   onChange={(e) => setEnteredBudget(parseInt(e.target.value) || 0)}
-                  className="bg-transparent border-none text-white text-sm font-bold font-mono focus:outline-none w-full"
+                  className="bg-transparent border-none text-white text-base sm:text-sm font-bold font-mono focus:outline-none w-full min-w-0"
                 />
-                <span className="text-xs font-bold text-mint-400 font-mono">{currencyConfig.symbol}</span>
+                <span className="text-xs font-bold text-mint-400 font-mono shrink-0">{currencyConfig.symbol}</span>
               </div>
 
               {/* Quick preset buttons */}
-              <div className="flex items-center gap-1 shrink-0 text-[9px]">
+              <div className="flex items-center gap-1 shrink-0 text-[10px]">
                 <button
                   type="button"
                   onClick={() => selectBudgetPreset("budget")}
-                  className="px-1.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 transition"
+                  className="px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition"
                 >
                   חסכוני
                 </button>
                 <button
                   type="button"
                   onClick={() => selectBudgetPreset("balanced")}
-                  className="px-1.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-mint-300 font-bold transition"
+                  className="px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-mint-300 font-bold transition"
                 >
                   מאוזן
                 </button>
                 <button
                   type="button"
                   onClick={() => selectBudgetPreset("luxury")}
-                  className="px-1.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-purple-300 transition"
+                  className="px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-purple-300 transition"
                 >
-                  פרימיום
+                  יוקרה
                 </button>
               </div>
             </div>
 
-            <div className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-white/5 font-mono truncate">
+            <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-white/5 font-mono truncate">
               {currency !== "USD"
                 ? `~${Math.round(convertToUsd(enteredBudget)).toLocaleString()} USD (כולל 10% בלת"ם)`
                 : 'כולל הקצאת 10% כרית בלת"ם'}
@@ -595,25 +600,25 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
           </div>
 
           {/* Card 8: Large Dynamic CTA Button */}
-          <div className="flex flex-col justify-end">
+          <div className="flex flex-col justify-end sm:col-span-2 lg:col-span-1">
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-full min-h-[96px] p-4 rounded-2xl btn-mint text-slate-950 font-bold text-sm flex flex-col items-center justify-center gap-1.5 shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed group transition-all"
+              className="w-full h-full min-h-[84px] sm:min-h-[96px] p-4 rounded-2xl btn-mint text-slate-950 font-bold text-sm flex flex-col items-center justify-center gap-1.5 shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed group transition-all"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                  <span className="text-xs font-bold">13 הסוכנים מתכננים עבורך...</span>
+                  <span className="text-xs font-bold">15 הסוכנים מתכננים עבורך...</span>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-slate-950 fill-current animate-pulse" />
-                    <span className="text-sm font-black">הפעל 13 סוכנים ותכנן מסע</span>
+                    <span className="text-sm font-black">הפעל 15 סוכנים ותכנן מסע</span>
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </div>
-                  <div className="text-[11px] opacity-85 font-medium bg-slate-950/15 px-2.5 py-0.5 rounded-full">
+                  <div className="text-[11px] opacity-85 font-medium bg-slate-950/15 px-2.5 py-0.5 rounded-full max-w-full truncate">
                     {formData.origin.split(" ")[0]} ➔ {formData.destination ? formData.destination.split(",")[0] : "היעד"} • {formData.durationDays} ימים • {travelers} נוסעים
                   </div>
                 </>
@@ -623,22 +628,22 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
         </div>
 
         {/* BOTTOM ROW: 4 Practical Specialist Agent Toggles + Interests Accordion */}
-        <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-mint-400" />
-              <span>פילטרים מהירים לסוכנים החכמים (התאמה אישית בלחיצה):</span>
+        <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="text-[11px] font-bold text-slate-300 tracking-wide flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-mint-400 shrink-0" />
+              <span>פילטרים מהירים לסוכנים החכמים:</span>
             </div>
 
             {/* Interests Toggle Button */}
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-[11px] text-mint-400 hover:text-mint-300 transition flex items-center gap-1 font-semibold"
+              className="self-start sm:self-auto text-xs text-mint-400 hover:text-mint-300 transition flex items-center gap-1 font-semibold py-1"
             >
               <span>{showAdvanced ? "הסתר תחומי עניין אישיים" : "+ התאם תחומי עניין אישיים"}</span>
               <span className="text-slate-400 font-normal">({formData.interests.length})</span>
-              {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {showAdvanced ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
           </div>
 
@@ -646,71 +651,71 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
             <button
               type="button"
               onClick={() => setKosherOnly(!kosherOnly)}
-              className={`p-2.5 rounded-xl border text-right transition flex items-center gap-2.5 ${
+              className={`min-h-[54px] p-2.5 rounded-xl border text-right transition flex items-center gap-2 ${
                 kosherOnly
                   ? "bg-blue-500/20 border-blue-400 text-blue-200 font-semibold shadow-inner"
-                  : "bg-black/30 border-white/10 text-slate-400 hover:text-white"
+                  : "bg-black/30 border-white/10 text-slate-300 hover:text-white"
               }`}
             >
-              <span className="text-base">✡️</span>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold">כשרות ושבת</span>
-                <span className="text-[9px] opacity-75">מסעדות גלאט, חב"ד והליכה</span>
+              <span className="text-base shrink-0">✡️</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">כשרות ושבת</span>
+                <span className="text-[9.5px] opacity-75 truncate">גלאט, חב&quot;ד והליכה</span>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setNonstopOnly(!nonstopOnly)}
-              className={`p-2.5 rounded-xl border text-right transition flex items-center gap-2.5 ${
+              className={`min-h-[54px] p-2.5 rounded-xl border text-right transition flex items-center gap-2 ${
                 nonstopOnly
                   ? "bg-cyan-500/20 border-cyan-400 text-cyan-200 font-semibold shadow-inner"
-                  : "bg-black/30 border-white/10 text-slate-400 hover:text-white"
+                  : "bg-black/30 border-white/10 text-slate-300 hover:text-white"
               }`}
             >
-              <span className="text-base">✈️</span>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold">טיסות ישירות</span>
-                <span className="text-[9px] opacity-75">ללא קונקשנים מנתב"ג</span>
+              <span className="text-base shrink-0">✈️</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">טיסות ישירות</span>
+                <span className="text-[9.5px] opacity-75 truncate">ללא קונקשן מנתב&quot;ג</span>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setCheckedBagNeeded(!checkedBagNeeded)}
-              className={`p-2.5 rounded-xl border text-right transition flex items-center gap-2.5 ${
+              className={`min-h-[54px] p-2.5 rounded-xl border text-right transition flex items-center gap-2 ${
                 checkedBagNeeded
                   ? "bg-emerald-500/20 border-emerald-400 text-emerald-200 font-semibold shadow-inner"
-                  : "bg-black/30 border-white/10 text-slate-400 hover:text-white"
+                  : "bg-black/30 border-white/10 text-slate-300 hover:text-white"
               }`}
             >
-              <span className="text-base">🧳</span>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold">כולל כבודה 23kg</span>
-                <span className="text-[9px] opacity-75">תמחור שקוף ללא תוספות</span>
+              <span className="text-base shrink-0">🧳</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">כולל כבודה 23kg</span>
+                <span className="text-[9.5px] opacity-75 truncate">תמחור שקוף מראש</span>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setShoppingPriority(!shoppingPriority)}
-              className={`p-2.5 rounded-xl border text-right transition flex items-center gap-2.5 ${
+              className={`min-h-[54px] p-2.5 rounded-xl border text-right transition flex items-center gap-2 ${
                 shoppingPriority
                   ? "bg-pink-500/20 border-pink-400 text-pink-200 font-semibold shadow-inner"
-                  : "bg-black/30 border-white/10 text-slate-400 hover:text-white"
+                  : "bg-black/30 border-white/10 text-slate-300 hover:text-white"
               }`}
             >
-              <span className="text-base">🛍️</span>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold">שופינג ו-Tax-Free</span>
-                <span className="text-[9px] opacity-75">אאוטלטים ודלפקי החזר</span>
+              <span className="text-base shrink-0">🛍️</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">שופינג ו-Tax-Free</span>
+                <span className="text-[9.5px] opacity-75 truncate">אאוטלטים והחזרי מע&quot;מ</span>
               </div>
             </button>
           </div>
 
           {/* Advanced Personal Interests Drawer */}
           {showAdvanced && (
-            <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/10 animate-in fade-in duration-200">
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-white/10 animate-in fade-in duration-200">
               {AVAILABLE_INTERESTS.map((interest) => {
                 const isSelected = formData.interests.includes(interest);
                 return (
@@ -719,7 +724,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                     type="button"
                     disabled={isLoading}
                     onClick={() => toggleInterest(interest)}
-                    className={`text-[11px] px-3 py-1 rounded-full border transition font-medium ${
+                    className={`text-xs px-3 py-1.5 rounded-full border transition font-medium ${
                       isSelected
                         ? "bg-mint-500/25 text-mint-200 border-mint-400/60 font-semibold"
                         : "bg-black/30 text-slate-400 border-white/10 hover:text-slate-200"

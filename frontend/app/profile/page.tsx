@@ -328,7 +328,7 @@ function ProfileContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans relative pb-20" dir="rtl">
+    <main className="min-h-[100dvh] bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans relative pb-28 md:pb-20" dir="rtl">
       {/* Background Liquid Aurora */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 -right-40 w-[500px] h-[500px] rounded-full bg-cyan-600/10 blur-[140px]" />
@@ -337,26 +337,26 @@ function ProfileContent() {
 
       <Navbar />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 pt-8 space-y-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 pt-6 sm:pt-8 space-y-6 sm:space-y-8">
         {/* ========================================================
             PROFILE HEADER BANNER (Liquid Glass 4.0 Pro)
         ======================================================== */}
-        <div className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-white/15 shadow-2xl relative overflow-hidden">
+        <div className="wanderlust-glass rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-white/15 shadow-2xl relative overflow-hidden">
           <div className="absolute -top-24 -left-24 w-60 h-60 rounded-full bg-mint-500/15 blur-3xl pointer-events-none" />
 
-          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-5 sm:gap-6 relative z-10">
             {/* User Avatar & Identity */}
-            <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-right">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 text-center sm:text-right">
               <div className="relative">
                 {user?.picture ? (
                   <img
                     src={user.picture}
                     alt={user.full_name || "User"}
-                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover border-2 border-mint-400/80 shadow-2xl shadow-mint-500/20"
+                    className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl object-cover border-2 border-mint-400/80 shadow-2xl shadow-mint-500/20"
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-teal-500 via-emerald-400 to-mint-300 text-slate-950 font-black text-3xl sm:text-4xl flex items-center justify-center shadow-2xl shadow-mint-500/20">
+                  <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-teal-500 via-emerald-400 to-mint-300 text-slate-950 font-black text-3xl sm:text-4xl flex items-center justify-center shadow-2xl shadow-mint-500/20">
                     {(user?.full_name || user?.email || "W")[0].toUpperCase()}
                   </div>
                 )}
@@ -367,7 +367,7 @@ function ProfileContent() {
 
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+                  <h1 className="text-xl sm:text-3xl font-serif font-bold text-white tracking-tight">
                     {user?.full_name || "מטייל Wanderlust"}
                   </h1>
                   <span className="px-3 py-0.5 rounded-full bg-mint-500/15 border border-mint-500/30 text-mint-300 text-[11px] font-bold">
@@ -375,7 +375,7 @@ function ProfileContent() {
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-slate-300 font-mono" dir="ltr">
+                <p className="text-xs sm:text-sm text-slate-300 font-mono break-all" dir="ltr">
                   {user?.email}
                 </p>
 
@@ -391,11 +391,11 @@ function ProfileContent() {
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-full md:w-auto gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={() => router.push("/#planner-form")}
-                className="btn-mint px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xl hover:scale-105 transition"
+                className="flex-1 md:flex-initial btn-mint px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-xl hover:scale-105 transition"
               >
                 <Compass className="w-4 h-4" />
                 <span>תכנן טיול חדש</span>
@@ -408,19 +408,19 @@ function ProfileContent() {
                 title="התנתק מהחשבון"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">התנתק</span>
+                <span>התנתק</span>
               </button>
             </div>
           </div>
 
           {/* 4 Stats Metrics Counters */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-6 mt-6 border-t border-white/10 text-right">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 pt-5 sm:pt-6 mt-5 sm:mt-6 border-t border-white/10 text-right">
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
               <div className="flex items-center justify-between text-slate-400 text-[11px] mb-1">
                 <span>הזמנות מאושרות</span>
                 <Plane className="w-3.5 h-3.5 text-cyan-400" />
               </div>
-              <div className="text-xl font-bold text-white font-mono">{bookings.length}</div>
+              <div className="text-lg sm:text-xl font-bold text-white font-mono">{bookings.length}</div>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
@@ -428,7 +428,7 @@ function ProfileContent() {
                 <span>מסלולים שמורים</span>
                 <FileText className="w-3.5 h-3.5 text-mint-400" />
               </div>
-              <div className="text-xl font-bold text-white font-mono">{savedTrip ? 1 : 0}</div>
+              <div className="text-lg sm:text-xl font-bold text-white font-mono">{savedTrip ? 1 : 0}</div>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
@@ -436,7 +436,7 @@ function ProfileContent() {
                 <span>חיסכון מוערך ב-AI</span>
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
               </div>
-              <div className="text-xl font-bold text-emerald-400 font-mono">₪4,850</div>
+              <div className="text-lg sm:text-xl font-bold text-emerald-400 font-mono">₪4,850</div>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
@@ -444,7 +444,7 @@ function ProfileContent() {
                 <span>נקודות מועדון</span>
                 <Star className="w-3.5 h-3.5 text-amber-400" />
               </div>
-              <div className="text-xl font-bold text-amber-300 font-mono">1,250 מייל</div>
+              <div className="text-lg sm:text-xl font-bold text-amber-300 font-mono">1,250 מייל</div>
             </div>
           </div>
         </div>
@@ -452,7 +452,7 @@ function ProfileContent() {
         {/* ========================================================
             NAVIGATION TABS (Bookings, Personal, Saved, Preferences, Security)
         ======================================================== */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-white/10">
+        <div className="snap-strip no-scrollbar gap-2 pb-2 border-b border-white/10">
           {[
             { id: "bookings", label: "ההזמנות והכרטיסים שלי", icon: Plane, count: bookings.length },
             { id: "personal", label: "פרטים אישיים ודרכון", icon: User },
@@ -467,7 +467,7 @@ function ProfileContent() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-3 rounded-2xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
+                className={`shrink-0 px-4 py-3 rounded-2xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
                   isCurrent
                     ? "bg-mint-500/20 text-mint-300 border border-mint-400/60 shadow-lg shadow-mint-500/10"
                     : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-white"
@@ -492,7 +492,7 @@ function ProfileContent() {
           <div className="space-y-4">
             <div className="flex items-center justify-between text-right">
               <div>
-                <h3 className="text-xl font-serif font-bold text-white">ההזמנות ושובריי הנסיעה שלך</h3>
+                <h3 className="text-lg sm:text-xl font-serif font-bold text-white">ההזמנות ושובריי הנסיעה שלך</h3>
                 <p className="text-xs text-slate-400">
                   כל ההזמנות שבוצעו באתר כולל שובר כרטוס, סימוכין בינלאומי ואפשרות שיגור מחודש למייל.
                 </p>
@@ -507,13 +507,13 @@ function ProfileContent() {
             )}
 
             {bookings.length === 0 ? (
-              <div className="wanderlust-glass rounded-3xl p-12 text-center space-y-4 border border-white/10">
+              <div className="wanderlust-glass rounded-3xl p-8 sm:p-12 text-center space-y-4 border border-white/10">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto text-slate-400">
                   <Plane className="w-8 h-8 opacity-60" />
                 </div>
                 <h4 className="text-lg font-bold text-white">עדיין אין לך הזמנות פעילות</h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  מתכננים חופשה? תנו ל-7 סוכני ה-AI לבנות עבורכם את המסלול המושלם עם טיסות מאומתות ומלונות מובילים.
+                  מתכננים חופשה? תנו ל-15 סוכני ה-AI לבנות עבורכם את המסלול המושלם עם טיסות מאומתות ומלונות מובילים.
                 </p>
                 <button
                   type="button"
@@ -528,7 +528,7 @@ function ProfileContent() {
                 {bookings.map((b, idx) => (
                   <div
                     key={idx}
-                    className="wanderlust-glass-card rounded-3xl p-5 sm:p-6 border border-white/15 hover:border-mint-400/40 shadow-xl transition flex flex-col md:flex-row md:items-center justify-between gap-5 text-right"
+                    className="wanderlust-glass-card rounded-3xl p-4 sm:p-6 border border-white/15 hover:border-mint-400/40 shadow-xl transition flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5 text-right"
                   >
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
@@ -545,14 +545,14 @@ function ProfileContent() {
                       </div>
 
                       <div>
-                        <h4 className="text-xl font-serif font-bold text-white">
+                        <h4 className="text-lg sm:text-xl font-serif font-bold text-white">
                           חופשת נופש ב-{b.destination} ({b.duration_days} ימים)
                         </h4>
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 mt-1">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300 mt-1">
                           <span>נוסע ראשי: <strong className="text-white">{b.customer_name}</strong></span>
-                          <span className="text-white/20">•</span>
-                          <span>אימייל שנרשם: <strong className="text-mint-300 font-mono" dir="ltr">{b.recipient_email}</strong></span>
-                          <span className="text-white/20">•</span>
+                          <span className="text-white/20 hidden sm:inline">•</span>
+                          <span>אימייל שנרשם: <strong className="text-mint-300 font-mono break-all" dir="ltr">{b.recipient_email}</strong></span>
+                          <span className="text-white/20 hidden sm:inline">•</span>
                           <span>
                             אמצעי תשלום:{" "}
                             {b.payment_method === "card"
@@ -568,10 +568,10 @@ function ProfileContent() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end sm:items-center md:items-end lg:items-center justify-between gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-white/10">
-                      <div className="text-left">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center justify-between md:justify-end gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-white/10">
+                      <div className="text-right sm:text-left">
                         <span className="text-[10px] text-slate-400 block">סכום שחויב:</span>
-                        <span className="text-xl font-heading font-black text-mint-400">
+                        <span className="text-lg sm:text-xl font-heading font-black text-mint-400">
                           {formatRaw(b.total_amount, true)}
                         </span>
                       </div>
@@ -580,7 +580,7 @@ function ProfileContent() {
                         <button
                           type="button"
                           onClick={() => setActiveVoucher(b)}
-                          className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-1.5"
+                          className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-1.5"
                         >
                           <FileText className="w-3.5 h-3.5 text-mint-400" />
                           <span>צפה בשובר</span>
@@ -590,7 +590,7 @@ function ProfileContent() {
                           type="button"
                           disabled={resendingRef === b.booking_ref}
                           onClick={() => handleResendVoucher(b)}
-                          className="btn-mint px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                          className="btn-mint px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md disabled:opacity-50"
                         >
                           {resendingRef === b.booking_ref ? (
                             <span>שולח...</span>
@@ -614,7 +614,7 @@ function ProfileContent() {
             TAB 2: PERSONAL & PASSPORT DETAILS
         ======================================================== */}
         {activeTab === "personal" && (
-          <form onSubmit={handleSavePersonal} className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-white/15 space-y-6 text-right">
+          <form onSubmit={handleSavePersonal} className="wanderlust-glass rounded-3xl p-5 sm:p-8 border border-white/15 space-y-6 text-right">
             <div className="border-b border-white/10 pb-4">
               <h3 className="text-xl font-serif font-bold text-white">פרטי נוסע ראשי ודרכון</h3>
               <p className="text-xs text-slate-400">
@@ -714,7 +714,7 @@ function ProfileContent() {
             <div className="pt-4 border-t border-white/10 flex justify-end">
               <button
                 type="submit"
-                className="btn-mint px-6 py-3 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xl hover:scale-105 transition"
+                className="w-full sm:w-auto btn-mint px-6 py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-xl hover:scale-105 transition"
               >
                 <Check className="w-4 h-4" />
                 <span>שמור פרטים לשימוש בהזמנות עתידיות</span>
@@ -740,7 +740,7 @@ function ProfileContent() {
                 {savedTrips.map((trip, idx) => (
                   <div
                     key={trip.session_id || idx}
-                    className="wanderlust-glass-card rounded-3xl p-6 border border-white/15 shadow-xl space-y-4"
+                    className="wanderlust-glass-card rounded-3xl p-5 sm:p-6 border border-white/15 shadow-xl space-y-4"
                   >
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
@@ -755,11 +755,11 @@ function ProfileContent() {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <button
                           type="button"
                           onClick={() => router.push(`/?destination=${encodeURIComponent(trip.destination)}&duration=${trip.duration_days}`)}
-                          className="btn-mint px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                          className="w-full sm:w-auto btn-mint px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
                         >
                           <Compass className="w-4 h-4" />
                           <span>פתח והמשך תכנון</span>
@@ -791,11 +791,11 @@ function ProfileContent() {
             TAB 4: TRAVEL PREFERENCES & AI AGENTS
         ======================================================== */}
         {activeTab === "preferences" && (
-          <form onSubmit={handleSavePreferences} className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-white/15 space-y-6 text-right">
+          <form onSubmit={handleSavePreferences} className="wanderlust-glass rounded-3xl p-5 sm:p-8 border border-white/15 space-y-6 text-right">
             <div className="border-b border-white/10 pb-4">
               <h3 className="text-xl font-serif font-bold text-white">העדפות מסע וסוכני בינה מלאכותית</h3>
               <p className="text-xs text-slate-400">
-                הגדרות אלו ינחו את 7 הסוכנים בכל תכנון עתידי שתבצע באתר.
+                הגדרות אלו ינחו את 15 הסוכנים בכל תכנון עתידי שתבצע באתר.
               </p>
             </div>
 
@@ -900,7 +900,7 @@ function ProfileContent() {
             <div className="pt-4 border-t border-white/10 flex justify-end">
               <button
                 type="submit"
-                className="btn-mint px-6 py-3 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xl"
+                className="w-full sm:w-auto btn-mint px-6 py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-xl"
               >
                 <Check className="w-4 h-4" />
                 <span>שמור העדפות מסע</span>
@@ -913,7 +913,7 @@ function ProfileContent() {
             TAB 5: SECURITY & AUTH
         ======================================================== */}
         {activeTab === "security" && (
-          <div className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-white/15 space-y-6 text-right">
+          <div className="wanderlust-glass rounded-3xl p-5 sm:p-8 border border-white/15 space-y-6 text-right">
             <div className="border-b border-white/10 pb-4">
               <h3 className="text-xl font-serif font-bold text-white">אבטחה, אימות והפעלת סשנים</h3>
               <p className="text-xs text-slate-400">
@@ -922,9 +922,9 @@ function ProfileContent() {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-mint-400">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-mint-400 shrink-0">
                     <Lock className="w-5 h-5" />
                   </div>
                   <div>
@@ -939,9 +939,9 @@ function ProfileContent() {
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-cyan-400">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-cyan-400 shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
@@ -952,7 +952,7 @@ function ProfileContent() {
                 <button
                   type="button"
                   onClick={() => router.push("/login?action=forgot-password")}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition"
                 >
                   שלח קישור איפוס
                 </button>
@@ -967,10 +967,10 @@ function ProfileContent() {
       ======================================================== */}
       {activeVoucher && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto"
           dir="rtl"
         >
-          <div className="relative w-full max-w-lg wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-6 text-white space-y-5 bg-[#0a101b]/95">
+          <div className="relative w-full max-w-lg wanderlust-glass rounded-3xl border border-white/20 shadow-2xl p-5 sm:p-6 text-white space-y-5 bg-[#0a101b]/95 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2 text-mint-400 text-xs font-bold">
                 <ShieldCheck className="w-4 h-4" />
@@ -979,38 +979,38 @@ function ProfileContent() {
               <button
                 type="button"
                 onClick={() => setActiveVoucher(null)}
-                className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-slate-300"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300"
               >
                 ✕
               </button>
             </div>
 
-            <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] rounded-2xl p-5 border border-white/15 space-y-3 text-right">
-              <div className="flex justify-between items-center pb-2 border-b border-white/10">
+            <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] rounded-2xl p-4 sm:p-5 border border-white/15 space-y-3 text-right">
+              <div className="flex justify-between items-center gap-2 pb-2 border-b border-white/10">
                 <span className="text-xs text-slate-400">סימוכין בינלאומי:</span>
                 <span className="font-mono font-black text-mint-300 text-sm bg-mint-500/10 px-2.5 py-1 rounded-lg border border-mint-500/20">
                   {activeVoucher.booking_ref}
                 </span>
               </div>
-              <div className="flex justify-between text-xs pb-2 border-b border-white/10">
-                <span className="text-slate-400">יעד ומסלול:</span>
-                <span className="font-bold text-white">{activeVoucher.destination} ({activeVoucher.duration_days} ימים)</span>
+              <div className="flex justify-between gap-2 text-xs pb-2 border-b border-white/10">
+                <span className="text-slate-400 shrink-0">יעד ומסלול:</span>
+                <span className="font-bold text-white text-left">{activeVoucher.destination} ({activeVoucher.duration_days} ימים)</span>
               </div>
-              <div className="flex justify-between text-xs pb-2 border-b border-white/10">
-                <span className="text-slate-400">נוסע ראשי:</span>
-                <span className="font-bold text-white">{activeVoucher.customer_name}</span>
+              <div className="flex justify-between gap-2 text-xs pb-2 border-b border-white/10">
+                <span className="text-slate-400 shrink-0">נוסע ראשי:</span>
+                <span className="font-bold text-white text-left">{activeVoucher.customer_name}</span>
               </div>
-              <div className="flex justify-between text-xs pb-2 border-b border-white/10">
-                <span className="text-slate-400">אימייל לקבלת כרטיסים:</span>
-                <span className="font-mono text-mint-300" dir="ltr">{activeVoucher.recipient_email}</span>
+              <div className="flex justify-between gap-2 text-xs pb-2 border-b border-white/10">
+                <span className="text-slate-400 shrink-0">אימייל לקבלת כרטיסים:</span>
+                <span className="font-mono text-mint-300 break-all text-left" dir="ltr">{activeVoucher.recipient_email}</span>
               </div>
-              <div className="flex justify-between text-xs pt-1">
+              <div className="flex justify-between gap-2 text-xs pt-1">
                 <span className="text-slate-400">סכום שחויב:</span>
                 <span className="font-black text-emerald-400 text-base">{formatRaw(activeVoucher.total_amount, true)}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={() => handleResendVoucher(activeVoucher)}

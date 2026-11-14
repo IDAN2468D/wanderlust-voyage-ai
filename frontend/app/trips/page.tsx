@@ -144,11 +144,11 @@ export default function TripsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070c12] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
       <Navbar />
 
       {/* Hero Banner */}
-      <section className="relative py-20 px-6 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
+      <section className="relative py-12 sm:py-20 px-4 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-20">
           <Image
             src="/images/santorini.jpg"
@@ -157,7 +157,7 @@ export default function TripsPage() {
             unoptimized
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050811]/85 via-[#050811] to-[#050811]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center space-y-4">
@@ -166,19 +166,19 @@ export default function TripsPage() {
             <span>תוכניות מסע בדוקות</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
             מסלולי דוגמה שהורכבו ע&quot;י AI
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            קבל השראה מתוכניות חופשה מושלמות שנבנו, תומחרו ואומתו בזמן אמת על ידי ארבעת סוכני ה-AI שלנו. בלחיצה אחת תוכל להתאים כל מסלול בדיוק לצרכיך.
+            קבל השראה מתוכניות חופשה מושלמות שנבנו, תומחרו ואומתו בזמן אמת על ידי צוות 15 סוכני ה-AI שלנו. בלחיצה אחת תוכל להתאים כל מסלול בדיוק לצרכיך.
           </p>
         </div>
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-14 space-y-10">
-        <div className="space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-12 lg:px-16 py-10 sm:py-14 space-y-8 sm:space-y-10">
+        <div className="space-y-6 sm:space-y-8">
           {TRIPS_DATA.map((trip) => {
             const isExpanded = expandedTripId === trip.id;
 
@@ -188,9 +188,9 @@ export default function TripsPage() {
                 className="wanderlust-glass-card rounded-3xl border border-white/15 overflow-hidden transition-all"
               >
                 {/* Trip Header Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 p-4 sm:p-8 items-center">
                   {/* Thumbnail Image */}
-                  <div className="lg:col-span-4 relative h-56 rounded-2xl overflow-hidden border border-white/10">
+                  <div className="lg:col-span-4 relative h-52 sm:h-56 rounded-2xl overflow-hidden border border-white/10">
                     <Image
                       src={trip.image}
                       alt={trip.title}
@@ -207,7 +207,7 @@ export default function TripsPage() {
 
                   {/* Trip Summary Details */}
                   <div className="lg:col-span-5 space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2.5 py-0.5 rounded-full bg-mint-500/20 text-mint-300 border border-mint-500/30 text-[11px] font-bold">
                         {trip.style}
                       </span>
@@ -217,7 +217,7 @@ export default function TripsPage() {
                       </span>
                     </div>
 
-                    <h3 className="font-serif text-2xl font-bold text-white">
+                    <h3 className="font-serif text-xl sm:text-2xl font-bold text-white">
                       {trip.title}
                     </h3>
 
@@ -225,17 +225,17 @@ export default function TripsPage() {
                     <div className="grid grid-cols-3 gap-2 pt-2 text-xs">
                       <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
                         <span className="text-[10px] text-slate-400 block">תקציב כולל</span>
-                        <span className="font-bold text-mint-400 text-sm">{formatPrice(trip.totalBudget)}</span>
+                        <span className="font-bold text-mint-400 text-xs sm:text-sm">{formatPrice(trip.totalBudget)}</span>
                       </div>
                       <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
-                        <span className="text-[10px] text-slate-400 block flex items-center gap-1">
-                          <Plane className="w-3 h-3 text-slate-400" /> טיסות
+                        <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                          <Plane className="w-3 h-3 text-slate-400 shrink-0" /> טיסות
                         </span>
                         <span className="font-semibold text-white text-xs">{formatPrice(trip.flightEst)}</span>
                       </div>
                       <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
-                        <span className="text-[10px] text-slate-400 block flex items-center gap-1">
-                          <Building2 className="w-3 h-3 text-slate-400" /> מלונות
+                        <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-slate-400 shrink-0" /> מלונות
                         </span>
                         <span className="font-semibold text-white text-xs">{formatPrice(trip.hotelEst)}</span>
                       </div>
@@ -247,7 +247,7 @@ export default function TripsPage() {
                     <button
                       type="button"
                       onClick={() => setBookingTrip(trip)}
-                      className="btn-mint w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg group"
+                      className="btn-mint w-full py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg group"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>הזמן עכשיו ({formatPrice(trip.totalBudget)})</span>
@@ -265,7 +265,7 @@ export default function TripsPage() {
                     <button
                       type="button"
                       onClick={() => toggleExpand(trip.id)}
-                      className="w-full py-2 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition"
+                      className="w-full py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1.5 transition"
                     >
                       <span>{isExpanded ? "הסתר פירוט יומי" : "צפה בתוכנית יום-אחר-יום"}</span>
                       {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}

@@ -35,13 +35,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/75 backdrop-blur-md animate-fade-in" dir="rtl">
-      <div className="w-full max-w-xl wanderlust-glass rounded-3xl p-6 border border-white/20 shadow-2xl relative text-right">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-24 px-3 sm:px-4 bg-black/75 backdrop-blur-md animate-fade-in" dir="rtl">
+      <div className="w-full max-w-xl wanderlust-glass rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-white/20 shadow-2xl relative text-right max-h-[88dvh] overflow-y-auto">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 left-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition"
+          className="absolute top-4 left-4 sm:top-5 sm:left-5 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition"
+          aria-label="סגור חיפוש"
         >
           <X className="w-4 h-4" />
         </button>

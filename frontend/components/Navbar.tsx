@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Mountain, Search, Globe, ArrowLeft, Menu, X, Check, User as UserIcon, LogOut } from "lucide-react";
 import { SearchModal } from "@/components/SearchModal";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
 
@@ -58,32 +59,32 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="relative z-30 w-full px-4 sm:px-8 lg:px-12 xl:px-14 py-4 sm:py-5 border-b border-white/5 bg-[#070c12]/85 backdrop-blur-xl sticky top-0" dir="rtl">
-        <div className="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-6">
+      <header className="relative z-30 w-full px-3.5 sm:px-8 lg:px-12 xl:px-14 py-3 sm:py-4 border-b border-white/10 bg-[#060b14]/88 backdrop-blur-2xl sticky top-0 shadow-[0_8px_32px_rgba(0,0,0,0.45)]" dir="rtl">
+        <div className="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-2 sm:gap-6">
           {/* Logo (Right side in RTL) */}
-          <a href="/" className="flex items-center gap-3 group shrink-0">
-            <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-mint-400 group-hover:scale-105 transition-transform">
-              <Mountain className="w-5 h-5 sm:w-6 sm:h-6" />
+          <a href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-mint-400/20 to-white/5 backdrop-blur-md border border-white/20 text-mint-400 group-hover:scale-105 transition-transform shadow-inner">
+              <Mountain className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="font-heading font-black text-lg sm:text-xl tracking-[0.15em] text-white block">
+            <div className="min-w-0">
+              <span className="font-heading font-black text-xs xs:text-sm sm:text-xl tracking-[0.06em] sm:tracking-[0.15em] text-white block truncate">
                 AGENT TRAVEL PLANNER
               </span>
-              <span className="text-[8px] sm:text-[9px] tracking-[0.25em] text-slate-300 font-medium block">
+              <span className="text-[7px] sm:text-[9px] tracking-[0.16em] sm:tracking-[0.25em] text-slate-300/90 font-medium block truncate">
                 AUTONOMOUS AI VOYAGES
               </span>
             </div>
           </a>
 
           {/* Desktop Navigation Links (Center) */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-10 text-sm font-medium text-slate-200">
+          <nav className="hidden md:flex items-center gap-5 lg:gap-8 xl:gap-10 text-sm font-medium text-slate-200">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`transition py-1 relative ${
+                  className={`transition py-1 relative whitespace-nowrap ${
                     isActive ? "text-mint-400 font-bold" : "text-slate-300 hover:text-white"
                   }`}
                 >
@@ -97,13 +98,25 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* Left Controls (Search, Currency, Plan Button) */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Compact Mobile Currency Pill */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="sm:hidden flex items-center gap-1 px-2.5 py-2 rounded-full bg-white/[0.07] border border-white/15 text-[11px] font-bold text-slate-200"
+              aria-label="מטבע נוכחי"
+            >
+              <span>{currencyConfig.flag}</span>
+              <span>{currencyConfig.symbol}</span>
+            </button>
+
             {/* Search Button */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
               title="חיפוש יעדים"
-              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 backdrop-blur-md border border-white/10 transition"
+              aria-label="חיפוש יעדים"
+              className="w-10 h-10 sm:w-auto sm:h-auto sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 backdrop-blur-md border border-white/10 transition flex items-center justify-center"
             >
               <Search className="w-4 h-4" />
             </button>
@@ -310,7 +323,9 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2.5 rounded-full bg-white/10 text-white md:hidden"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white md:hidden flex items-center justify-center transition"
+              aria-label={isMobileMenuOpen ? "סגור תפריט" : "פתח תפריט"}
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -319,16 +334,24 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-white/10 space-y-3 animate-fade-in">
+          <div className="md:hidden mt-3 pt-4 border-t border-white/10 space-y-3.5 max-h-[calc(100dvh-76px)] overflow-y-auto pb-4 animate-fade-in">
             {/* Mobile User Profile Section */}
             {isAuthenticated && user ? (
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+              <div className="p-3 rounded-2xl bg-white/[0.06] border border-white/15 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push("/profile");
+                  }}
+                  className="flex items-center gap-2.5 flex-1 text-right min-w-0 min-h-[44px] rounded-xl hover:bg-white/5 px-1 transition"
+                  title="עבור לפרופיל שלי"
+                >
                   {user.picture ? (
                     <img
                       src={user.picture}
                       alt={user.full_name || "User"}
-                      className="w-8 h-8 rounded-full object-cover border border-mint-400"
+                      className="w-9 h-9 rounded-full object-cover border border-mint-400 shrink-0"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         const target = e.currentTarget;
@@ -339,46 +362,37 @@ export const Navbar: React.FC = () => {
                       }}
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-full bg-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center shrink-0">
                       {((user.full_name || user.email || "W").trim().charAt(0) || "W").toUpperCase()}
                     </div>
                   )}
-                  <div
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      router.push("/profile");
-                    }}
-                    className="flex items-center gap-3 cursor-pointer p-1 rounded-xl hover:bg-white/5"
-                    title="עבור לפרופיל שלי"
-                  >
-                    <div>
-                      <span className="block text-white text-xs font-bold truncate max-w-[160px]">
-                        {user.full_name || user.email || "מטייל רשום"}
-                      </span>
-                      <span className="block text-[10px] text-slate-400">
-                        {user.auth_provider === "google" ? "מחובר עם Google" : "משתמש מחובר"}
-                      </span>
-                    </div>
+                  <div className="min-w-0">
+                    <span className="block text-white text-xs font-bold truncate">
+                      {user.full_name || user.email || "מטייל רשום"}
+                    </span>
+                    <span className="block text-[10px] text-mint-300">
+                      {user.auth_provider === "google" ? "פרופיל Google • לחץ לצפייה" : "לפרופיל והזמנות שלי ←"}
+                    </span>
                   </div>
-                </div>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     logout();
                   }}
-                  className="p-2 rounded-xl bg-rose-500/10 text-rose-300 border border-rose-500/20 text-xs font-medium flex items-center gap-1"
+                  className="px-3 py-2.5 rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/25 text-xs font-semibold flex items-center gap-1 shrink-0 min-h-[40px]"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>התנתק</span>
                 </button>
               </div>
             ) : (
-              <div className="pt-1 pb-2">
+              <div className="pt-1">
                 <a
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/10 text-white font-bold text-xs border border-white/15"
+                  className="w-full min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/10 text-white font-bold text-xs border border-white/15"
                 >
                   <UserIcon className="w-4 h-4 text-mint-400" />
                   <span>כניסה / הרשמה למערכת</span>
@@ -386,23 +400,31 @@ export const Navbar: React.FC = () => {
               </div>
             )}
 
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-xl text-sm font-semibold ${
-                  pathname === link.href
-                    ? "bg-mint-500/20 text-mint-300 border border-mint-500/30"
-                    : "text-slate-300 hover:bg-white/5"
-                }`}
-              >
-                {link.label}
-              </a>
-            ))}
+            {/* 2-Column Mobile Nav Tiles */}
+            <div className="grid grid-cols-2 gap-2">
+              {NAV_LINKS.map((link, idx) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`min-h-[44px] flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                    idx === 0 ? "col-span-2" : ""
+                  } ${
+                    pathname === link.href
+                      ? "bg-mint-500/20 text-mint-300 border border-mint-500/35 shadow-sm"
+                      : "bg-white/[0.04] text-slate-200 border border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  {pathname === link.href && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-mint-400" />
+                  )}
+                </a>
+              ))}
+            </div>
 
             {/* Mobile Currency Selector */}
-            <div className="pt-2 border-t border-white/10">
+            <div className="pt-2.5 border-t border-white/10">
               <span className="text-xs text-slate-400 block mb-2 font-medium">מטבע תשלום לתצוגה:</span>
               <div className="grid grid-cols-3 gap-2">
                 {currencyList.map((curr) => {
@@ -412,7 +434,7 @@ export const Navbar: React.FC = () => {
                       key={curr.code}
                       type="button"
                       onClick={() => setCurrency(curr.code as CurrencyCode)}
-                      className={`p-2 rounded-xl text-center border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                      className={`min-h-[44px] p-2 rounded-xl text-center border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                         isSelected
                           ? "bg-mint-500/20 text-mint-300 border-mint-500/40 shadow-sm"
                           : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10"
@@ -426,14 +448,18 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  router.push("/#planner-form");
+                  if (pathname === "/") {
+                    document.getElementById("planner-form")?.scrollIntoView({ behavior: "smooth" });
+                  } else {
+                    router.push("/#planner-form");
+                  }
                 }}
-                className="w-full btn-mint py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                className="w-full btn-mint py-3.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 min-h-[46px]"
               >
                 <span>תכנן את הטיול שלך עם AI</span>
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -445,6 +471,9 @@ export const Navbar: React.FC = () => {
 
       {/* Global Quick Search Modal */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
+      {/* Mobile Floating Bottom Navigation Bar */}
+      <MobileBottomNav />
     </>
   );
 };

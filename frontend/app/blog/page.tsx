@@ -98,11 +98,11 @@ export default function BlogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070c12] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
       <Navbar />
 
       {/* Hero Banner */}
-      <section className="relative py-20 px-6 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
+      <section className="relative py-12 sm:py-20 px-4 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-20">
           <Image
             src="/images/hero-bg.jpg"
@@ -111,7 +111,7 @@ export default function BlogPage() {
             unoptimized
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050811]/85 via-[#050811] to-[#050811]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center space-y-4">
@@ -120,7 +120,7 @@ export default function BlogPage() {
             <span>מגזין המטיילים של Wanderlust</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
             סיפורים, טיפים והשראה מהעולם
           </h1>
 
@@ -129,7 +129,7 @@ export default function BlogPage() {
           </p>
 
           {/* Search bar inside header */}
-          <div className="max-w-xl mx-auto pt-4">
+          <div className="max-w-xl mx-auto pt-3 sm:pt-4">
             <div className="wanderlust-glass rounded-2xl p-2 flex items-center gap-3 border border-white/15">
               <Search className="w-4 h-4 text-mint-400 shrink-0 mr-2" />
               <input
@@ -145,15 +145,15 @@ export default function BlogPage() {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-14 space-y-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-12 lg:px-16 py-10 sm:py-14 space-y-8 sm:space-y-12">
         {/* Tag Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="snap-strip no-scrollbar sm:flex sm:flex-wrap sm:overflow-visible items-center sm:justify-center gap-2 pb-1">
           {["all", "יוון", "באלי", "שוויץ", "המלדיביים", "חיסכון חכם", "שקיעות"].map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setSelectedTag(t)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold transition ${
                 selectedTag === t
                   ? "btn-mint shadow-md"
                   : "bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10"
@@ -165,14 +165,14 @@ export default function BlogPage() {
         </div>
 
         {/* Blog Posts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
           {filteredPosts.map((post) => (
             <article
               key={post.id}
               className="wanderlust-glass-card rounded-3xl overflow-hidden border border-white/15 hover:border-mint-500/30 transition-all flex flex-col justify-between group"
             >
               {/* Cover Image */}
-              <div className="relative h-64 w-full overflow-hidden">
+              <div className="relative h-56 sm:h-64 w-full overflow-hidden">
                 <Image
                   src={post.image}
                   alt={post.title}
@@ -180,7 +180,7 @@ export default function BlogPage() {
                   unoptimized
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-black/20 to-transparent" />
 
                 {/* Category Badge */}
                 <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-xs font-bold text-mint-400">
@@ -199,14 +199,14 @@ export default function BlogPage() {
               </div>
 
               {/* Content Body */}
-              <div className="p-6 sm:p-8 space-y-5 flex-1 flex flex-col justify-between">
+              <div className="p-5 sm:p-8 space-y-5 flex-1 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-xs text-slate-400">
                     <User className="w-3.5 h-3.5 text-mint-400" />
                     <span>{post.author}</span>
                   </div>
 
-                  <h2 className="font-serif text-2xl font-bold text-white group-hover:text-mint-300 transition-colors leading-snug">
+                  <h2 className="font-serif text-xl sm:text-2xl font-bold text-white group-hover:text-mint-300 transition-colors leading-snug">
                     {post.title}
                   </h2>
 
@@ -228,17 +228,17 @@ export default function BlogPage() {
                 </div>
 
                 {/* Plan Trip based on this article button */}
-                <div className="pt-6 border-t border-white/10 flex items-center justify-between">
+                <div className="pt-5 sm:pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => handlePlanForArticle(post.destinationTarget)}
-                    className="btn-mint px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 group/btn"
+                    className="btn-mint w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 group/btn"
                   >
                     <span>תכנן מסלול ליעד זה עם AI</span>
                     <ArrowLeft className="w-3.5 h-3.5 group-hover/btn:-translate-x-1 transition-transform" />
                   </button>
 
-                  <span className="text-xs text-slate-400 font-medium cursor-pointer hover:text-white transition">
+                  <span className="text-xs text-slate-400 font-medium cursor-pointer hover:text-white transition mx-auto sm:mx-0">
                     קרא את המאמר המלא ◂
                   </span>
                 </div>

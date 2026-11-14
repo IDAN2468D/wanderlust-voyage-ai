@@ -177,40 +177,40 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
   const currentStage = latestStepWithStage?.stage || (isStreaming ? "PROCESSING" : "READY");
 
   return (
-    <div className="wanderlust-glass rounded-[28px] p-6 sm:p-7 shadow-2xl space-y-5 border border-white/15 relative overflow-hidden" dir="rtl">
+    <div className="wanderlust-glass rounded-3xl sm:rounded-[28px] p-4 sm:p-7 shadow-2xl space-y-5 border border-white/15 relative overflow-hidden" dir="rtl">
       {/* Decorative ambient blur */}
       <div className="absolute top-0 left-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-mint-400/20 to-teal-500/10 border border-mint-400/30 text-mint-300 shadow-inner">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-mint-400/20 to-teal-500/10 border border-mint-400/30 text-mint-300 shadow-inner shrink-0">
             <Cpu className="w-5 h-5" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-serif text-lg font-bold text-white tracking-tight">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-serif text-base sm:text-lg font-bold text-white tracking-tight">
                 מוניטור חשיבה, RAG וסנכרון של 15 סוכני ה-AI האוטונומיים
               </h3>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10 shrink-0">
                 STAGE: {currentStage}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
               טלמטריה, אחזור וקטורי (RAG VectorStore), מנוע Reasoning, הפעלת כלים בזמן אמת וסנכרון יומנים בהזרמת SSE
             </p>
           </div>
         </div>
 
-        <div>
+        <div className="self-start sm:self-center shrink-0">
           {isStreaming ? (
-            <span className="flex items-center gap-2 text-xs text-mint-300 font-bold bg-mint-500/15 px-3.5 py-1.5 rounded-full border border-mint-400/40 shadow-sm shadow-mint-500/20">
+            <span className="inline-flex items-center gap-2 text-xs text-mint-300 font-bold bg-mint-500/15 px-3.5 py-1.5 rounded-full border border-mint-400/40 shadow-sm shadow-mint-500/20">
               <span className="w-2.5 h-2.5 rounded-full bg-mint-400 animate-ping" />
               הסוכנים מתאמים בזמן אמת...
             </span>
           ) : (
-            <span className="text-xs text-slate-400 bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-800 font-medium">
+            <span className="inline-flex text-xs text-slate-400 bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-800 font-medium">
               המתנה / מוכן לשיגור
             </span>
           )}
@@ -218,7 +218,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
       </div>
 
       {/* 15 Specialist Agents Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 relative z-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 relative z-10">
         {agents.map((agent) => {
           const Icon = agent.icon;
           const isActive = activeAgent === agent.id;
@@ -227,15 +227,15 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           return (
             <div
               key={agent.id}
-              className={`p-3 rounded-2xl border text-right transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[96px] ${
+              className={`p-3 rounded-2xl border text-right transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[84px] sm:min-h-[96px] ${
                 isActive
-                  ? `bg-gradient-to-b ${agent.activeBg} shadow-lg shadow-mint-500/10 scale-[1.03] ring-1 ring-mint-400/50`
+                  ? `bg-gradient-to-b ${agent.activeBg} shadow-lg shadow-mint-500/10 scale-[1.02] ring-1 ring-mint-400/50`
                   : isFinished
                   ? "bg-[#0c141f]/90 border-slate-700/80 text-slate-200"
-                  : "bg-[#090f17]/70 border-white/5 text-slate-400 opacity-75"
+                  : "bg-[#090f17]/70 border-white/5 text-slate-400 opacity-80"
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <div className={`p-1.5 rounded-xl bg-white/5 ${agent.color}`}>
                   <Icon className="w-4 h-4" />
                 </div>
@@ -249,7 +249,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
               </div>
               <div>
                 <div className="font-bold text-[11px] text-white truncate">{agent.name}</div>
-                <div className="text-[9px] text-slate-400 truncate mt-0.5">{agent.role}</div>
+                <div className="text-[9.5px] text-slate-400 truncate mt-0.5">{agent.role}</div>
               </div>
             </div>
           );
@@ -259,29 +259,29 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
       {/* Terminal Output Container */}
       <div className="rounded-2xl bg-[#060a10] border border-white/10 overflow-hidden shadow-2xl font-mono text-xs text-right relative z-10">
         {/* Terminal Titlebar */}
-        <div className="bg-[#0c131d] px-4 py-2.5 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1.5">
+        <div className="bg-[#0c131d] px-3.5 sm:px-4 py-2.5 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex gap-1.5 shrink-0">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
             </div>
-            <span className="text-[11px] text-slate-400 mr-2 font-sans font-medium flex items-center gap-1.5">
-              <Terminal className="w-3.5 h-3.5 text-mint-400" />
-              יומן פעולות חי - wanderlust-agent-stream.log
+            <span className="text-[11px] text-slate-400 mr-1 sm:mr-2 font-sans font-medium flex items-center gap-1.5 truncate">
+              <Terminal className="w-3.5 h-3.5 text-mint-400 shrink-0" />
+              <span className="truncate">יומן פעולות חי - wanderlust-agent-stream.log</span>
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-sans">{logs.length} אירועים נרשמו</span>
+          <span className="text-[10px] text-slate-400 font-sans shrink-0">{logs.length} אירועים נרשמו</span>
         </div>
 
         {/* Terminal Logs Area */}
-        <div className="p-4 max-h-80 overflow-y-auto space-y-2.5">
+        <div className="p-3.5 sm:p-4 max-h-72 sm:max-h-80 overflow-y-auto space-y-2.5">
           {logs.length === 0 ? (
             <div className="py-8 text-center text-slate-400 font-sans">
               <Sparkles className="w-6 h-6 mx-auto mb-2 text-mint-400/60" />
               <p className="text-xs font-medium">ממתין לפרמטרי נסיעה ושיגור צוות הסוכנים...</p>
               <p className="text-[11px] text-slate-500 mt-1">
-                בחרו מוצא, יעד ותקציב כדי לצפות בתיאום האוטונומי של 7 הסוכנים בזמן אמת.
+                בחרו מוצא, יעד ותקציב כדי לצפות בתיאום האוטונומי של 15 הסוכנים בזמן אמת.
               </p>
             </div>
           ) : (

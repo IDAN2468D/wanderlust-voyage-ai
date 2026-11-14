@@ -58,11 +58,11 @@ export default function AboutPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#070c12] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#050811] text-white selection:bg-mint-400 selection:text-slate-950 font-sans" dir="rtl">
       <Navbar />
 
       {/* Hero Banner */}
-      <section className="relative py-20 px-6 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
+      <section className="relative py-12 sm:py-20 px-4 sm:px-12 lg:px-16 overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 z-0 opacity-20">
           <Image
             src="/images/hero-bg.jpg"
@@ -71,7 +71,7 @@ export default function AboutPage() {
             unoptimized
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070c12]/85 via-[#070c12] to-[#070c12]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050811]/85 via-[#050811] to-[#050811]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center space-y-4">
@@ -80,7 +80,7 @@ export default function AboutPage() {
             <span>המהפכה של עולם התיירות</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
             אודות Wanderlust VoyageAI
           </h1>
 
@@ -91,37 +91,37 @@ export default function AboutPage() {
       </section>
 
       {/* Story & Vision */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-16 space-y-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <main className="max-w-7xl mx-auto px-4 sm:px-12 lg:px-16 py-10 sm:py-16 space-y-14 sm:space-y-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center">
           <div className="lg:col-span-6 space-y-5">
             <div className="flex items-center gap-2 text-mint-400 text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-4 h-4" />
               <span>החזון שלנו</span>
             </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white leading-tight">
+            <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white leading-tight">
               תכנון טיולים כבר לא צריך להיות עבודה במשרה מלאה.
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
               לפני Wanderlust, תכנון חופשה מורכבת דרש ימים של חיפוש טיסות, קריאת מאות ביקורות על מלונות, חישובי תקציב מייגעים באקסל וניסיונות להרכיב לו&quot;ז שלא יתיש אותך בנסיעות.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed">
-              הקמנו את Wanderlust במטרה להעמיד לרשות כל מטייל <strong>חמ&quot;ל תיירותי אוטונומי</strong>. ארבעה סוכני AI מתמחים, המופעלים על ידי מודלי השפה המתקדמים בעולם, שמשתפים פעולה בזמן אמת כדי להרכיב עבורך מסע מדויק, מרגש ובטוח כלכלית.
+              הקמנו את Wanderlust במטרה להעמיד לרשות כל מטייל <strong>חמ&quot;ל תיירותי אוטונומי</strong>. 15 סוכני AI מתמחים, המופעלים על ידי מודלי השפה המתקדמים בעולם, שמשתפים פעולה בזמן אמת כדי להרכיב עבורך מסע מדויק, מרגש ובטוח כלכלית.
             </p>
 
-            <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-200">
+            <div className="pt-2 flex flex-wrap gap-2.5 sm:gap-4 text-xs font-semibold text-slate-200">
               <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                <CheckCircle2 className="w-4 h-4 text-mint-400" /> שקיפות מלאה בזמן אמת
+                <CheckCircle2 className="w-4 h-4 text-mint-400 shrink-0" /> שקיפות מלאה בזמן אמת
               </span>
               <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                <CheckCircle2 className="w-4 h-4 text-mint-400" /> אפס עמלות תיווך נסתרות
+                <CheckCircle2 className="w-4 h-4 text-mint-400 shrink-0" /> אפס עמלות תיווך נסתרות
               </span>
               <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                <CheckCircle2 className="w-4 h-4 text-mint-400" /> עמידה קפדנית בתקציב
+                <CheckCircle2 className="w-4 h-4 text-mint-400 shrink-0" /> עמידה קפדנית בתקציב
               </span>
             </div>
           </div>
 
-          <div className="lg:col-span-6 relative h-96 rounded-3xl overflow-hidden border border-white/15 shadow-2xl">
+          <div className="lg:col-span-6 relative h-72 sm:h-96 rounded-3xl overflow-hidden border border-white/15 shadow-2xl">
             <Image
               src="https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop"
               alt="Our vision"
@@ -129,8 +129,8 @@ export default function AboutPage() {
               unoptimized
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#070c12] via-transparent to-transparent" />
-            <div className="absolute bottom-6 right-6 left-6 wanderlust-glass p-4 rounded-2xl border border-white/15">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-transparent to-transparent" />
+            <div className="absolute bottom-4 right-4 left-4 sm:bottom-6 sm:right-6 sm:left-6 wanderlust-glass p-4 rounded-2xl border border-white/15">
               <div className="text-xs font-bold text-white mb-1">
                 ארכיטקטורה רב-סוכנית אוטונומית (Multi-Agent System)
               </div>
@@ -141,36 +141,36 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* The 4 Agents Section */}
+        {/* Core Agents Section */}
         <section className="space-y-8">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs px-3 py-1 rounded-full bg-mint-500/10 text-mint-300 border border-mint-500/20 font-bold uppercase tracking-wider">
               הצוות הדיגיטלי שלך
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">
-              הכירו את 4 סוכני ה-AI שפועלים עבורכם
+            <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white">
+              הכירו את ליבת סוכני ה-AI שפועלים עבורכם
             </h2>
             <p className="text-xs text-slate-400">
               כל סוכן מומחה בתחומו ומבצע אינטראקציה הדדית עם יתר הסוכנים כדי להבטיח תוכנית נטולת פשרות.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             {AGENTS_DETAILS.map((agent, idx) => {
               const IconComp = agent.icon;
 
               return (
                 <div
                   key={idx}
-                  className="wanderlust-glass-card rounded-3xl p-6 sm:p-8 border border-white/15 space-y-4 hover:border-mint-500/30 transition-all flex flex-col justify-between"
+                  className="wanderlust-glass-card rounded-3xl p-5 sm:p-8 border border-white/15 space-y-4 hover:border-mint-500/30 transition-all flex flex-col justify-between"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-2xl bg-gradient-to-br border ${agent.color}`}>
+                      <div className={`p-3 rounded-2xl bg-gradient-to-br border ${agent.color} shrink-0`}>
                         <IconComp className="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="font-serif text-xl font-bold text-white">
+                        <h3 className="font-serif text-lg sm:text-xl font-bold text-white">
                           {agent.title}
                         </h3>
                         <span className="text-[11px] font-mono text-slate-400">
@@ -206,7 +206,7 @@ export default function AboutPage() {
         </section>
 
         {/* Technology Stack & Architecture */}
-        <section className="wanderlust-glass rounded-3xl p-8 sm:p-12 border border-white/15 space-y-8">
+        <section className="wanderlust-glass rounded-3xl p-5 sm:p-12 border border-white/15 space-y-6 sm:space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-2">
             <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white">
               הטכנולוגיה שמתחת למכסה המנוע
@@ -216,7 +216,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-right">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-right">
             <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-2">
               <Bot className="w-6 h-6 text-mint-400" />
               <div className="font-bold text-sm text-white">Agno Multi-Agent</div>
@@ -252,8 +252,8 @@ export default function AboutPage() {
         </section>
 
         {/* CTA to start planning */}
-        <section className="text-center space-y-6 pt-4">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">
+        <section className="text-center space-y-5 pt-2 sm:pt-4">
+          <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white">
             מוכנים לצאת למסע הבא שלכם?
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
@@ -262,7 +262,7 @@ export default function AboutPage() {
           <button
             type="button"
             onClick={() => router.push("/#planner-form")}
-            className="btn-mint px-8 py-4 rounded-full text-xs font-bold inline-flex items-center gap-2 shadow-2xl"
+            className="btn-mint w-full sm:w-auto px-8 py-4 rounded-full text-xs font-bold inline-flex items-center justify-center gap-2 shadow-2xl"
           >
             <span>התחל תכנון טיול עם AI עכשיו</span>
             <ArrowLeft className="w-4 h-4" />

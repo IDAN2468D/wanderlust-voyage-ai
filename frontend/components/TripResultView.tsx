@@ -331,17 +331,17 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
   return (
     <>
-      <div className="wanderlust-glass rounded-[32px] p-6 sm:p-8 shadow-2xl space-y-7 border border-white/15 relative overflow-hidden font-sans" dir="rtl">
+      <div className="wanderlust-glass rounded-2xl sm:rounded-[32px] p-4 sm:p-8 shadow-2xl space-y-6 sm:space-y-7 border border-white/15 relative overflow-hidden font-sans" dir="rtl">
         {/* Accent Glow Line */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-mint-400 via-teal-400 to-indigo-500 shadow-sm" />
 
         {/* Top Header & Fast Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-white/10">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5 pb-5 border-b border-white/10">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-[11px] px-3 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-400/30 font-bold tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-mint-400" />
-                תוכנית אוטונומית סונתזה על ידי 7 סוכנים
+                תוכנית אוטונומית סונתזה על ידי 15 סוכנים
               </span>
               {budgetStatus && (
                 <span
@@ -356,7 +356,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 </span>
               )}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-serif font-bold text-white tracking-tight">
               חופשת החלומות ב{destination} ({durationDays} ימים)
             </h2>
             <p className="text-xs text-slate-400 mt-1">
@@ -365,12 +365,12 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           </div>
 
           {/* Primary CTA & Tools */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             {totalEstimated !== null && (
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(true)}
-                className="btn-mint flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold shadow-xl hover:scale-105 transition"
+                className="w-full sm:w-auto btn-mint flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-2xl text-xs font-bold shadow-xl hover:scale-105 transition"
               >
                 <CreditCard className="w-4 h-4" />
                 <span>הזמן הכל עכשיו ({formatPrice(totalEstimated)})</span>
@@ -379,7 +379,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-xs px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition font-medium"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 text-xs px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition font-medium"
               title="העתק תוכנית מסע"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
@@ -388,7 +388,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 text-xs px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition font-medium"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 text-xs px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition font-medium"
               title="הדפסה או שמירה כקובץ PDF"
             >
               <Printer className="w-3.5 h-3.5 text-slate-400" />
@@ -400,15 +400,15 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
         {/* =========================================================================
             GOOGLE WORKSPACE 1-CLICK SYNC HUB (Google Flow MCP Integration)
         ========================================================================= */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 via-indigo-500/10 to-transparent border border-mint-400/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 via-indigo-500/10 to-transparent border border-mint-400/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-right">
-            <div className="p-2.5 rounded-xl bg-mint-400/15 text-mint-300 border border-mint-400/30">
+            <div className="p-2.5 rounded-xl bg-mint-400/15 text-mint-300 border border-mint-400/30 shrink-0">
               <Zap className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-white flex items-center gap-1.5">
+              <div className="text-xs font-bold text-white flex flex-wrap items-center gap-1.5">
                 <span>סנכרון חכם ל-Google Workspace</span>
-                <span className="text-[9px] px-2 py-0.2 rounded-full bg-mint-400/20 text-mint-300 font-mono">Google Flow MCP</span>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-mint-400/20 text-mint-300 font-mono">Google Flow MCP</span>
               </div>
               <div className="text-[11px] text-slate-400">
                 ייצאו את לוח הטיסות, המלונות והתדריך ישירות לחשבון הגוגל שלכם בלחיצה אחת.
@@ -416,67 +416,67 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full lg:w-auto">
             <button
               type="button"
               onClick={handleCalendarSync}
               disabled={calendarSyncLoading}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition hover:scale-105"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-[11px] sm:text-xs font-semibold text-white transition"
             >
-              <Calendar className="w-3.5 h-3.5 text-mint-400" />
-              <span>{calendarSyncLoading ? "מסנכרן..." : "📅 סנכרן ליומן גוגל"}</span>
+              <Calendar className="w-3.5 h-3.5 text-mint-400 shrink-0" />
+              <span className="truncate">{calendarSyncLoading ? "מסנכרן..." : "סנכרן ליומן"}</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownloadIcs}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition hover:scale-105 cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-[11px] sm:text-xs font-semibold text-white transition cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-cyan-400" />
-              <span>📥 הורד קובץ יומן (.ics)</span>
+              <Download className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span className="truncate">קובץ יומן (.ics)</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsEmailModalOpen(true)}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition hover:scale-105"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-[11px] sm:text-xs font-semibold text-white transition"
             >
-              <Mail className="w-3.5 h-3.5 text-blue-400" />
-              <span>✉️ שלח תדריך למייל</span>
+              <Mail className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span className="truncate">שלח למייל</span>
             </button>
 
             <button
               type="button"
               onClick={handleExportGoogleDoc}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition hover:scale-105"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-[11px] sm:text-xs font-semibold text-white transition"
             >
-              <FileText className="w-3.5 h-3.5 text-indigo-400" />
-              <span>📄 פתח ב-Google Docs</span>
+              <FileText className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <span className="truncate">Google Docs</span>
             </button>
           </div>
         </div>
 
         {/* Metrics Banner with Currency Conversion */}
         {totalEstimated !== null && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-mint-400/40 transition-colors text-right">
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-mint-400/40 transition-colors text-right">
+              <div className="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
+                <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
                 עלות כוללת משוערת
               </div>
-              <div className="text-xl font-serif font-black text-white">
+              <div className="text-lg sm:text-xl font-serif font-black text-white">
                 {formatPrice(totalEstimated)}{" "}
                 <span className="text-xs font-normal text-slate-400">{currencyConfig.code}</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-indigo-400/40 transition-colors text-right">
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-indigo-400/40 transition-colors text-right">
+              <div className="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
+                <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
                 עודף / כרית ביטחון 10%
               </div>
               <div
-                className={`text-xl font-serif font-black ${
+                className={`text-lg sm:text-xl font-serif font-black ${
                   (remainingBalance ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
@@ -486,23 +486,23 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-blue-400/40 transition-colors text-right">
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
-                <Plane className="w-4 h-4 text-blue-400" />
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-blue-400/40 transition-colors text-right">
+              <div className="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
+                <Plane className="w-4 h-4 text-blue-400 shrink-0" />
                 הקצאת טיסות
               </div>
-              <div className="text-xl font-serif font-black text-white">
+              <div className="text-lg sm:text-xl font-serif font-black text-white">
                 {flightCost ? formatPrice(flightCost) : "כלול"}{" "}
                 <span className="text-xs font-normal text-slate-400">{currencyConfig.code}</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-cyan-400/40 transition-colors text-right">
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
-                <BedDouble className="w-4 h-4 text-cyan-400" />
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-cyan-400/40 transition-colors text-right">
+              <div className="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 mb-1.5 font-medium">
+                <BedDouble className="w-4 h-4 text-cyan-400 shrink-0" />
                 הקצאת מלונות ולינה
               </div>
-              <div className="text-xl font-serif font-black text-white">
+              <div className="text-lg sm:text-xl font-serif font-black text-white">
                 {hotelCost ? formatPrice(hotelCost) : "כלול"}{" "}
                 <span className="text-xs font-normal text-slate-400">{currencyConfig.code}</span>
               </div>
@@ -510,11 +510,11 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           </div>
         )}
 
-        {/* Feature Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3 text-xs font-semibold">
+        {/* Feature Navigation Tabs (Horizontal Snap Strip on Mobile, Multi-row Wrap on Desktop) */}
+        <div className="snap-strip no-scrollbar sm:flex sm:flex-wrap sm:overflow-visible items-center gap-2 border-b border-white/10 pb-3 text-xs font-semibold">
           <button
             onClick={() => setActiveTab("itinerary")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "itinerary"
                 ? "bg-mint-500/20 text-mint-300 border border-mint-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -526,7 +526,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("transit")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "transit"
                 ? "bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -538,7 +538,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("culinary")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "culinary"
                 ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -550,7 +550,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("shopping")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "shopping"
                 ? "bg-pink-500/20 text-pink-300 border border-pink-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -562,7 +562,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("whatsapp")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "whatsapp"
                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -574,7 +574,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("sentinel")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "sentinel"
                 ? "bg-red-500/20 text-red-300 border border-red-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -586,7 +586,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("weather")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "weather"
                 ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -598,7 +598,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("safety")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "safety"
                 ? "bg-rose-500/20 text-rose-300 border border-rose-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -610,7 +610,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("events")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "events"
                 ? "bg-indigo-500/20 text-indigo-300 border border-indigo-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -622,7 +622,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("budget")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "budget"
                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -634,7 +634,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("rag_reasoning")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "rag_reasoning"
                 ? "bg-violet-500/20 text-violet-300 border border-violet-400/40 shadow-md"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -646,7 +646,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           <button
             onClick={() => setActiveTab("raw")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "raw"
                 ? "bg-slate-700 text-white"
                 : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
@@ -664,14 +664,14 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           <div className="space-y-6">
             {/* Recommended Flight Card */}
             {recommendedFlight && (
-              <div className="p-5 rounded-2xl bg-black/40 border border-white/10 hover:border-blue-400/40 transition text-right relative overflow-hidden">
+              <div className="p-4 sm:p-5 rounded-2xl bg-black/40 border border-white/10 hover:border-blue-400/40 transition text-right relative overflow-hidden">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-blue-500/15 text-blue-400">
+                    <div className="p-2 rounded-xl bg-blue-500/15 text-blue-400 shrink-0">
                       <Plane className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <div className="text-xs font-bold text-white flex flex-wrap items-center gap-2">
                         <span>{recommendedFlight.airline}</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 font-mono">
                           {recommendedFlight.flight_number}
@@ -681,8 +681,8 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="text-left sm:text-right">
+                  <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
+                    <div className="text-right">
                       <div className="text-xs text-slate-400">מחיר משוער</div>
                       <div className="text-base font-black text-white">{formatPrice(recommendedFlight.price_usd)}</div>
                     </div>
@@ -691,7 +691,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                         href={recommendedFlight.booking_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-mint px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md hover:scale-105 transition"
+                        className="btn-mint px-3.5 py-2.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md hover:scale-105 transition"
                       >
                         <span>הזמן טיסה ב-Google Flights</span>
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -723,14 +723,14 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
             {/* Selected Hotel Card */}
             {selectedHotel && (
-              <div className="p-5 rounded-2xl bg-black/40 border border-white/10 hover:border-cyan-400/40 transition text-right relative overflow-hidden">
+              <div className="p-4 sm:p-5 rounded-2xl bg-black/40 border border-white/10 hover:border-cyan-400/40 transition text-right relative overflow-hidden">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400">
+                    <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400 shrink-0">
                       <BedDouble className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white flex items-center gap-2">
+                      <div className="text-xs font-bold text-white flex flex-wrap items-center gap-2">
                         <span>{selectedHotel.name}</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-bold">
                           ★ {selectedHotel.rating} / 5.0
@@ -740,8 +740,8 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="text-left sm:text-right">
+                  <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
+                    <div className="text-right">
                       <div className="text-xs text-slate-400">לילה / סה"כ ל-{durationDays} לילות</div>
                       <div className="text-base font-black text-white">
                         {formatPrice(selectedHotel.nightly_rate_usd)} / {formatPrice(selectedHotel.nightly_rate_usd * durationDays)}
@@ -752,7 +752,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                         href={selectedHotel.google_maps_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white flex items-center gap-1.5 transition hover:scale-105"
+                        className="px-3.5 py-2.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white flex items-center gap-1.5 transition hover:scale-105"
                       >
                         <MapPin className="w-3.5 h-3.5 text-mint-400" />
                         <span>צפה במפה</span>
@@ -775,7 +775,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
             {/* Structured Daily Schedule Accordion */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-lg font-serif font-bold text-white">תוכנית יומית מפורטת</h3>
                 <span className="text-xs text-slate-400">{durationDays} ימים מתוכננים בהתאמה אישית</span>
               </div>
@@ -792,29 +792,29 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                       <button
                         type="button"
                         onClick={() => toggleDay(day.day_number)}
-                        className="w-full p-4.5 px-5 flex items-center justify-between text-right bg-white/[0.03] hover:bg-white/[0.06] transition"
+                        className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-right bg-white/[0.03] hover:bg-white/[0.06] transition"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="w-7 h-7 rounded-xl bg-mint-500/20 text-mint-300 border border-mint-400/30 flex items-center justify-center font-bold text-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-7 h-7 rounded-xl bg-mint-500/20 text-mint-300 border border-mint-400/30 flex items-center justify-center font-bold text-xs shrink-0">
                             {day.day_number}
                           </span>
-                          <div>
-                            <div className="font-bold text-sm text-white">{day.title}</div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-sm text-white truncate">{day.title}</div>
                             <div className="text-[11px] text-slate-400">{day.date_formatted}</div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-slate-400 shrink-0">
                           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>
                       </button>
 
                       {/* Day Details */}
                       {isOpen && (
-                        <div className="p-5 space-y-4 border-t border-white/5 text-xs">
+                        <div className="p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 border-t border-white/5 text-xs">
                           {/* Morning */}
                           <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-                            <div className="flex items-center justify-between text-mint-300 font-bold">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-mint-300 font-bold">
                               <span>🌅 בוקר ({day.morning.time})</span>
                               {day.morning.maps_url && (
                                 <a
@@ -837,7 +837,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
                           {/* Afternoon */}
                           <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-                            <div className="flex items-center justify-between text-amber-300 font-bold">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-amber-300 font-bold">
                               <span>☀️ צהריים ({day.afternoon.time})</span>
                               {day.afternoon.dining_maps_url && (
                                 <a
@@ -1793,7 +1793,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
         {/* =========================================================================
             EXPRESS BOOKING & CHECKOUT RUNWAY (Productive High-Velocity Transition)
         ========================================================================= */}
-        <div className="wanderlust-glass rounded-3xl p-6 sm:p-8 border border-mint-400/40 shadow-2xl space-y-6 text-right relative overflow-hidden bg-gradient-to-b from-[#0e1726]/95 to-[#080d16]/95">
+        <div className="wanderlust-glass rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-mint-400/40 shadow-2xl space-y-5 sm:space-y-6 text-right relative overflow-hidden bg-gradient-to-b from-[#0e1726]/95 to-[#080d16]/95">
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-mint-500/10 blur-3xl pointer-events-none" />
 
           {/* Header Strip with 3-Step Milestone */}
@@ -1807,12 +1807,12 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 מעבר ישיר להזמנת החופשה ל-{destination}
               </h3>
               <p className="text-xs text-slate-300">
-                כל הטיסות, המלונות ותוכנית הימים סונכרנו ע״י 7 הסוכנים ומוכנים לכרטוס.
+                כל הטיסות, המלונות ותוכנית הימים סונכרנו ע״י 15 הסוכנים ומוכנים לכרטוס.
               </p>
             </div>
 
             {/* 3 Step Visual Flow */}
-            <div className="flex items-center gap-2 text-xs font-semibold">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>1. תוכנית הושלמה</span>
@@ -1865,7 +1865,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
           {/* Action Row & Supported Payment Badges */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-400">
               <span>תשלום מאובטח ב:</span>
               <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white font-medium text-[11px]">
                 💳 כרטיס אשראי (עד 12 תשלומים)
@@ -1884,10 +1884,10 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             <button
               type="button"
               onClick={() => setIsPaymentModalOpen(true)}
-              className="w-full sm:w-auto btn-mint px-8 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition whitespace-nowrap"
+              className="w-full sm:w-auto btn-mint px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition"
             >
               <span>המשך להזמנה ולסליקה מאובטחת ({formatPrice(totalEstimated)})</span>
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 shrink-0" />
             </button>
           </div>
         </div>
@@ -1896,7 +1896,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
       {/* Gmail / Resend Briefing Dispatch Modal */}
       {isEmailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" dir="rtl">
-          <div className="wanderlust-glass rounded-3xl p-6 sm:p-7 max-w-md w-full border border-white/20 shadow-2xl relative">
+          <div className="wanderlust-glass rounded-2xl sm:rounded-3xl p-5 sm:p-7 max-w-md w-full border border-white/20 shadow-2xl relative max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2.5 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
                 <Mail className="w-5 h-5" />
@@ -1930,7 +1930,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
                     placeholder="your-email@example.com"
-                    className="w-full p-3 rounded-xl bg-black/50 border border-white/15 text-white text-xs focus:outline-none focus:border-mint-400 transition"
+                    className="w-full p-3 rounded-xl bg-black/50 border border-white/15 text-white text-base sm:text-xs focus:outline-none focus:border-mint-400 transition"
                     dir="ltr"
                   />
                 </div>
@@ -1964,8 +1964,8 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           FLOATING SPEED-CHECKOUT DOCK (Always accessible while reading plan)
       ========================================================================= */}
       {totalEstimated !== null && !isStickyDockDismissed && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-xl animate-fade-in" dir="rtl">
-          <div className="wanderlust-glass rounded-2xl p-3 sm:px-5 sm:py-2.5 border border-mint-400/50 shadow-2xl shadow-black/90 flex items-center justify-between gap-3 bg-[#0a101b]/95 backdrop-blur-2xl">
+        <div className="fixed bottom-[88px] md:bottom-5 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-xl animate-fade-in" dir="rtl">
+          <div className="wanderlust-glass rounded-2xl p-2.5 sm:px-5 sm:py-2.5 border border-mint-400/50 shadow-2xl shadow-black/90 flex items-center justify-between gap-2.5 sm:gap-3 bg-[#0a101b]/95 backdrop-blur-2xl">
             <div className="flex items-center gap-2.5 overflow-hidden">
               <div className="w-8 h-8 rounded-xl bg-mint-500/20 border border-mint-400/40 text-mint-300 flex items-center justify-center shrink-0">
                 <Plane className="w-4 h-4" />
@@ -1980,11 +1980,11 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(true)}
-                className="btn-mint px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-lg hover:scale-105 transition"
+                className="btn-mint px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-lg hover:scale-105 transition"
               >
                 <span>הזמן עכשיו</span>
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -1993,7 +1993,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsStickyDockDismissed(true)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+                className="p-2 sm:p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
                 title="סגור פס צף"
                 aria-label="סגור פס צף"
               >
