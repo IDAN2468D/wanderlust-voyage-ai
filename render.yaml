@@ -20,15 +20,15 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_REDIRECT_URI
-        sync: false
+        value: https://wanderlust-frontend-rvw9.onrender.com/api/auth/callback/google
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        value: https://wanderlust-frontend-rvw9.onrender.com
       - key: ALLOWED_ORIGINS
-        value: http://localhost:3000,http://127.0.0.1:3000,*
+        value: https://wanderlust-frontend-rvw9.onrender.com,http://localhost:3000,http://127.0.0.1:3000,*
 
 databases:
   - name: wanderlust-db

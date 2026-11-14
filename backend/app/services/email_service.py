@@ -28,7 +28,17 @@ class EmailService:
     def __init__(self):
         self.api_key = settings.RESEND_API_KEY.strip() if settings.RESEND_API_KEY else ""
         self.from_email = settings.RESEND_FROM_EMAIL or "Wanderlust Voyage AI <onboarding@resend.dev>"
-        self.frontend_url = settings.FRONTEND_URL or "http://localhost:3000"
+
+    @property
+    def frontend_url(self) -> str:
+        return settings.effective_frontend_url
+
+    def resolve_frontend_url(self, request_origin: Optional[str] = None) -> str:
+        """Resolve public Render/production frontend URL from request Origin or config."""
+        origin = (request_origin or "").strip().rstrip("/")
+        if origin.startswith("https://") and "localhost" not in origin and "127.0.0.1" not in origin:
+            return origin
+        return self.frontend_url
 
     @property
     def is_live_configured(self) -> bool:
@@ -121,6 +131,7 @@ class EmailService:
         total_estimated_usd: float,
         markdown_plan: str,
         recipient_name: Optional[str] = None,
+        frontend_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Dispatches an executive trip briefing email."""
         subject = f"✈️ תדריך הנסיעה שלך ל{destination} ({duration_days} ימים) - Wanderlust Voyage AI"
@@ -129,7 +140,7 @@ class EmailService:
             duration_days=duration_days,
             total_estimated_usd=total_estimated_usd,
             markdown_plan=markdown_plan,
-            frontend_url=self.frontend_url,
+            frontend_url=frontend_url or self.frontend_url,
             recipient_name=recipient_name or "מטייל יקר",
         )
         return await self.send_email(
@@ -142,13 +153,14 @@ class EmailService:
         self,
         email: str,
         full_name: Optional[str] = None,
+        frontend_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Sends a welcome onboarding email to a newly registered user."""
         subject = "🌍 ברוך הבא ל-Wanderlust Voyage AI!"
         html_body = render_welcome_html(
             email=email,
             full_name=full_name,
-            frontend_url=self.frontend_url,
+            frontend_url=frontend_url or self.frontend_url,
         )
         return await self.send_email(
             to_email=email,
@@ -161,9 +173,11 @@ class EmailService:
         email: str,
         reset_token: str,
         recipient_name: Optional[str] = None,
+        frontend_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Sends a secure password reset link to the user."""
-        reset_url = f"{self.frontend_url}/login?action=reset-password&token={reset_token}"
+        base_url = (frontend_url or self.frontend_url).rstrip("/")
+        reset_url = f"{base_url}/login?action=reset-password&token={reset_token}"
         subject = "🔒 איפוס סיסמה לחשבונך - Wanderlust Voyage AI"
         html_body = render_password_reset_html(
             email=email,
@@ -182,6 +196,7 @@ class EmailService:
         holiday_name: str,
         flights: List[Dict[str, Any]],
         search_links: Optional[Dict[str, str]] = None,
+        frontend_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Dispatches TLV holiday flight board results."""
         subject = f"🛫 לוח טיסות מומלצות מנתב״ג לחופשת {holiday_name} - Wanderlust"
@@ -189,7 +204,7 @@ class EmailService:
             holiday_name=holiday_name,
             flights=flights,
             search_links=search_links,
-            frontend_url=self.frontend_url,
+            frontend_url=frontend_url or self.frontend_url,
         )
         return await self.send_email(
             to_email=recipient_email,
@@ -230,6 +245,7 @@ class EmailService:
         customer_name: Optional[str] = None,
         flight_portion: Optional[float] = None,
         hotel_portion: Optional[float] = None,
+        frontend_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Dispatches an executive booking confirmation and flight/hotel voucher."""
         subject = f"🎉 אישור הזמנה #{booking_ref}: חופשתך ל-{destination} שוריינה בהצלחה! - Wanderlust"
@@ -242,7 +258,7 @@ class EmailService:
             customer_name=customer_name,
             flight_portion=flight_portion,
             hotel_portion=hotel_portion,
-            frontend_url=self.frontend_url,
+            frontend_url=frontend_url or self.frontend_url,
         )
         return await self.send_email(
             to_email=recipient_email,
@@ -257,6 +273,7 @@ class EmailService:
         edition_number: int,
         dispatch_date_il: str,
         recipient_name: Optional[str] = None,
+        frontend_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Dispatches a curated, rotating travel news newsletter digest via Resend."""
         headline = edition_data.get("headline", "עדכוני נסיעות חמים")
@@ -267,7 +284,7 @@ class EmailService:
             edition_number=edition_number,
             dispatch_date_il=dispatch_date_il,
             recipient_name=recipient_name,
-            frontend_url=self.frontend_url,
+            frontend_url=frontend_url or self.frontend_url,
         )
         res = await self.send_email(
             to_email=recipient_email,

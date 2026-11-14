@@ -45,9 +45,10 @@ class Settings(BaseSettings):
         default="AgentTravelPlanner <onboarding@resend.dev>",
         description="Sender email identity approved in Resend",
     )
+    PRODUCTION_FRONTEND_URL: str = "https://wanderlust-frontend-rvw9.onrender.com"
     FRONTEND_URL: str = Field(
-        default="http://localhost:3000",
-        description="Public frontend web application URL",
+        default="https://wanderlust-frontend-rvw9.onrender.com",
+        description="Public frontend web application URL (Render production URL by default)",
     )
 
     # Database (Render DATABASE_URL or Docker/Local PostgreSQL with SQLite fallback)
@@ -62,11 +63,29 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
 
     # CORS
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,*"
+    ALLOWED_ORIGINS: str = "https://wanderlust-frontend-rvw9.onrender.com,http://localhost:3000,http://127.0.0.1:3000,*"
 
     @property
     def cors_origins(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
+
+    @property
+    def is_production_runtime(self) -> bool:
+        return (
+            self.APP_ENV.lower() == "production"
+            or bool(os.getenv("RENDER"))
+            or bool(os.getenv("RENDER_EXTERNAL_URL"))
+        )
+
+    @property
+    def effective_frontend_url(self) -> str:
+        """Returns the public Render frontend URL for email links and callbacks."""
+        raw = (self.FRONTEND_URL or os.getenv("FRONTEND_URL", "")).strip().rstrip("/")
+        if raw and "localhost" not in raw and "127.0.0.1" not in raw:
+            return raw
+        if self.is_production_runtime or not raw or "localhost" in raw or "127.0.0.1" in raw:
+            return self.PRODUCTION_FRONTEND_URL.rstrip("/")
+        return raw
 
     @staticmethod
     def _normalize_db_url(raw_url: str) -> str:

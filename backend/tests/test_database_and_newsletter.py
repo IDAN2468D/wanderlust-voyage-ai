@@ -172,3 +172,19 @@ def test_newsletter_preview_endpoint():
     assert p1.status_code == 200
     assert p0.json()["edition"]["edition_id"] != p1.json()["edition"]["edition_id"]
     assert 'dir="rtl"' in p0.json()["html"]
+    assert "https://wanderlust-frontend-rvw9.onrender.com/#planner-form" in p0.json()["html"]
+    assert "http://localhost:3000" not in p0.json()["html"]
+
+
+def test_render_frontend_url_resolution(monkeypatch):
+    """Verify email links resolve to Render production URL even if FRONTEND_URL is unset or localhost."""
+    prod_settings = Settings(APP_ENV="production", FRONTEND_URL="http://localhost:3000")
+    assert prod_settings.effective_frontend_url == "https://wanderlust-frontend-rvw9.onrender.com"
+
+    monkeypatch.setenv("RENDER", "true")
+    render_settings = Settings(APP_ENV="development", FRONTEND_URL="")
+    assert render_settings.effective_frontend_url == "https://wanderlust-frontend-rvw9.onrender.com"
+
+    custom_settings = Settings(APP_ENV="production", FRONTEND_URL="https://custom.wanderlust.ai/")
+    assert custom_settings.effective_frontend_url == "https://custom.wanderlust.ai"
+

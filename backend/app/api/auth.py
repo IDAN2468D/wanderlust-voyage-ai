@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional
 import httpx
 from jose import jwt as jose_jwt
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Request, status, Depends, BackgroundTasks
 from app.api.schemas import (
     UserCreate,
     UserLogin,
@@ -61,6 +61,7 @@ init_db()
 async def register(
     user_in: UserCreate,
     background_tasks: BackgroundTasks,
+    http_request: Request,
     db: Session = Depends(get_db),
 ):
     """Register a new user account in the database, dispatch welcome email, and return a signed JWT access token."""
@@ -90,11 +91,14 @@ async def register(
     db.refresh(db_user)
     user_record = _sync_cache(db_user)
 
+    frontend_url = email_service.resolve_frontend_url(http_request.headers.get("origin"))
+
     # Dispatch welcome email asynchronously
     background_tasks.add_task(
         email_service.send_welcome_email,
         email=email_key,
         full_name=user_record["full_name"],
+        frontend_url=frontend_url,
     )
 
     access_token = create_access_token(
@@ -127,6 +131,7 @@ async def register(
 async def forgot_password(
     payload: ForgotPasswordRequest,
     background_tasks: BackgroundTasks,
+    http_request: Request,
     db: Session = Depends(get_db),
 ):
     """
@@ -141,11 +146,13 @@ async def forgot_password(
             data={"sub": email_key, "purpose": "password_reset"},
             expires_delta=timedelta(minutes=60),
         )
+        frontend_url = email_service.resolve_frontend_url(http_request.headers.get("origin"))
         background_tasks.add_task(
             email_service.send_password_reset,
             email=email_key,
             reset_token=reset_token,
             recipient_name=db_user.full_name,
+            frontend_url=frontend_url,
         )
         logger.info(f"Password reset token generated and queued for: {email_key}")
 

@@ -109,7 +109,7 @@ def render_trip_briefing_html(
     duration_days: int,
     total_estimated_usd: float,
     markdown_plan: str,
-    frontend_url: str = "http://localhost:3000",
+    frontend_url: str = "https://wanderlust-frontend-rvw9.onrender.com",
     recipient_name: str = "מטייל יקר",
 ) -> str:
     """Renders the official Trip Briefing email with dark luxe itinerary summary and action links."""
@@ -187,7 +187,7 @@ def render_trip_briefing_html(
 def render_welcome_html(
     email: str,
     full_name: Optional[str] = None,
-    frontend_url: str = "http://localhost:3000",
+    frontend_url: str = "https://wanderlust-frontend-rvw9.onrender.com",
 ) -> str:
     """Renders the Welcome email for newly registered users."""
     display_name = html.escape(full_name or email.split("@")[0].title())
@@ -283,7 +283,7 @@ def render_flight_board_html(
     holiday_name: str,
     flights: List[Dict[str, Any]],
     search_links: Optional[Dict[str, str]] = None,
-    frontend_url: str = "http://localhost:3000",
+    frontend_url: str = "https://wanderlust-frontend-rvw9.onrender.com",
 ) -> str:
     """Renders the Ben Gurion TLV Holiday Flight Board into an interactive email table."""
     safe_holiday = html.escape(holiday_name)
@@ -414,7 +414,7 @@ def render_booking_confirmation_html(
     customer_name: Optional[str] = None,
     flight_portion: Optional[float] = None,
     hotel_portion: Optional[float] = None,
-    frontend_url: str = "http://localhost:3000",
+    frontend_url: str = "https://wanderlust-frontend-rvw9.onrender.com",
 ) -> str:
     """Renders official trip order and flight/hotel booking confirmation receipt."""
     safe_dest = html.escape(destination)
@@ -514,7 +514,7 @@ def render_newsletter_html(
     edition_number: int = 1,
     dispatch_date_il: str = "",
     recipient_name: Optional[str] = None,
-    frontend_url: str = "http://localhost:3000",
+    frontend_url: str = "https://wanderlust-frontend-rvw9.onrender.com",
 ) -> str:
     """
     Renders a structured, designed Dark Luxe RTL newsletter email featuring rotating

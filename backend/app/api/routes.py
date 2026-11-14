@@ -4,7 +4,7 @@ import logging
 import urllib.parse
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -624,15 +624,20 @@ async def stream_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
 
 
 @core_router.post("/flights/send-board", response_model=EmailDispatchResponse)
-async def send_flight_board_email(payload: SendFlightBoardEmailRequest):
+async def send_flight_board_email(
+    payload: SendFlightBoardEmailRequest,
+    http_request: Request,
+):
     """
     Emails the computed TLV holiday flight board table to the user.
     """
+    frontend_url = email_service.resolve_frontend_url(http_request.headers.get("origin"))
     res = await email_service.send_flight_board(
         recipient_email=str(payload.recipient_email),
         holiday_name=payload.holiday_name,
         flights=payload.flights,
         search_links=payload.search_links,
+        frontend_url=frontend_url,
     )
     is_ok = res.get("status") in ["sent", "simulated"]
     return EmailDispatchResponse(
@@ -685,6 +690,7 @@ async def submit_contact_inquiry(
 @core_router.post("/bookings/confirm", response_model=EmailDispatchResponse)
 async def send_booking_confirmation(
     payload: BookingConfirmationRequest,
+    http_request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -736,6 +742,7 @@ async def send_booking_confirmation(
         db.rollback()
         logger.warning(f"Could not persist booking #{payload.booking_ref} to DB: {exc}")
 
+    frontend_url = email_service.resolve_frontend_url(http_request.headers.get("origin"))
     res = await email_service.send_booking_confirmation(
         recipient_email=str(payload.recipient_email),
         booking_ref=payload.booking_ref,
@@ -746,6 +753,7 @@ async def send_booking_confirmation(
         customer_name=payload.customer_name,
         flight_portion=payload.flight_portion,
         hotel_portion=payload.hotel_portion,
+        frontend_url=frontend_url,
     )
     is_ok = res.get("status") in ["sent", "simulated"]
     logger.info(f"Dispatched booking confirmation for #{payload.booking_ref} to {payload.recipient_email}")
@@ -880,6 +888,7 @@ async def list_saved_trips(
 @core_router.post("/newsletter/subscribe", response_model=NewsletterSubscribeResponse)
 async def subscribe_newsletter(
     payload: NewsletterSubscribeRequest,
+    http_request: Request,
     db: Session = Depends(get_db),
 ):
     """
@@ -930,12 +939,15 @@ async def subscribe_newsletter(
     db.commit()
     db.refresh(subscriber)
 
+    frontend_url = email_service.resolve_frontend_url(http_request.headers.get("origin"))
+
     send_res = await email_service.send_newsletter_digest(
         recipient_email=clean_email,
         edition_data=edition,
         edition_number=new_edition_num,
         dispatch_date_il=dispatch_date_il,
         recipient_name=subscriber.full_name,
+        frontend_url=frontend_url,
     )
     delivery_status = str(send_res.get("status", "simulated"))
     is_ok = delivery_status in ("sent", "simulated")
@@ -974,6 +986,7 @@ async def subscribe_newsletter(
 
 @core_router.get("/newsletter/preview")
 async def preview_newsletter_edition(
+    http_request: Request,
     edition_index: int = Query(default=0, ge=0),
     email: str = Query(default="traveler@wanderlust.ai"),
 ):
@@ -981,12 +994,13 @@ async def preview_newsletter_edition(
     edition = select_rotating_edition(previous_editions_sent=edition_index)
     dispatch_date_il = get_israeli_dispatch_date()
     edition_number = (edition_index % len(NEWSLETTER_EDITIONS)) + 1
+    frontend_url = email_service.resolve_frontend_url(http_request.headers.get("origin"))
     html_preview = render_newsletter_html(
         recipient_email=email,
         edition_data=edition,
         edition_number=edition_number,
         dispatch_date_il=dispatch_date_il,
-        frontend_url=email_service.frontend_url,
+        frontend_url=frontend_url,
     )
     return {
         "status": "SUCCESS",
