@@ -507,3 +507,167 @@ def render_booking_confirmation_html(
     """
     return _base_email_wrapper(content, preview_text=f"אישור הזמנה רשמי #{booking_ref} עבור {destination}")
 
+
+def render_newsletter_html(
+    recipient_email: str,
+    edition_data: Dict[str, Any],
+    edition_number: int = 1,
+    dispatch_date_il: str = "",
+    recipient_name: Optional[str] = None,
+    frontend_url: str = "http://localhost:3000",
+) -> str:
+    """
+    Renders a structured, designed Dark Luxe RTL newsletter email featuring rotating
+    travel news stories, deal of the week, and AI agent tip.
+    """
+    safe_name = html.escape(recipient_name or recipient_email.split("@")[0].title())
+    safe_badge = html.escape(str(edition_data.get("edition_badge", "מהדורת חדשות המטיילים")))
+    safe_headline = html.escape(str(edition_data.get("headline", "חדשות תעופה, יעדים ודילים חמים")))
+    safe_subheadline = html.escape(str(edition_data.get("subheadline", "")))
+    safe_date = html.escape(dispatch_date_il or "")
+
+    breaking = edition_data.get("breaking_story") or {}
+    breaking_tag = html.escape(str(breaking.get("tag", "מבזק מיוחד")))
+    breaking_title = html.escape(str(breaking.get("title", "")))
+    breaking_summary = html.escape(str(breaking.get("summary", "")))
+    breaking_dest = html.escape(str(breaking.get("destination", "")))
+    breaking_stat = html.escape(str(breaking.get("highlight_stat", "")))
+
+    news_cards_html = ""
+    for item in edition_data.get("news_items") or []:
+        cat = html.escape(str(item.get("category", "עדכון")))
+        accent = html.escape(str(item.get("accent_color", "#2dd4bf")))
+        title = html.escape(str(item.get("title", "")))
+        summary = html.escape(str(item.get("summary", "")))
+        tag = html.escape(str(item.get("tag", "חדש")))
+        cta_label = html.escape(str(item.get("cta_label", "לפרטים באתר")))
+        cta_path = str(item.get("cta_path", "/"))
+        cta_href = f"{frontend_url.rstrip('/')}{cta_path}" if cta_path.startswith("/") else cta_path
+
+        news_cards_html += f"""
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-right: 4px solid {accent}; border-radius: 14px; margin-bottom: 14px;">
+            <tr>
+                <td style="padding: 16px 18px; text-align: right;" dir="rtl">
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: rgba(255, 255, 255, 0.08); color: {accent}; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; display: inline-block;">
+                            {cat}
+                        </span>
+                        <span style="font-size: 10px; color: #64748b; margin-right: 8px;">• {tag}</span>
+                    </div>
+                    <div style="font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.45; margin-bottom: 6px;">
+                        {title}
+                    </div>
+                    <div style="font-size: 12.5px; color: #cbd5e1; line-height: 1.65; margin-bottom: 10px;">
+                        {summary}
+                    </div>
+                    <a href="{cta_href}" target="_blank" style="font-size: 12px; font-weight: 700; color: {accent}; text-decoration: none;">
+                        {cta_label} ←
+                    </a>
+                </td>
+            </tr>
+        </table>
+        """
+
+    deal = edition_data.get("deal_of_the_week") or {}
+    deal_dest = html.escape(str(deal.get("destination", "")))
+    deal_price = html.escape(str(deal.get("price_label", "")))
+    deal_savings = html.escape(str(deal.get("savings_note", "")))
+    deal_airline = html.escape(str(deal.get("airline_note", "")))
+
+    ai_tip = edition_data.get("ai_tip") or {}
+    tip_agent = html.escape(str(ai_tip.get("agent_name", "Wanderlust AI Agent")))
+    tip_text = html.escape(str(ai_tip.get("tip", "")))
+
+    content = f"""
+    <!-- Edition Meta Pill -->
+    <div style="margin-bottom: 18px;">
+        <span style="background: rgba(45, 212, 191, 0.14); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.3); padding: 5px 14px; border-radius: 999px; font-size: 11px; font-weight: 800; display: inline-block;">
+            ✦ מהדורה #{edition_number} • {safe_badge}{f' • {safe_date}' if safe_date else ''}
+        </span>
+    </div>
+
+    <!-- Hero Title -->
+    <div style="margin-bottom: 24px;">
+        <h1 style="margin: 0 0 10px; font-size: 23px; font-weight: 800; color: #ffffff; line-height: 1.35;">
+            {safe_headline}
+        </h1>
+        <p style="margin: 0 0 8px; font-size: 13.5px; color: #94a3b8; line-height: 1.65;">
+            שלום {safe_name}, {safe_subheadline}
+        </p>
+    </div>
+
+    <!-- Featured Breaking Story -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(45, 212, 191, 0.08) 100%); border: 1px solid rgba(56, 189, 248, 0.32); border-radius: 18px; margin-bottom: 24px;">
+        <tr>
+            <td style="padding: 20px 22px; text-align: right;" dir="rtl">
+                <div style="font-size: 11px; font-weight: 800; color: #38bdf8; margin-bottom: 6px; letter-spacing: 0.3px;">
+                    {breaking_tag}
+                </div>
+                <div style="font-size: 17px; font-weight: 800; color: #ffffff; line-height: 1.4; margin-bottom: 8px;">
+                    {breaking_title}
+                </div>
+                <div style="font-size: 13px; color: #e2e8f0; line-height: 1.7; margin-bottom: 14px;">
+                    {breaking_summary}
+                </div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td align="right" style="font-size: 11.5px; color: #cbd5e1;">
+                            📍 יעד מרכזי: <strong style="color: #ffffff;">{breaking_dest}</strong>
+                        </td>
+                        <td align="left">
+                            <span style="background: rgba(45, 212, 191, 0.18); color: #2dd4bf; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;">
+                                {breaking_stat}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Rotating News Section -->
+    <div style="margin-bottom: 22px;">
+        <h3 style="margin: 0 0 14px; font-size: 15px; font-weight: 800; color: #f8fafc; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;">
+            📰 חדשות ותובנות מתחלפות למהדורה #{edition_number}
+        </h3>
+        {news_cards_html}
+    </div>
+
+    <!-- Deal of the Week Box -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28); border-radius: 16px; margin-bottom: 20px;">
+        <tr>
+            <td style="padding: 18px 20px; text-align: right;" dir="rtl">
+                <div style="font-size: 11px; font-weight: 800; color: #fbbf24; margin-bottom: 6px;">
+                    🔥 הצעת השבוע מהמוקד האוטונומי
+                </div>
+                <div style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+                    {deal_dest} — <span style="color: #2dd4bf;">{deal_price}</span>
+                </div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    ✓ {deal_savings}<br>
+                    ✈️ {deal_airline}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- AI Agent Tip -->
+    <div style="background: rgba(255, 255, 255, 0.025); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px 18px; margin-bottom: 26px; font-size: 12.5px; line-height: 1.7; color: #cbd5e1;">
+        <strong style="color: #38bdf8;">🤖 טיפ מאת {tip_agent}:</strong><br>
+        {tip_text}
+    </div>
+
+    <!-- Primary CTA Button -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td align="center">
+                <a href="{frontend_url.rstrip('/')}/#planner-form" target="_blank" style="background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%); color: #022c22; font-weight: 800; font-size: 14px; padding: 14px 32px; border-radius: 14px; display: inline-block; box-shadow: 0 10px 25px rgba(45, 212, 191, 0.3); text-decoration: none;">
+                    תכנן את החופשה הבאה עם 13 סוכני AI ←
+                </a>
+            </td>
+        </tr>
+    </table>
+    """
+    return _base_email_wrapper(content, preview_text=f"מהדורה #{edition_number}: {edition_data.get('headline', '')}")
+
+

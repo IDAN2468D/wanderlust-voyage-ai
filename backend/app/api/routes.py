@@ -1,10 +1,12 @@
+import json
 import uuid
 import logging
 import urllib.parse
-from typing import Dict, Any
-from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Response
+from typing import Dict, Any, Optional, List
+from datetime import datetime, timedelta, timezone
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
 from app.api.schemas import (
     TripPlanRequest,
@@ -25,9 +27,29 @@ from app.api.schemas import (
     ContactInquiryRequest,
     EmailDispatchResponse,
     BookingConfirmationRequest,
+    BookingRecordResponse,
+    BookingsListResponse,
+    TripSaveRequest,
+    SavedTripRecord,
+    TripsHistoryResponse,
+    NewsletterSubscribeRequest,
+    NewsletterSubscribeResponse,
 )
 from app.core.security import get_current_user
+from app.db.database import get_db, get_db_session
+from app.db.models import (
+    BookingModel,
+    ContactInquiryModel,
+    NewsletterSubscriberModel,
+    SavedTripModel,
+)
 from app.services.email_service import email_service
+from app.services.email_templates import render_newsletter_html
+from app.services.newsletter_service import (
+    NEWSLETTER_EDITIONS,
+    get_israeli_dispatch_date,
+    select_rotating_edition,
+)
 from app.agents.guardrails import (
     TripGuardrailError,
     validate_trip_input,
@@ -52,7 +74,77 @@ core_router = APIRouter(tags=["Travel Planner Multi-Agent"])
 PENDING_ACTIONS: Dict[str, Dict[str, Any]] = {}
 
 
-def execute_plan_sync(request: TripPlanRequest, user_id: str) -> TripPlanResponse:
+def _persist_trip_to_db(
+    *,
+    session_id: str,
+    user_id: Optional[str],
+    user_email: Optional[str],
+    origin: str,
+    destination: str,
+    start_date: Optional[str],
+    duration_days: int,
+    total_budget: float,
+    total_estimated: float,
+    budget_status: str,
+    travel_style: str,
+    markdown_plan: str,
+    plan_payload: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Save or update a planned trip record in the persistent database."""
+    try:
+        clean_uid = None if (not user_id or user_id == "guest_user") else str(user_id)
+        clean_email = (
+            str(user_email).lower().strip()
+            if user_email and "@" in str(user_email) and "guest_user" not in str(user_email)
+            else None
+        )
+        payload_str = json.dumps(plan_payload or {}, ensure_ascii=False, default=str)
+
+        with get_db_session() as db:
+            existing = db.query(SavedTripModel).filter(SavedTripModel.session_id == session_id).first()
+            if existing:
+                if clean_uid:
+                    existing.user_id = clean_uid
+                if clean_email:
+                    existing.user_email = clean_email
+                existing.origin = origin
+                existing.destination = destination
+                existing.start_date = start_date
+                existing.duration_days = duration_days
+                existing.total_budget = total_budget
+                existing.total_estimated = total_estimated
+                existing.budget_status = budget_status
+                existing.travel_style = travel_style
+                existing.markdown_plan = markdown_plan
+                existing.plan_payload_json = payload_str
+            else:
+                db.add(
+                    SavedTripModel(
+                        session_id=session_id,
+                        user_id=clean_uid,
+                        user_email=clean_email,
+                        origin=origin,
+                        destination=destination,
+                        start_date=start_date,
+                        duration_days=duration_days,
+                        total_budget=total_budget,
+                        total_estimated=total_estimated,
+                        budget_status=budget_status,
+                        travel_style=travel_style,
+                        markdown_plan=markdown_plan,
+                        plan_payload_json=payload_str,
+                    )
+                )
+            db.commit()
+    except Exception as exc:
+        logger.warning(f"Could not persist trip '{session_id}' to database: {exc}")
+
+
+def execute_plan_sync(
+    request: TripPlanRequest,
+    user_id: str,
+    user_email: Optional[str] = None,
+) -> TripPlanResponse:
     """Internal helper to execute synchronous trip planning with input/output guardrails."""
     session_id = request.session_id or f"session_{uuid.uuid4().hex[:10]}"
     start_date = request.get_effective_start_date()
@@ -87,6 +179,21 @@ def execute_plan_sync(request: TripPlanRequest, user_id: str) -> TripPlanRespons
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     _SESSION_PLANS[session_id] = result
+    _persist_trip_to_db(
+        session_id=session_id,
+        user_id=user_id,
+        user_email=user_email,
+        origin=request.origin,
+        destination=request.destination,
+        start_date=start_date,
+        duration_days=request.duration_days,
+        total_budget=effective_budget,
+        total_estimated=float(result.get("total_estimated", 0)),
+        budget_status=str(result.get("budget_status", "APPROVED")),
+        travel_style=request.travel_style,
+        markdown_plan=str(result.get("markdown_plan", "")),
+        plan_payload=result,
+    )
 
     return TripPlanResponse(
         session_id=session_id,
@@ -120,8 +227,12 @@ def execute_plan_sync(request: TripPlanRequest, user_id: str) -> TripPlanRespons
     )
 
 
-def execute_plan_stream(request: TripPlanRequest, user_id: str) -> StreamingResponse:
-    """Internal helper to initiate SSE multi-agent streaming with input guardrail."""
+def execute_plan_stream(
+    request: TripPlanRequest,
+    user_id: str,
+    user_email: Optional[str] = None,
+) -> StreamingResponse:
+    """Internal helper to initiate SSE multi-agent streaming with input guardrail and DB persistence."""
     session_id = request.session_id or f"session_{uuid.uuid4().hex[:10]}"
     start_date = request.get_effective_start_date()
     effective_budget = request.get_effective_budget()
@@ -139,8 +250,9 @@ def execute_plan_stream(request: TripPlanRequest, user_id: str) -> StreamingResp
 
     logger.info(f"User {user_id} streaming multi-agent plan for {request.destination} (Session: {session_id})")
 
-    return StreamingResponse(
-        stream_multi_agent_execution(
+    async def _persisting_stream():
+        collected_chunks: List[str] = []
+        async for sse_block in stream_multi_agent_execution(
             origin=request.origin,
             destination=request.destination,
             start_date=start_date,
@@ -150,7 +262,39 @@ def execute_plan_stream(request: TripPlanRequest, user_id: str) -> StreamingResp
             travel_style=request.travel_style,
             currency=request.currency,
             session_id=session_id,
-        ),
+        ):
+            if sse_block.startswith("event: chunk"):
+                try:
+                    data_line = sse_block.split("data:", 1)[1].strip()
+                    collected_chunks.append(json.loads(data_line).get("text", ""))
+                except Exception:
+                    pass
+            elif sse_block.startswith("event: done"):
+                try:
+                    data_line = sse_block.split("data:", 1)[1].strip()
+                    done_data = json.loads(data_line)
+                    full_md = _SESSION_PLANS.get(session_id, {}).get("markdown_plan") or "".join(collected_chunks)
+                    _persist_trip_to_db(
+                        session_id=session_id,
+                        user_id=user_id,
+                        user_email=user_email,
+                        origin=request.origin,
+                        destination=request.destination,
+                        start_date=start_date,
+                        duration_days=request.duration_days,
+                        total_budget=effective_budget,
+                        total_estimated=float(done_data.get("total_estimated", 0)),
+                        budget_status=str(done_data.get("budget_status", "APPROVED")),
+                        travel_style=request.travel_style,
+                        markdown_plan=full_md,
+                        plan_payload=done_data,
+                    )
+                except Exception as exc:
+                    logger.warning(f"Stream DB persistence warning: {exc}")
+            yield sse_block
+
+    return StreamingResponse(
+        _persisting_stream(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -249,7 +393,11 @@ async def plan_trip_sync(
     request: TripPlanRequest,
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    return execute_plan_sync(request, current_user.get("user_id", "guest_user"))
+    return execute_plan_sync(
+        request,
+        current_user.get("user_id", "guest_user"),
+        current_user.get("email"),
+    )
 
 
 @core_router.post("/plan-trip/stream")
@@ -257,7 +405,11 @@ async def plan_trip_stream(
     request: TripPlanRequest,
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    return execute_plan_stream(request, current_user.get("user_id", "guest_user"))
+    return execute_plan_stream(
+        request,
+        current_user.get("user_id", "guest_user"),
+        current_user.get("email"),
+    )
 
 
 # 2. SPEC.md Contract endpoints (POST /api/v1/trips/plan & /api/trips/plan)
@@ -266,7 +418,11 @@ async def trips_plan_sync(
     request: TripPlanRequest,
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    return execute_plan_sync(request, current_user.get("user_id", "guest_user"))
+    return execute_plan_sync(
+        request,
+        current_user.get("user_id", "guest_user"),
+        current_user.get("email"),
+    )
 
 
 @core_router.post("/trips/plan/stream")
@@ -274,7 +430,11 @@ async def trips_plan_stream(
     request: TripPlanRequest,
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    return execute_plan_stream(request, current_user.get("user_id", "guest_user"))
+    return execute_plan_stream(
+        request,
+        current_user.get("user_id", "guest_user"),
+        current_user.get("email"),
+    )
 
 
 @core_router.post("/trips/chat", response_model=TripChatResponse, status_code=200)
@@ -484,9 +644,12 @@ async def send_flight_board_email(payload: SendFlightBoardEmailRequest):
 
 
 @core_router.post("/contact", response_model=EmailDispatchResponse)
-async def submit_contact_inquiry(payload: ContactInquiryRequest):
+async def submit_contact_inquiry(
+    payload: ContactInquiryRequest,
+    db: Session = Depends(get_db),
+):
     """
-    Submits a contact/support inquiry and sends an automated confirmation email.
+    Submits a contact/support inquiry, persists it in DB, and sends an automated confirmation email.
     """
     res = await email_service.send_contact_inquiry(
         sender_name=payload.name,
@@ -494,6 +657,21 @@ async def submit_contact_inquiry(payload: ContactInquiryRequest):
         subject=payload.subject,
         message=payload.message,
     )
+    try:
+        db.add(
+            ContactInquiryModel(
+                ticket_id=str(res.get("id") or uuid.uuid4().hex[:8].upper())[:32],
+                name=payload.name,
+                email=str(payload.email).lower().strip(),
+                subject=payload.subject,
+                message=payload.message,
+            )
+        )
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        logger.warning(f"Could not persist contact inquiry to DB: {exc}")
+
     is_ok = res.get("status") in ["sent", "simulated"]
     return EmailDispatchResponse(
         status="SUCCESS" if is_ok else "FAILED",
@@ -505,10 +683,59 @@ async def submit_contact_inquiry(payload: ContactInquiryRequest):
 
 @core_router.post("/workspace/booking-confirmation", response_model=EmailDispatchResponse)
 @core_router.post("/bookings/confirm", response_model=EmailDispatchResponse)
-async def send_booking_confirmation(payload: BookingConfirmationRequest):
+async def send_booking_confirmation(
+    payload: BookingConfirmationRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
-    Emails the official trip booking confirmation and tickets voucher via Resend.
+    Persists the booking record in the database and emails the official booking confirmation voucher via Resend.
     """
+    clean_email = str(payload.recipient_email).lower().strip()
+    user_id = current_user.get("user_id")
+    clean_uid = None if (not user_id or user_id == "guest_user") else str(user_id)
+
+    try:
+        existing = (
+            db.query(BookingModel)
+            .filter(BookingModel.booking_ref == payload.booking_ref)
+            .first()
+        )
+        if existing:
+            if clean_uid and not existing.user_id:
+                existing.user_id = clean_uid
+            existing.recipient_email = clean_email
+            if payload.customer_name:
+                existing.customer_name = payload.customer_name
+            if payload.customer_phone:
+                existing.customer_phone = payload.customer_phone
+            if payload.passport_number:
+                existing.passport_number = payload.passport_number
+        else:
+            db.add(
+                BookingModel(
+                    booking_ref=payload.booking_ref,
+                    user_id=clean_uid,
+                    recipient_email=clean_email,
+                    customer_name=payload.customer_name,
+                    customer_phone=payload.customer_phone,
+                    passport_number=payload.passport_number,
+                    destination=payload.destination,
+                    duration_days=payload.duration_days,
+                    total_amount=payload.total_amount,
+                    currency=payload.currency,
+                    flight_portion=payload.flight_portion,
+                    hotel_portion=payload.hotel_portion,
+                    payment_method=payload.payment_method or "card",
+                    installments=payload.installments or 1,
+                    status="CONFIRMED",
+                )
+            )
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        logger.warning(f"Could not persist booking #{payload.booking_ref} to DB: {exc}")
+
     res = await email_service.send_booking_confirmation(
         recipient_email=str(payload.recipient_email),
         booking_ref=payload.booking_ref,
@@ -528,6 +755,247 @@ async def send_booking_confirmation(payload: BookingConfirmationRequest):
         id=res.get("id"),
         recipient=str(payload.recipient_email),
     )
+
+
+@core_router.get("/bookings", response_model=BookingsListResponse)
+async def list_bookings(
+    email: Optional[str] = Query(default=None, description="Optional email filter"),
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieve persisted bookings for the authenticated user or specified email."""
+    user_id = current_user.get("user_id")
+    auth_email = current_user.get("email")
+    target_email = (email or (auth_email if auth_email and "guest_user" not in str(auth_email) else None))
+
+    query = db.query(BookingModel)
+    if user_id and user_id != "guest_user" and target_email:
+        clean_e = str(target_email).lower().strip()
+        query = query.filter(
+            (BookingModel.user_id == str(user_id)) | (BookingModel.recipient_email == clean_e)
+        )
+    elif target_email:
+        query = query.filter(BookingModel.recipient_email == str(target_email).lower().strip())
+    elif user_id and user_id != "guest_user":
+        query = query.filter(BookingModel.user_id == str(user_id))
+    else:
+        return BookingsListResponse(status="SUCCESS", bookings=[])
+
+    rows = query.order_by(BookingModel.created_at.desc()).limit(50).all()
+    items = [
+        BookingRecordResponse(
+            booking_ref=r.booking_ref,
+            destination=r.destination,
+            duration_days=r.duration_days,
+            total_amount=r.total_amount,
+            currency=r.currency,
+            recipient_email=r.recipient_email,
+            customer_name=r.customer_name,
+            customer_phone=r.customer_phone,
+            payment_method=r.payment_method,
+            installments=r.installments,
+            booking_date=r.created_at.isoformat() if r.created_at else datetime.now(timezone.utc).isoformat(),
+            status=r.status,
+            flight_portion=r.flight_portion,
+            hotel_portion=r.hotel_portion,
+        )
+        for r in rows
+    ]
+    return BookingsListResponse(status="SUCCESS", bookings=items)
+
+
+@core_router.post("/trips/save")
+async def save_trip_record(
+    payload: TripSaveRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """Save or update a planned trip in the persistent database."""
+    session_id = payload.session_id or f"session_{uuid.uuid4().hex[:10]}"
+    user_id = current_user.get("user_id", "guest_user")
+    user_email = payload.user_email or current_user.get("email")
+
+    _persist_trip_to_db(
+        session_id=session_id,
+        user_id=user_id,
+        user_email=user_email,
+        origin=payload.origin,
+        destination=payload.destination,
+        start_date=payload.start_date,
+        duration_days=payload.duration_days,
+        total_budget=payload.total_budget,
+        total_estimated=payload.total_estimated,
+        budget_status=payload.budget_status,
+        travel_style=payload.travel_style,
+        markdown_plan=payload.markdown_plan,
+        plan_payload=payload.plan_payload,
+    )
+    return {"status": "SUCCESS", "session_id": session_id}
+
+
+@core_router.get("/trips/history", response_model=TripsHistoryResponse)
+async def list_saved_trips(
+    email: Optional[str] = Query(default=None, description="Optional email filter"),
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieve persisted planned trips for the authenticated user or email."""
+    user_id = current_user.get("user_id")
+    auth_email = current_user.get("email")
+    target_email = email or (auth_email if auth_email and "guest_user" not in str(auth_email) else None)
+
+    query = db.query(SavedTripModel)
+    if user_id and user_id != "guest_user" and target_email:
+        clean_e = str(target_email).lower().strip()
+        query = query.filter(
+            (SavedTripModel.user_id == str(user_id)) | (SavedTripModel.user_email == clean_e)
+        )
+    elif target_email:
+        query = query.filter(SavedTripModel.user_email == str(target_email).lower().strip())
+    elif user_id and user_id != "guest_user":
+        query = query.filter(SavedTripModel.user_id == str(user_id))
+    else:
+        return TripsHistoryResponse(status="SUCCESS", trips=[])
+
+    rows = query.order_by(SavedTripModel.updated_at.desc()).limit(30).all()
+    trips = [
+        SavedTripRecord(
+            session_id=r.session_id,
+            origin=r.origin,
+            destination=r.destination,
+            start_date=r.start_date,
+            duration_days=r.duration_days,
+            total_budget=r.total_budget,
+            total_estimated=r.total_estimated,
+            budget_status=r.budget_status,
+            travel_style=r.travel_style,
+            markdown_plan=r.markdown_plan,
+            created_at=r.created_at.isoformat() if r.created_at else datetime.now(timezone.utc).isoformat(),
+        )
+        for r in rows
+    ]
+    return TripsHistoryResponse(status="SUCCESS", trips=trips)
+
+
+# 5. Rotating Travel News Newsletter Endpoints
+@core_router.post("/newsletter/subscribe", response_model=NewsletterSubscribeResponse)
+async def subscribe_newsletter(
+    payload: NewsletterSubscribeRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Subscribes an email to the Wanderlust rotating travel newsletter (persisting in DB)
+    and immediately dispatches a structured, styled RTL HTML digest with rotating news.
+    Re-submitting an email rotates to the next editorial edition automatically.
+    """
+    clean_email = str(payload.email).lower().strip()
+    now_utc = datetime.now(timezone.utc)
+
+    subscriber = (
+        db.query(NewsletterSubscriberModel)
+        .filter(NewsletterSubscriberModel.email == clean_email)
+        .first()
+    )
+
+    if subscriber:
+        prev_count = subscriber.editions_sent or 0
+        last_ed_id = subscriber.last_edition_id
+        if payload.full_name:
+            subscriber.full_name = payload.full_name
+        if payload.interests:
+            subscriber.interests_json = json.dumps(payload.interests, ensure_ascii=False)
+        subscriber.is_active = True
+    else:
+        prev_count = 0
+        last_ed_id = None
+        subscriber = NewsletterSubscriberModel(
+            email=clean_email,
+            full_name=payload.full_name,
+            preferred_language="he",
+            interests_json=json.dumps(payload.interests or [], ensure_ascii=False),
+            editions_sent=0,
+            is_active=True,
+        )
+        db.add(subscriber)
+
+    edition = select_rotating_edition(
+        previous_editions_sent=prev_count,
+        last_edition_id=last_ed_id,
+    )
+    new_edition_num = prev_count + 1
+    dispatch_date_il = get_israeli_dispatch_date()
+
+    subscriber.editions_sent = new_edition_num
+    subscriber.last_edition_id = edition["edition_id"]
+    subscriber.last_sent_at = now_utc
+    db.commit()
+    db.refresh(subscriber)
+
+    send_res = await email_service.send_newsletter_digest(
+        recipient_email=clean_email,
+        edition_data=edition,
+        edition_number=new_edition_num,
+        dispatch_date_il=dispatch_date_il,
+        recipient_name=subscriber.full_name,
+    )
+    delivery_status = str(send_res.get("status", "simulated"))
+    is_ok = delivery_status in ("sent", "simulated")
+
+    headlines = [
+        str((edition.get("breaking_story") or {}).get("title", "")),
+        *[str(item.get("title", "")) for item in (edition.get("news_items") or []) if item.get("title")],
+    ]
+
+    if delivery_status == "sent":
+        status_msg = f"מהדורה #{new_edition_num} ({edition['edition_badge']}) נשלחה בהצלחה לתיבת המייל שלך!"
+    elif is_ok:
+        status_msg = f"נרשמת בהצלחה! מהדורה #{new_edition_num} ({edition['edition_badge']}) הופקה (מצב סימולציה מקומי — הוסף RESEND_API_KEY לשליחה אמיתית)."
+    else:
+        status_msg = "ההרשמה נשמרה במסד הנתונים, אך אירעה תקלה בשליחת המייל דרך ספק הדואר."
+
+    logger.info(
+        f"Newsletter dispatch for {clean_email}: edition=#{new_edition_num} ({edition['edition_id']}), status={delivery_status}"
+    )
+
+    return NewsletterSubscribeResponse(
+        status="SUCCESS" if is_ok else "PARTIAL",
+        message=status_msg,
+        email=clean_email,
+        edition_number=new_edition_num,
+        edition_id=edition["edition_id"],
+        edition_badge=edition["edition_badge"],
+        edition_title=edition["headline"],
+        dispatch_date=dispatch_date_il,
+        email_delivery_status=delivery_status,
+        headlines=headlines,
+        id=send_res.get("id"),
+        preview_html=send_res.get("html_preview"),
+    )
+
+
+@core_router.get("/newsletter/preview")
+async def preview_newsletter_edition(
+    edition_index: int = Query(default=0, ge=0),
+    email: str = Query(default="traveler@wanderlust.ai"),
+):
+    """Preview any rotating newsletter edition JSON and rendered HTML."""
+    edition = select_rotating_edition(previous_editions_sent=edition_index)
+    dispatch_date_il = get_israeli_dispatch_date()
+    edition_number = (edition_index % len(NEWSLETTER_EDITIONS)) + 1
+    html_preview = render_newsletter_html(
+        recipient_email=email,
+        edition_data=edition,
+        edition_number=edition_number,
+        dispatch_date_il=dispatch_date_il,
+        frontend_url=email_service.frontend_url,
+    )
+    return {
+        "status": "SUCCESS",
+        "edition_number": edition_number,
+        "total_editions": len(NEWSLETTER_EDITIONS),
+        "dispatch_date": dispatch_date_il,
+        "edition": edition,
+        "html": html_preview,
+    }
 
 
 @core_router.get("/workspace/download-ics")
@@ -561,7 +1029,3 @@ async def download_calendar_ics(
 
 router = APIRouter(prefix="/v1", tags=["Travel Planner Multi-Agent"])
 router.include_router(core_router)
-
-
-
-

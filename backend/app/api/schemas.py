@@ -331,7 +331,7 @@ class ContactInquiryRequest(BaseModel):
 
 
 class BookingConfirmationRequest(BaseModel):
-    """Payload for dispatching an official booking confirmation email."""
+    """Payload for dispatching an official booking confirmation email and persisting booking."""
 
     booking_ref: str = Field(..., description="Unique booking reference code (e.g. 'WNDR-824192')")
     destination: str = Field(..., description="Destination name")
@@ -340,9 +340,100 @@ class BookingConfirmationRequest(BaseModel):
     currency: str = Field(default="USD", description="Currency of payment (ILS, USD, EUR)")
     recipient_email: EmailStr = Field(..., description="Customer email address")
     customer_name: Optional[str] = Field(default=None, description="Customer full name")
+    customer_phone: Optional[str] = Field(default=None, description="Customer mobile phone")
+    passport_number: Optional[str] = Field(default=None, description="Customer passport number")
     flight_portion: Optional[float] = Field(default=None, description="Flight cost portion")
     hotel_portion: Optional[float] = Field(default=None, description="Hotel cost portion")
     payment_method: Optional[str] = Field(default="card", description="Payment method used")
+    installments: Optional[int] = Field(default=1, ge=1, le=24, description="Number of payment installments")
 
 
+class BookingRecordResponse(BaseModel):
+    """Persisted booking record returned from the database."""
 
+    booking_ref: str
+    destination: str
+    duration_days: int
+    total_amount: float
+    currency: str
+    recipient_email: str
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    payment_method: str = "card"
+    installments: int = 1
+    booking_date: str
+    status: str = "CONFIRMED"
+    flight_portion: Optional[float] = None
+    hotel_portion: Optional[float] = None
+
+
+class BookingsListResponse(BaseModel):
+    """List of persisted bookings for a user."""
+
+    status: str = "SUCCESS"
+    bookings: List[BookingRecordResponse]
+
+
+class TripSaveRequest(BaseModel):
+    """Payload for saving or updating a planned itinerary in the database."""
+
+    session_id: Optional[str] = None
+    origin: str = "TLV"
+    destination: str
+    start_date: Optional[str] = None
+    duration_days: int = Field(default=7, ge=1, le=30)
+    total_budget: float = 2400.0
+    total_estimated: float = 2400.0
+    budget_status: str = "APPROVED"
+    travel_style: str = "balanced"
+    markdown_plan: str = ""
+    plan_payload: Optional[Dict[str, Any]] = None
+    user_email: Optional[str] = None
+
+
+class SavedTripRecord(BaseModel):
+    """Persisted trip summary record."""
+
+    session_id: str
+    origin: str
+    destination: str
+    start_date: Optional[str] = None
+    duration_days: int
+    total_budget: float
+    total_estimated: float
+    budget_status: str
+    travel_style: str
+    markdown_plan: str
+    created_at: str
+
+
+class TripsHistoryResponse(BaseModel):
+    """List of persisted planned trips."""
+
+    status: str = "SUCCESS"
+    trips: List[SavedTripRecord]
+
+
+class NewsletterSubscribeRequest(BaseModel):
+    """Payload for subscribing to the rotating travel news newsletter."""
+
+    email: EmailStr
+    full_name: Optional[str] = None
+    interests: List[str] = Field(default_factory=list)
+
+
+class NewsletterSubscribeResponse(BaseModel):
+    """Response after subscribing and dispatching a rotating newsletter edition."""
+
+    status: str
+    message: str
+    email: EmailStr
+    edition_number: int
+    edition_id: str
+    edition_badge: str
+    edition_title: str
+    dispatch_date: str
+    email_delivery_status: str
+    headlines: List[str]
+    id: Optional[str] = None
+    preview_html: Optional[str] = None

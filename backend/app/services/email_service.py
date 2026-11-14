@@ -15,6 +15,7 @@ from app.services.email_templates import (
     render_flight_board_html,
     render_contact_confirmation_html,
     render_booking_confirmation_html,
+    render_newsletter_html,
 )
 
 logger = logging.getLogger("email_service")
@@ -248,6 +249,33 @@ class EmailService:
             subject=subject,
             html_content=html_body,
         )
+
+    async def send_newsletter_digest(
+        self,
+        recipient_email: str,
+        edition_data: Dict[str, Any],
+        edition_number: int,
+        dispatch_date_il: str,
+        recipient_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Dispatches a curated, rotating travel news newsletter digest via Resend."""
+        headline = edition_data.get("headline", "עדכוני נסיעות חמים")
+        subject = f"📰 מהדורה #{edition_number}: {headline} — Wanderlust Voyage AI"
+        html_body = render_newsletter_html(
+            recipient_email=recipient_email,
+            edition_data=edition_data,
+            edition_number=edition_number,
+            dispatch_date_il=dispatch_date_il,
+            recipient_name=recipient_name,
+            frontend_url=self.frontend_url,
+        )
+        res = await self.send_email(
+            to_email=recipient_email,
+            subject=subject,
+            html_content=html_body,
+        )
+        res["html_preview"] = html_body
+        return res
 
 
 email_service = EmailService()

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from app.db.database import init_db, get_active_db_backend
 from app.api.auth import router as auth_router
 from app.api.routes import router as trip_router, core_router as trip_compat_router
 
@@ -21,6 +22,8 @@ async def lifespan(app: FastAPI):
     """Application lifecycle initialization and cleanup."""
     logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}...")
     logger.info(f"Target Gemini Model: {settings.GEMINI_MODEL}")
+    init_db()
+    logger.info(f"Active database backend: {get_active_db_backend()}")
     yield
     logger.info("Shutting down AI Multi-Agent Travel Planner...")
 
@@ -62,6 +65,7 @@ async def health_check():
         "version": settings.VERSION,
         "gemini_model": settings.GEMINI_MODEL,
         "environment": settings.APP_ENV,
+        "database_backend": get_active_db_backend(),
     }
 
 

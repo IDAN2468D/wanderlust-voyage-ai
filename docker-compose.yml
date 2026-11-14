@@ -34,6 +34,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-travel-planner-super-secret-jwt-key-min32chars}
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-travel_agent}:${POSTGRES_PASSWORD:-travel_agent_secret}@postgres:5432/${POSTGRES_DB:-travel_agent_db}
       - POSTGRES_USER=${POSTGRES_USER:-travel_agent}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-travel_agent_secret}
       - POSTGRES_DB=${POSTGRES_DB:-travel_agent_db}

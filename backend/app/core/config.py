@@ -50,7 +50,11 @@ class Settings(BaseSettings):
         description="Public frontend web application URL",
     )
 
-    # PostgreSQL Database
+    # Database (Render DATABASE_URL or Docker/Local PostgreSQL with SQLite fallback)
+    DATABASE_URL: str = Field(
+        default="",
+        description="Primary database connection URL (e.g., Render PostgreSQL DATABASE_URL)",
+    )
     POSTGRES_USER: str = "travel_agent"
     POSTGRES_PASSWORD: str = "travel_agent_secret"
     POSTGRES_DB: str = "travel_agent_db"
@@ -64,13 +68,46 @@ class Settings(BaseSettings):
     def cors_origins(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
 
+    @staticmethod
+    def _normalize_db_url(raw_url: str) -> str:
+        url = (raw_url or "").strip()
+        if url.startswith("postgres://"):
+            return "postgresql+psycopg2://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            return "postgresql+psycopg2://" + url[len("postgresql://"):]
+        return url
+
+    @property
+    def has_explicit_postgres(self) -> bool:
+        """True if an explicit PostgreSQL URL or non-default Postgres host is configured."""
+        env_url = self.DATABASE_URL or os.getenv("DATABASE_URL", "")
+        if env_url and env_url.strip().startswith(("postgres://", "postgresql")):
+            return True
+        if self.POSTGRES_HOST and self.POSTGRES_HOST not in ("localhost", "127.0.0.1", ""):
+            return True
+        return False
+
+    @property
+    def default_sqlite_url(self) -> str:
+        """Path to local persistent SQLite database inside backend/data/wanderlust.db."""
+        backend_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        data_dir = os.path.join(backend_root, "data")
+        os.makedirs(data_dir, exist_ok=True)
+        db_path = os.path.join(data_dir, "wanderlust.db")
+        return f"sqlite:///{db_path}"
+
     @property
     def database_url(self) -> str:
-        """SQLAlchemy connection string for PostgreSQL."""
-        return (
-            f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        """Effective SQLAlchemy connection string (Render/Postgres if configured, else SQLite)."""
+        explicit = self.DATABASE_URL or os.getenv("DATABASE_URL", "")
+        if explicit.strip():
+            return self._normalize_db_url(explicit)
+        if self.POSTGRES_HOST and self.POSTGRES_HOST not in ("localhost", "127.0.0.1", ""):
+            return (
+                f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+                f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            )
+        return self.default_sqlite_url
 
 
 settings = Settings()

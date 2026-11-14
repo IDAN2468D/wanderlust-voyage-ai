@@ -863,14 +863,17 @@ async def run_trip_chat(session_id: str, message: str) -> Dict[str, Any]:
 
 
 def get_agent_storage(session_id: Optional[str] = None):
-    """Initializes agent storage if Agno is available and configured."""
+    """Initializes agent storage if Agno is available and PostgreSQL is configured."""
     if not AGNO_AVAILABLE:
+        return None
+    db_url = settings.database_url
+    if not db_url.startswith("postgresql"):
         return None
     try:
         if PostgresDb is not None:
-            return PostgresDb(session_table="travel_agent_sessions", db_url=settings.database_url)
+            return PostgresDb(session_table="travel_agent_sessions", db_url=db_url)
         elif PostgresAgentStorage is not None:
-            return PostgresAgentStorage(table_name="travel_agent_sessions", db_url=settings.database_url)
+            return PostgresAgentStorage(table_name="travel_agent_sessions", db_url=db_url)
         return None
     except Exception as e:
         logger.warning(f"Could not connect to PostgreSQL: {e}")

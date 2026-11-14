@@ -91,11 +91,12 @@ function ProfileContent() {
 
   // Saved Trips state
   const [savedTrip, setSavedTrip] = useState<any>(null);
+  const [savedTrips, setSavedTrips] = useState<any[]>([]);
 
   // Modal for Viewing Voucher
   const [activeVoucher, setActiveVoucher] = useState<BookingRecord | null>(null);
 
-  // Load profile data and bookings on mount
+  // Load profile data, DB bookings & DB saved trips on mount
   useEffect(() => {
     if (user) {
       setFullName(user.full_name || "");
@@ -131,47 +132,131 @@ function ProfileContent() {
       }
     } catch {}
 
-    // Load bookings
+    // Load local cached bookings immediately
+    let localBookings: BookingRecord[] = [];
     try {
       const storedBookings = localStorage.getItem("wanderlust_user_bookings");
       if (storedBookings) {
         const parsed = JSON.parse(storedBookings);
         if (Array.isArray(parsed)) {
-          setBookings(parsed.filter((item) => item && typeof item === "object"));
-        } else {
-          setBookings([]);
+          localBookings = parsed.filter((item) => item && typeof item === "object");
+          setBookings(localBookings);
         }
-      } else {
-        // Sample default booking for demo delight if fresh user
-        const sampleBooking: BookingRecord = {
-          booking_ref: "WNDR-782914",
-          destination: "באלי, אינדונזיה",
-          duration_days: 8,
-          total_amount: 1750,
-          currency: "USD",
-          recipient_email: user?.email || "traveler@example.com",
-          customer_name: user?.full_name || "ישראל ישראלי",
-          payment_method: "card",
-          installments: 1,
-          booking_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-          status: "CONFIRMED",
-          flight_portion: 665,
-          hotel_portion: 735,
-        };
-        setBookings([sampleBooking]);
       }
     } catch {}
 
-    // Load saved last trip
+    // Load local cached last planned trip
+    let localTrip: any = null;
     try {
       const lastTrip = localStorage.getItem("wanderlust_last_planned_trip");
       if (lastTrip) {
         const parsedTrip = JSON.parse(lastTrip);
         if (parsedTrip && typeof parsedTrip === "object" && typeof parsedTrip.destination === "string") {
+          localTrip = parsedTrip;
           setSavedTrip(parsedTrip);
+          setSavedTrips([parsedTrip]);
         }
       }
     } catch {}
+
+    // Fetch authoritative persisted records from backend DB
+    const syncFromBackend = async () => {
+      try {
+        const apiBase = getApiBaseUrl();
+        const token = localStorage.getItem("wanderlust_auth_token");
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const emailQuery = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
+
+        const [bookingsRes, tripsRes] = await Promise.allSettled([
+          fetch(`${apiBase}/api/v1/bookings${emailQuery}`, { headers }),
+          fetch(`${apiBase}/api/v1/trips/history${emailQuery}`, { headers }),
+        ]);
+
+        if (bookingsRes.status === "fulfilled" && bookingsRes.value.ok) {
+          const bJson = await bookingsRes.value.json();
+          const dbBookings: BookingRecord[] = Array.isArray(bJson?.bookings) ? bJson.bookings : [];
+          if (dbBookings.length > 0 || localBookings.length > 0) {
+            const mergedMap = new Map<string, BookingRecord>();
+            for (const item of dbBookings) {
+              if (item?.booking_ref) mergedMap.set(item.booking_ref, item);
+            }
+            for (const item of localBookings) {
+              if (item?.booking_ref && !mergedMap.has(item.booking_ref)) {
+                mergedMap.set(item.booking_ref, item);
+              }
+            }
+            const merged = Array.from(mergedMap.values());
+            setBookings(merged);
+            try {
+              localStorage.setItem("wanderlust_user_bookings", JSON.stringify(merged));
+            } catch {}
+          } else if (dbBookings.length === 0 && localBookings.length === 0) {
+            const sampleBooking: BookingRecord = {
+              booking_ref: "WNDR-782914",
+              destination: "באלי, אינדונזיה",
+              duration_days: 8,
+              total_amount: 1750,
+              currency: "USD",
+              recipient_email: user?.email || "traveler@example.com",
+              customer_name: user?.full_name || "ישראל ישראלי",
+              payment_method: "card",
+              installments: 1,
+              booking_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+              status: "CONFIRMED",
+              flight_portion: 665,
+              hotel_portion: 735,
+            };
+            setBookings([sampleBooking]);
+          }
+        }
+
+        if (tripsRes.status === "fulfilled" && tripsRes.value.ok) {
+          const tJson = await tripsRes.value.json();
+          const dbTrips = Array.isArray(tJson?.trips) ? tJson.trips : [];
+          if (dbTrips.length > 0) {
+            const mapped = dbTrips.map((t: any) => ({
+              session_id: t.session_id,
+              destination: t.destination,
+              duration_days: t.duration_days,
+              total_estimated_usd: t.total_estimated,
+              markdown_plan: t.markdown_plan || "",
+              budget_status: t.budget_status,
+              created_at: t.created_at,
+            }));
+            setSavedTrips(mapped);
+            setSavedTrip(mapped[0]);
+          } else if (localTrip) {
+            setSavedTrips([localTrip]);
+          }
+        }
+      } catch {
+        // Keep local cache silently if backend is unreachable
+      }
+    };
+
+    if (user?.email || localStorage.getItem("wanderlust_auth_token")) {
+      syncFromBackend();
+    } else if (localBookings.length === 0) {
+      const sampleBooking: BookingRecord = {
+        booking_ref: "WNDR-782914",
+        destination: "באלי, אינדונזיה",
+        duration_days: 8,
+        total_amount: 1750,
+        currency: "USD",
+        recipient_email: "traveler@example.com",
+        customer_name: "ישראל ישראלי",
+        payment_method: "card",
+        installments: 1,
+        booking_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+        status: "CONFIRMED",
+        flight_portion: 665,
+        hotel_portion: 735,
+      };
+      setBookings([sampleBooking]);
+    }
   }, [user]);
 
   // Handle Save Personal Details
@@ -650,38 +735,45 @@ function ProfileContent() {
               </p>
             </div>
 
-            {savedTrip ? (
-              <div className="wanderlust-glass-card rounded-3xl p-6 border border-white/15 shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-mint-500/20 text-mint-300 border border-mint-500/30 font-bold uppercase">
-                      מסלול AI מוכן
-                    </span>
-                    <h4 className="text-xl font-serif font-bold text-white mt-1">
-                      {savedTrip.destination} • {savedTrip.duration_days} ימים
-                    </h4>
-                    <p className="text-xs text-slate-400">
-                      תקציב משוער: ${savedTrip.total_estimated_usd?.toLocaleString() || "2,400"}
-                    </p>
-                  </div>
+            {savedTrips.length > 0 ? (
+              <div className="space-y-4">
+                {savedTrips.map((trip, idx) => (
+                  <div
+                    key={trip.session_id || idx}
+                    className="wanderlust-glass-card rounded-3xl p-6 border border-white/15 shadow-xl space-y-4"
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-mint-500/20 text-mint-300 border border-mint-500/30 font-bold uppercase">
+                          מסלול AI מוכן
+                        </span>
+                        <h4 className="text-xl font-serif font-bold text-white mt-1">
+                          {trip.destination} • {trip.duration_days} ימים
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          תקציב משוער: ${trip.total_estimated_usd?.toLocaleString() || "2,400"}
+                        </p>
+                      </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/?destination=${encodeURIComponent(savedTrip.destination)}&duration=${savedTrip.duration_days}`)}
-                      className="btn-mint px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
-                    >
-                      <Compass className="w-4 h-4" />
-                      <span>פתח והמשך תכנון</span>
-                    </button>
-                  </div>
-                </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/?destination=${encodeURIComponent(trip.destination)}&duration=${trip.duration_days}`)}
+                          className="btn-mint px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                        >
+                          <Compass className="w-4 h-4" />
+                          <span>פתח והמשך תכנון</span>
+                        </button>
+                      </div>
+                    </div>
 
-                {savedTrip.markdown_plan && (
-                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10 text-xs text-slate-300 max-h-48 overflow-y-auto leading-relaxed">
-                    <pre className="whitespace-pre-wrap font-sans text-xs">{savedTrip.markdown_plan.slice(0, 500)}...</pre>
+                    {trip.markdown_plan && (
+                      <div className="p-4 rounded-2xl bg-black/40 border border-white/10 text-xs text-slate-300 max-h-48 overflow-y-auto leading-relaxed">
+                        <pre className="whitespace-pre-wrap font-sans text-xs">{trip.markdown_plan.slice(0, 500)}...</pre>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
             ) : (
               <div className="wanderlust-glass rounded-3xl p-10 text-center space-y-3 border border-white/10">

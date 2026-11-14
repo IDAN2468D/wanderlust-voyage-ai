@@ -11,11 +11,27 @@ services:
         value: production
       - key: PORT
         value: 8000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wanderlust-db
+          property: connectionString
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_REDIRECT_URI
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
       - key: ALLOWED_ORIGINS
         value: http://localhost:3000,http://127.0.0.1:3000,*
+
+databases:
+  - name: wanderlust-db
+    databaseName: travel_agent_db
+    user: travel_agent
+    plan: free

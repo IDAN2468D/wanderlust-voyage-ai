@@ -444,13 +444,23 @@ export default function Home() {
       travel_style: formData.travelStyle,
     };
 
+    let authToken: string | null = null;
+    try {
+      authToken = localStorage.getItem("wanderlust_auth_token");
+    } catch {}
+
+    const streamHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    };
+    if (authToken) {
+      streamHeaders.Authorization = `Bearer ${authToken}`;
+    }
+
     try {
       let response = await fetch(streamUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "text/event-stream",
-        },
+        headers: streamHeaders,
         body: JSON.stringify(requestPayload),
       });
 
@@ -458,10 +468,7 @@ export default function Home() {
       if (!response.ok && response.status === 404) {
         response = await fetch(`${apiBase}/api/v1/plan-trip/stream`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "text/event-stream",
-          },
+          headers: streamHeaders,
           body: JSON.stringify(requestPayload),
         });
       }
@@ -588,16 +595,20 @@ export default function Home() {
     } catch (error) {
       console.warn("שגיאה בהזרמת SSE, מנסה מסלול ישיר:", error);
       try {
+        const syncHeaders: Record<string, string> = { "Content-Type": "application/json" };
+        if (authToken) {
+          syncHeaders.Authorization = `Bearer ${authToken}`;
+        }
         const syncUrl = `${apiBase}/api/v1/trips/plan`;
         let res = await fetch(syncUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: syncHeaders,
           body: JSON.stringify(requestPayload),
         });
         if (!res.ok && res.status === 404) {
           res = await fetch(`${apiBase}/api/v1/plan-trip`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: syncHeaders,
             body: JSON.stringify(requestPayload),
           });
         }

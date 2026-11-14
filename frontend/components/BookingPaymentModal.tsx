@@ -413,9 +413,19 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
 
     try {
       const apiBase = getApiBaseUrl();
+      let authToken: string | null = null;
+      try {
+        authToken = localStorage.getItem("wanderlust_auth_token");
+      } catch {}
+
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
       await fetch(`${apiBase}/api/v1/workspace/booking-confirmation`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           booking_ref: generatedRef,
           destination: tripDetails.destination,
@@ -424,10 +434,12 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
           currency: currency,
           recipient_email: targetEmail,
           customer_name: targetName,
+          customer_phone: customerPhone || undefined,
+          passport_number: passportNumber || undefined,
           flight_portion: flightInSelected,
           hotel_portion: hotelInSelected,
           payment_method: paymentMethod,
-          installments: installments > 1 ? installments : undefined,
+          installments: installments > 1 ? installments : 1,
         }),
       });
     } catch (err) {
