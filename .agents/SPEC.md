@@ -73,5 +73,19 @@
   - `require_approval: bool = False` on `/api/workspace/send-briefing` & `/api/workspace/sync-calendar` returning `status: "pending_approval"` + `action_id`.
   - `POST /api/trips/approve-action` (`action_id`, `approved`) executes or cancels pending actions.
 - **Standard MCP Server (`backend/app/mcp/travel_mcp_server.py`)**:
-  - Exposes `search_flights`, `get_destination_weather`, and `calculate_trip_budget` under `wanderlust-travel-mcp`.
+  - Exposes `search_flights`, `get_destination_weather`, `calculate_trip_budget`, and `search_travel_knowledge` under `wanderlust-travel-mcp`.
+
+## 6. RAG Knowledgebase, Vector Store & Reasoning Engine (Booklet Syllabus Alignment)
+- **RAG Pipeline (`backend/app/rag/`):**
+  - `loader.py` (`KnowledgeLoader`): Ingests structured travel guides, visa/entry advisories, and Israeli traveler handbooks from `backend/app/knowledge/`.
+  - `splitter.py` (`TextChunkSplitter`): Overlapping semantic chunk splitter preserving document metadata and tags.
+  - `embedder.py` (`TravelEmbedder`): 256-dim bilingual (Hebrew + English) dense vector embedder with optional Gemini `text-embedding-004` live mode.
+  - `vector_store.py` (`VectorStore`): Cosine-similarity vector index persisted as NoSQL JSON document store (`backend/data/rag_vector_store.json`) and mirrored to SQLAlchemy `knowledge_chunks` (`KnowledgeChunkModel`).
+  - `retriever.py` (`KnowledgeBaseService`, `search_travel_knowledge`): Indexing, semantic retrieval, and context generation for Agno agents & API routes.
+- **Reasoning Engine (`backend/app/agents/reasoning.py`):**
+  - Attaches `agno.tools.reasoning.ReasoningTools` and `GEMINI_REASONING_MODEL` (`gemini-2.5-flash`) to the Agno orchestrator, plus deterministic 4-stage `run_reasoning_audit(...)` verifying dates, budget invariants, RAG compliance advisories, and itinerary pacing.
+- **Knowledge API Contracts:**
+  - `POST /api/v1/knowledge/search` (`query`, `destination`, `top_k`) -> ranked RAG chunks with cosine scores.
+  - `GET /api/v1/knowledge/stats` -> indexed document count, vector chunk count, embedder mode, storage backend.
+  - `POST /api/v1/knowledge/reindex` -> triggers full `Loader -> Splitter -> Embedder -> VectorStore` re-indexing.
 

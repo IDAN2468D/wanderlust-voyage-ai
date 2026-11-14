@@ -34,6 +34,10 @@ from app.api.schemas import (
     TripsHistoryResponse,
     NewsletterSubscribeRequest,
     NewsletterSubscribeResponse,
+    KnowledgeSearchRequest,
+    KnowledgeChunkResult,
+    KnowledgeSearchResponse,
+    KnowledgeStatsResponse,
 )
 from app.core.security import get_current_user
 from app.db.database import get_db, get_db_session
@@ -61,6 +65,7 @@ from app.agents.orchestrator import (
     run_trip_chat,
     _SESSION_PLANS,
 )
+from app.rag.retriever import get_knowledge_base
 from app.tools.tlv_flight_board_tools import ISRAELI_HOLIDAYS_2026
 from app.agents.tlv_flight_agent import (
     synthesize_tlv_flight_board,
@@ -222,6 +227,8 @@ def execute_plan_sync(
         calendar_events=result.get("calendar_events"),
         ground_alerts=result.get("ground_alerts"),
         whatsapp_briefings=result.get("whatsapp_briefings"),
+        rag_knowledge=result.get("rag_knowledge"),
+        reasoning_trace=result.get("reasoning_trace"),
         budget_overrun_flagged=result.get("budget_overrun_flagged", False),
         guardrail_warnings=result.get("guardrail_warnings", []),
     )
@@ -1039,6 +1046,43 @@ async def download_calendar_ics(
             "Cache-Control": "no-cache, no-store, must-revalidate",
         },
     )
+
+
+# 6. RAG Knowledgebase & VectorStore Endpoints
+@core_router.post("/knowledge/search", response_model=KnowledgeSearchResponse, status_code=200)
+async def search_knowledge_endpoint(payload: KnowledgeSearchRequest):
+    """Query the Wanderlust RAG VectorStore using bilingual Hebrew/English semantic similarity."""
+    kb = get_knowledge_base()
+    raw_matches = kb.retrieve(
+        query=payload.query,
+        destination=payload.destination,
+        category=payload.category,
+        top_k=payload.top_k,
+    )
+    matches = [KnowledgeChunkResult(**m) for m in raw_matches]
+    return KnowledgeSearchResponse(
+        status="SUCCESS",
+        query=payload.query,
+        destination=payload.destination,
+        results_count=len(matches),
+        matches=matches,
+    )
+
+
+@core_router.get("/knowledge/stats", response_model=KnowledgeStatsResponse, status_code=200)
+async def knowledge_stats_endpoint():
+    """Return index health, chunk count, vector dimensions, and covered destinations."""
+    kb = get_knowledge_base()
+    stats = kb.ensure_indexed()
+    return KnowledgeStatsResponse(**stats)
+
+
+@core_router.post("/knowledge/reindex", response_model=KnowledgeStatsResponse, status_code=200)
+async def knowledge_reindex_endpoint():
+    """Force full re-indexing (Loader -> Splitter -> Embedder -> VectorStore + SQLAlchemy)."""
+    kb = get_knowledge_base()
+    stats = kb.ensure_indexed(force=True)
+    return KnowledgeStatsResponse(**stats)
 
 
 router = APIRouter(prefix="/v1", tags=["Travel Planner Multi-Agent"])

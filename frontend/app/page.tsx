@@ -360,6 +360,8 @@ export default function Home() {
   const [calendarEvents, setCalendarEvents] = useState<any>(null);
   const [groundAlerts, setGroundAlerts] = useState<any>(null);
   const [whatsappBriefings, setWhatsappBriefings] = useState<any>(null);
+  const [ragKnowledge, setRagKnowledge] = useState<any[]>([]);
+  const [reasoningTrace, setReasoningTrace] = useState<any>(null);
 
   const agentSectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -423,6 +425,8 @@ export default function Home() {
     setCalendarEvents(null);
     setGroundAlerts(null);
     setWhatsappBriefings(null);
+    setRagKnowledge([]);
+    setReasoningTrace(null);
     setCurrentDestination(formData.destination);
     setCurrentDuration(formData.durationDays);
 
@@ -558,6 +562,8 @@ export default function Home() {
               setCalendarEvents(data.calendar_events || null);
               setGroundAlerts(data.ground_alerts || null);
               setWhatsappBriefings(data.whatsapp_briefings || null);
+              setRagKnowledge(data.rag_knowledge || []);
+              setReasoningTrace(data.reasoning_trace || null);
               setActiveAgent(null);
               setLogs((prev) => [
                 ...prev,
@@ -566,8 +572,8 @@ export default function Home() {
                   type: "done",
                   agent: "travel_orchestrator",
                   stage: "COMPLETE",
-                  title: "התוכנית הושלמה בהצלחה ע\"י 13 סוכני ה-AI האוטונומיים",
-                  message: `כל משימות 13 הסוכנים סוכמו במלואן. סטטוס תקציב: ${
+                  title: "התוכנית הושלמה בהצלחה ע\"י 15 סוכני ה-AI האוטונומיים",
+                  message: `כל משימות 15 הסוכנים, אחזור ה-RAG וביקורת ה-Reasoning סוכמו במלואן. סטטוס תקציב: ${
                     data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"
                   }`,
                   timestamp: nowTime,
@@ -635,6 +641,8 @@ export default function Home() {
           setCalendarEvents(syncData.calendar_events || null);
           setGroundAlerts(syncData.ground_alerts || null);
           setWhatsappBriefings(syncData.whatsapp_briefings || null);
+          setRagKnowledge(syncData.rag_knowledge || []);
+          setReasoningTrace(syncData.reasoning_trace || null);
 
           try {
             localStorage.setItem(
@@ -911,10 +919,10 @@ export default function Home() {
               חדר המבצעים האוטונומי
             </span>
             <h2 className="text-3xl font-serif font-bold text-white">
-              תהליך התכנון והסינתזה של 13 סוכני ה-AI האוטונומיים
+              תהליך התכנון והסינתזה של 15 סוכני ה-AI האוטונומיים
             </h2>
             <p className="text-xs text-slate-400">
-              מעקב חי אחר קריאות לכלים, בירור לוחות זמנים מנתב״ג, תחבורה, קולינריה, שופינג, אזהרות שטח וסנכרון יומנים.
+              מעקב חי אחר קריאות לכלים, אחזור וקטורי מ-RAG VectorStore, בקרת Reasoning, לוחות זמנים מנתב״ג וסנכרון יומנים.
             </p>
           </div>
 
@@ -945,6 +953,8 @@ export default function Home() {
               calendarEvents={calendarEvents}
               groundAlerts={groundAlerts}
               whatsappBriefings={whatsappBriefings}
+              ragKnowledge={ragKnowledge}
+              reasoningTrace={reasoningTrace}
             />
           )}
         </section>

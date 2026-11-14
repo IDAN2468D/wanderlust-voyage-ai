@@ -39,6 +39,8 @@ import {
   Share2,
   Download,
   MessageSquare,
+  Database,
+  Brain,
 } from "lucide-react";
 import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -109,6 +111,8 @@ interface TripResultViewProps {
   calendarEvents?: any;
   groundAlerts?: any;
   whatsappBriefings?: any;
+  ragKnowledge?: any[];
+  reasoningTrace?: any;
 }
 
 export const TripResultView: React.FC<TripResultViewProps> = ({
@@ -135,6 +139,8 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   calendarEvents,
   groundAlerts,
   whatsappBriefings,
+  ragKnowledge,
+  reasoningTrace,
 }) => {
   const [activeTab, setActiveTab] = useState<
     | "itinerary"
@@ -147,6 +153,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
     | "safety"
     | "events"
     | "budget"
+    | "rag_reasoning"
     | "raw"
   >("itinerary");
   const [copied, setCopied] = useState(false);
@@ -623,6 +630,18 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           >
             <PieChart className="w-3.5 h-3.5" />
             <span>ביקורת תקציב פיננסי</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("rag_reasoning")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeTab === "rag_reasoning"
+                ? "bg-violet-500/20 text-violet-300 border border-violet-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Brain className="w-3.5 h-3.5" />
+            <span>ידע RAG ו-Reasoning ({ragKnowledge?.length || 0})</span>
           </button>
 
           <button
@@ -1579,6 +1598,184 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB 5B: RAG KNOWLEDGEBASE & REASONING AUDIT
+        ========================================================================= */}
+        {activeTab === "rag_reasoning" && (
+          <div className="space-y-6 text-right">
+            {/* Chain-of-Thought Reasoning Audit Card */}
+            {reasoningTrace ? (
+              <div className="p-5 sm:p-6 rounded-2xl bg-black/40 border border-fuchsia-500/25 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-400/30">
+                      <Brain className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">
+                        ביקורת חשיבה לוגית (Reasoning Engine • Chain-of-Thought)
+                      </h4>
+                      <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                        <span className="font-mono text-fuchsia-300">{reasoningTrace.reasoning_model || "gemini-2.5-flash"}</span>
+                        <span>•</span>
+                        <span>{reasoningTrace.reasoning_mode || "agno_reasoning_tools_plus_cot_audit"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {typeof reasoningTrace.confidence_score === "number" && (
+                    <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold self-start sm:self-center">
+                      ביטחון מודל: {Math.round(reasoningTrace.confidence_score * 100)}%
+                    </span>
+                  )}
+                </div>
+
+                {/* Reasoning Steps */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {(reasoningTrace.steps || []).map((step: any, idx: number) => {
+                    const verdict = String(step.verdict || "PASS").toUpperCase();
+                    const isWarn = verdict === "WARNING";
+                    return (
+                      <div
+                        key={step.step_id || idx}
+                        className={`p-4 rounded-xl border ${
+                          isWarn
+                            ? "bg-amber-500/10 border-amber-400/30"
+                            : "bg-white/[0.03] border-white/10"
+                        } space-y-2`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-white">
+                            שלב {step.step_id || idx + 1}: {step.title}
+                          </span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                              isWarn
+                                ? "bg-amber-500/20 text-amber-300 border border-amber-400/40"
+                                : "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40"
+                            }`}
+                          >
+                            {verdict}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300 leading-relaxed">{step.thought}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Verified Invariants & Recommendations */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  {Array.isArray(reasoningTrace.verified_invariants) && reasoningTrace.verified_invariants.length > 0 && (
+                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                      <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>תנאים ואינוואריאנטים שאומתו</span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        {reasoningTrace.verified_invariants.map((inv: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-emerald-400 mt-0.5">✓</span>
+                            <span>{inv}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {Array.isArray(reasoningTrace.recommendations) && reasoningTrace.recommendations.length > 0 && (
+                    <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                      <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4" />
+                        <span>המלצות אופטימיזציה ומסקנות</span>
+                      </div>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        {reasoningTrace.recommendations.map((rec: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-amber-400 mt-0.5">•</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl bg-black/30 border border-white/10 text-xs text-slate-400 text-center">
+                נתוני ביקורת החשיבה (Reasoning Trace) זמינים לאחר יצירת תוכנית מלאה.
+              </div>
+            )}
+
+            {/* RAG VectorStore Knowledge Chunks */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-black/40 border border-violet-500/25 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-violet-500/15 text-violet-300 border border-violet-400/30">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      מקטעי ידע שנשלפו ממאגר ה-RAG VectorStore
+                    </h4>
+                    <p className="text-[11px] text-slate-400">
+                      מדריכי יעד מובנים + נוהל נתב&quot;ג והמטייל הישראלי (Loader → Splitter → Embedder → VectorStore)
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-200 border border-violet-400/30 font-mono self-start sm:self-center">
+                  {ragKnowledge?.length || 0} מקטעים רלוונטיים
+                </span>
+              </div>
+
+              {Array.isArray(ragKnowledge) && ragKnowledge.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {ragKnowledge.map((chunk: any, idx: number) => (
+                    <div
+                      key={chunk.chunk_id || idx}
+                      className="p-4 rounded-xl bg-white/[0.03] border border-white/10 hover:border-violet-400/40 transition space-y-2.5 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-md bg-violet-500/20 text-violet-200 border border-violet-400/30 text-[10px] font-bold">
+                            {chunk.destination || destination}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 text-[10px] font-mono font-bold">
+                            התאמה: {Math.round(Number(chunk.score || 0) * 100)}%
+                          </span>
+                        </div>
+                        <h5 className="text-xs font-bold text-white">{chunk.title}</h5>
+                        <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">
+                          {chunk.content}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2 flex-wrap text-[10px] text-slate-400">
+                        <span className="font-mono truncate max-w-[200px]" title={chunk.source}>
+                          {chunk.source}
+                        </span>
+                        {Array.isArray(chunk.tags) && chunk.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {chunk.tags.slice(0, 3).map((tag: string, tIdx: number) => (
+                              <span key={tIdx} className="px-1.5 py-0.5 rounded bg-white/5 text-slate-300">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  לא הוחזרו מקטעי ידע נוספים עבור יעד זה.
+                </div>
+              )}
+            </div>
           </div>
         )}
 

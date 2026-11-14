@@ -13,6 +13,7 @@ except (ImportError, ModuleNotFoundError):
 from app.tools.budget_tools import calculate_trip_budget as _calculate_trip_budget
 from app.tools.flight_tools import search_flights as _search_flights
 from app.tools.weather_tools import get_destination_weather as _get_destination_weather
+from app.rag.retriever import search_travel_knowledge as _search_travel_knowledge
 
 mcp = FastMCP("wanderlust-travel-mcp")
 
@@ -72,6 +73,20 @@ def calculate_trip_budget(
         local_transit_estimate=local_transit_estimate,
         emergency_buffer_percentage=emergency_buffer_percentage,
         currency=currency,
+    )
+
+
+@mcp.tool()
+def search_travel_knowledge(
+    query: str,
+    destination: Optional[str] = None,
+    top_k: int = 4,
+) -> str:
+    """Search the Wanderlust RAG VectorStore for destination guides, TLV tips, visas, and Tax-Free rules."""
+    return _search_travel_knowledge(
+        query=query,
+        destination=destination,
+        top_k=top_k,
     )
 
 

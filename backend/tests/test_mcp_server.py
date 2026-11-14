@@ -15,6 +15,7 @@ async def test_mcp_tools_registered():
     assert "search_flights" in tool_names
     assert "get_destination_weather" in tool_names
     assert "calculate_trip_budget" in tool_names
+    assert "search_travel_knowledge" in tool_names
 
 
 @pytest.mark.asyncio
@@ -55,3 +56,12 @@ async def test_mcp_tool_invocations():
     budget_payload = json.loads(budget_res.content[0].text)
     assert budget_payload["audit_status"] == "APPROVED"
     assert "itemized_breakdown" in budget_payload
+
+    rag_res = await mcp.call_tool(
+        "search_travel_knowledge",
+        {"query": "Rome metro Vatican Tax Free", "destination": "Rome", "top_k": 3},
+    )
+    assert rag_res.is_error is False
+    rag_payload = json.loads(rag_res.content[0].text)
+    assert rag_payload["results_count"] > 0
+    assert any("Rome" in m["destination"] or "רומא" in m["content"] for m in rag_payload["matches"])

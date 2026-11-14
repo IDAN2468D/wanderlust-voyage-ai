@@ -64,6 +64,8 @@ class TripPlanResponse(BaseModel):
     calendar_events: Optional[Dict[str, Any]] = None
     ground_alerts: Optional[Dict[str, Any]] = None
     whatsapp_briefings: Optional[Dict[str, Any]] = None
+    rag_knowledge: Optional[List[Dict[str, Any]]] = None
+    reasoning_trace: Optional[Dict[str, Any]] = None
     budget_overrun_flagged: Optional[bool] = False
     guardrail_warnings: Optional[List[str]] = None
 
@@ -437,3 +439,56 @@ class NewsletterSubscribeResponse(BaseModel):
     headlines: List[str]
     id: Optional[str] = None
     preview_html: Optional[str] = None
+
+
+# ==============================================================================
+# RAG Knowledgebase & VectorStore Schemas
+# ==============================================================================
+
+class KnowledgeSearchRequest(BaseModel):
+    """Payload for querying the Wanderlust RAG VectorStore."""
+
+    query: str = Field(..., min_length=2, description="Natural-language travel query (Hebrew or English)")
+    destination: Optional[str] = Field(default=None, description="Optional destination filter or boost")
+    category: Optional[str] = Field(default=None, description="Optional category filter")
+    top_k: int = Field(default=4, ge=1, le=12, description="Maximum matching chunks to return")
+
+
+class KnowledgeChunkResult(BaseModel):
+    """Single retrieved RAG knowledge chunk with cosine similarity score."""
+
+    chunk_id: str
+    doc_id: str
+    title: str
+    destination: str
+    category: str
+    source: str
+    language: str = "he"
+    chunk_index: int = 0
+    content: str
+    score: float
+    tags: List[str] = Field(default_factory=list)
+
+
+class KnowledgeSearchResponse(BaseModel):
+    """Response from semantic RAG retrieval."""
+
+    status: str = "SUCCESS"
+    query: str
+    destination: Optional[str] = None
+    results_count: int
+    matches: List[KnowledgeChunkResult]
+
+
+class KnowledgeStatsResponse(BaseModel):
+    """Index health and telemetry for the RAG VectorStore."""
+
+    status: str
+    documents_indexed: int
+    chunks_indexed: int
+    vector_dimension: int
+    embedder_mode: str
+    storage_backend: str
+    store_file: str
+    destinations_covered: List[str]
+

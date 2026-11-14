@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     # Google Gemini AI
     GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key")
     GEMINI_MODEL: str = Field(default="gemini-2.0-flash", description="Gemini model identifier")
+    GEMINI_REASONING_MODEL: str = Field(
+        default="gemini-2.5-flash",
+        description="Gemini reasoning-capable model identifier for Chain-of-Thought verification",
+    )
+    ENABLE_RAG_LIVE_EMBEDDINGS: bool = Field(
+        default=False,
+        description="Use Gemini text-embedding-004 for live RAG vectors when GEMINI_API_KEY is active",
+    )
 
     # JWT Authentication
     JWT_SECRET_KEY: str = Field(

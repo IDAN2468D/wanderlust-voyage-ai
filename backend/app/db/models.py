@@ -95,3 +95,19 @@ class ContactInquiryModel(Base):
     subject = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class KnowledgeChunkModel(Base):
+    __tablename__ = "knowledge_chunks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    chunk_id = Column(String(128), unique=True, index=True, nullable=False)
+    doc_id = Column(String(128), index=True, nullable=False)
+    destination = Column(String(128), index=True, nullable=False)
+    category = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    tags_json = Column(Text, default="[]", nullable=False)
+    embedding_json = Column(Text, default="[]", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+

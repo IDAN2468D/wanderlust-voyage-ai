@@ -7,7 +7,9 @@ from datetime import datetime, timedelta
 
 from app.core.config import settings
 from app.agents.guardrails import validate_trip_input, validate_trip_output
+from app.agents.reasoning import get_agno_reasoning_tools, run_reasoning_audit
 from app.api.schemas import TripPlanResponse
+from app.rag.retriever import get_knowledge_base, search_travel_knowledge
 from app.tools.flight_tools import search_flights, search_accommodations
 from app.tools.places_tools import search_attractions, search_restaurants, get_neighborhood_guide
 from app.tools.budget_tools import calculate_trip_budget
@@ -350,6 +352,25 @@ def synthesize_deterministic_plan(
     )
     briefing_data = json.loads(briefing_raw)
 
+    # RAG Retrieval Phase: pull top curated destination & Israeli traveler handbook insights
+    kb = get_knowledge_base()
+    rag_query = f"{dest_clean} {' '.join(interests or [])} transit visa kosher tax-free tlv".strip()
+    rag_hits = kb.retrieve(query=rag_query, destination=dest_clean, top_k=4)
+
+    # Reasoning Engine Audit: 4-step Chain-of-Thought consistency check
+    reasoning_trace = run_reasoning_audit(
+        origin=orig_clean,
+        destination=dest_clean,
+        start_date=start_date,
+        duration_days=days,
+        total_budget=total_budget,
+        budget_report=budget_report,
+        rag_hits=rag_hits,
+        safety_info=safety_data.get("advisory"),
+        structured_days=structured_days,
+        travel_style=travel_style,
+    )
+
     md_lines.extend([
         "\n---",
         "## 🚇 תחבורה והתניידות מקומית",
@@ -378,6 +399,20 @@ def synthesize_deterministic_plan(
         f"- **אזהרת כייסים/הונאות**: {sentinel_data['security_advisories'][0]}\n",
     ])
 
+    if rag_hits:
+        md_lines.extend(["---", "## 📚 תובנות מאגר הידע (RAG Vector Store)"])
+        for hit in rag_hits[:3]:
+            md_lines.append(f"- **{hit['title']}** *(התאמה: {int(hit['score'] * 100)}%)*: {hit['content'][:220]}...")
+        md_lines.append("")
+
+    md_lines.extend([
+        "---",
+        f"## 🧠 ביקורת חשיבה ובקרת איכות (Reasoning Engine • {reasoning_trace['reasoning_model']})",
+        f"- **ציון ביטחון (Confidence)**: {int(reasoning_trace['confidence_score'] * 100)}%",
+    ])
+    for step in reasoning_trace["steps"]:
+        md_lines.append(f"- **שלב {step['step_id']} ({step['verdict']}) — {step['title']}**: {step['thought']}")
+
     full_markdown = "\n".join(md_lines)
 
     plan_data: Dict[str, Any] = {
@@ -403,6 +438,8 @@ def synthesize_deterministic_plan(
         "calendar_events": calendar_data,
         "ground_alerts": sentinel_data,
         "whatsapp_briefings": briefing_data,
+        "rag_knowledge": rag_hits,
+        "reasoning_trace": reasoning_trace,
     }
     return validate_trip_output(plan_data, total_budget)
 
@@ -756,13 +793,74 @@ async def stream_multi_agent_execution(
     })
     await asyncio.sleep(0.2)
 
-    # Stage 14: Final Synthesis & Markdown Stream
+    # Stage 14: RAG Knowledgebase Vector Retrieval
+    rag_knowledge = plan_data.get("rag_knowledge") or get_knowledge_base().retrieve(
+        query=f"{destination} {' '.join(interests or [])} visa transit kosher tax-free",
+        destination=destination,
+        top_k=4,
+    )
+    yield format_sse("step", {
+        "agent": "knowledge_rag_agent",
+        "stage": "KNOWLEDGE_RAG",
+        "status": "running",
+        "title": "[STAGE: KNOWLEDGE_RAG] סוכן מאגר הידע (Vector Store RAG)",
+        "message": f"מריץ חיפוש וקטורי ב-Vector Store ושולף מדריכי עומק והנחיות ישראלים עבור {destination}...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "knowledge_rag_agent",
+        "tool": "search_travel_knowledge",
+        "summary": (
+            f"נשלפו {len(rag_knowledge)} מקטעי ידע רלוונטיים ממאגר ה-Vector Store "
+            f"(התאמה עליונה: {int((rag_knowledge[0]['score'] if rag_knowledge else 0.85) * 100)}%)."
+        ),
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 15: Chain-of-Thought Reasoning Engine Audit
+    reasoning_trace = plan_data.get("reasoning_trace") or run_reasoning_audit(
+        origin=origin,
+        destination=destination,
+        start_date=start_date,
+        duration_days=duration_days,
+        total_budget=total_budget,
+        budget_report={
+            "total_projected_expenses_usd": plan_data["total_estimated"],
+            "audit_status": plan_data["budget_status"],
+            "remaining_balance_usd": plan_data["remaining_balance"],
+        },
+        rag_hits=rag_knowledge,
+        safety_info=plan_data.get("safety_info"),
+        structured_days=plan_data.get("structured_days"),
+        travel_style=travel_style,
+    )
+    yield format_sse("step", {
+        "agent": "reasoning_agent",
+        "stage": "REASONING",
+        "status": "running",
+        "title": "[STAGE: REASONING] מנוע חשיבה ובקרת איכות (Chain-of-Thought)",
+        "message": f"מבצע אימות חשיבה רב-שלבי ({reasoning_trace['reasoning_model']}) על לוחות זמנים, תקציב וויזות...",
+    })
+    await asyncio.sleep(0.25)
+
+    yield format_sse("tool_call", {
+        "agent": "reasoning_agent",
+        "tool": "run_reasoning_audit",
+        "summary": (
+            f"הושלמו {len(reasoning_trace['steps'])} שלבי חשיבה • "
+            f"ציון ביטחון: {int(reasoning_trace['confidence_score'] * 100)}%."
+        ),
+    })
+    await asyncio.sleep(0.2)
+
+    # Stage 16: Final Synthesis & Markdown Stream
     yield format_sse("step", {
         "agent": "travel_orchestrator",
         "stage": "SYNTHESIS",
         "status": "synthesizing",
         "title": "[STAGE: SYNTHESIS] סינתזה סופית ואיחוד דוחות",
-        "message": "מרכיב דוח מסע אינטראקטיבי הכולל צ'קליסט אריזה, תחבורה, קולינריה, Tax-Free וסנכרון יומן...",
+        "message": "מרכיב דוח מסע אינטראקטיבי הכולל צ'קליסט אריזה, תחבורה, קולינריה, RAG, Reasoning וסנכרון יומן...",
     })
     await asyncio.sleep(0.25)
 
@@ -775,7 +873,7 @@ async def stream_multi_agent_execution(
         yield format_sse("chunk", {"text": chunk})
         await asyncio.sleep(0.02)
 
-    # Stage 15: Completion
+    # Stage 17: Completion
     yield format_sse("done", {
         "session_id": session_id,
         "stage": "COMPLETE",
@@ -800,6 +898,8 @@ async def stream_multi_agent_execution(
         "calendar_events": calendar_events,
         "ground_alerts": ground_alerts,
         "whatsapp_briefings": whatsapp_briefings,
+        "rag_knowledge": rag_knowledge,
+        "reasoning_trace": reasoning_trace,
         "budget_overrun_flagged": plan_data.get("budget_overrun_flagged", False),
         "guardrail_warnings": plan_data.get("guardrail_warnings", []),
     })
@@ -884,13 +984,20 @@ def create_specialist_agents(storage=None):
     """Instantiate specialist agents and orchestrator if model is available."""
     gemini_key = settings.GEMINI_API_KEY or os.getenv("GOOGLE_API_KEY", "")
     model = None
+    reasoning_model = None
     if AGNO_AVAILABLE and gemini_key:
         try:
             model = Gemini(id=settings.GEMINI_MODEL, api_key=gemini_key)
         except Exception as e:
             logger.warning(f"Failed to initialize Gemini: {e}")
+        try:
+            reasoning_model = Gemini(id=settings.GEMINI_REASONING_MODEL, api_key=gemini_key)
+        except Exception as e:
+            logger.warning(f"Failed to initialize Gemini reasoning model: {e}")
+            reasoning_model = model
 
     if AGNO_AVAILABLE and model:
+        reasoning_tools = get_agno_reasoning_tools()
         f_agent = Agent(
             name="Flight Specialist",
             role="Search flights and accommodations",
@@ -899,9 +1006,14 @@ def create_specialist_agents(storage=None):
         )
         i_agent = Agent(
             name="Itinerary Specialist",
-            role="Build itinerary and culinary guide",
+            role="Build itinerary and culinary guide grounded in RAG knowledge",
             model=model,
-            tools=[search_attractions, search_restaurants, get_neighborhood_guide],
+            tools=[
+                search_attractions,
+                search_restaurants,
+                get_neighborhood_guide,
+                search_travel_knowledge,
+            ],
         )
         b_agent = Agent(
             name="Budget Specialist",
@@ -917,9 +1029,9 @@ def create_specialist_agents(storage=None):
         )
         s_agent = Agent(
             name="Safety Specialist",
-            role="Visa & Safety",
+            role="Visa, Safety & RAG Israeli Traveler Compliance",
             model=model,
-            tools=[get_safety_and_visa_info],
+            tools=[get_safety_and_visa_info, search_travel_knowledge],
         )
         c_agent = Agent(
             name="Culture Specialist",
@@ -930,28 +1042,48 @@ def create_specialist_agents(storage=None):
 
         team_instructions = [
             "Coordinate specialist agents to produce complete, budget-audited travel plans.",
+            "Always ground destination tips, visa rules, and transit advice using search_travel_knowledge (RAG VectorStore).",
+            "Use ReasoningTools step-by-step verification for TLV Shabbat flight checks, 10% FX buffer math, and pacing.",
             "Always format Israeli dates as DD/MM/YYYY and support USD, EUR, ILS, and GBP.",
             "Preserve conversation history across turns for multi-turn trip refinement.",
         ]
 
+        orchestrator_tools = [t for t in [search_travel_knowledge, reasoning_tools] if t is not None]
+
         if Team is not None:
-            orchestrator = Team(
-                name="Travel Team Orchestrator",
-                model=model,
-                members=[f_agent, i_agent, b_agent, w_agent, s_agent, c_agent],
-                db=storage,
-                instructions=team_instructions,
-                add_history_to_context=True,
-                num_history_runs=5,
-            )
+            team_kwargs: Dict[str, Any] = {
+                "name": "Travel Team Orchestrator",
+                "model": model,
+                "members": [f_agent, i_agent, b_agent, w_agent, s_agent, c_agent],
+                "db": storage,
+                "tools": orchestrator_tools,
+                "instructions": team_instructions,
+                "add_history_to_context": True,
+                "num_history_runs": 5,
+            }
+            if reasoning_model is not None:
+                team_kwargs["reasoning_model"] = reasoning_model
+            try:
+                orchestrator = Team(**team_kwargs)
+            except TypeError:
+                team_kwargs.pop("reasoning_model", None)
+                orchestrator = Team(**team_kwargs)
         else:
-            orchestrator = Agent(
-                name="Travel Team Orchestrator",
-                model=model,
-                db=storage,
-                instructions=team_instructions,
-                add_history_to_context=True,
-            )
+            agent_kwargs: Dict[str, Any] = {
+                "name": "Travel Team Orchestrator",
+                "model": model,
+                "db": storage,
+                "tools": orchestrator_tools,
+                "instructions": team_instructions,
+                "add_history_to_context": True,
+            }
+            if reasoning_model is not None:
+                agent_kwargs["reasoning_model"] = reasoning_model
+            try:
+                orchestrator = Agent(**agent_kwargs)
+            except TypeError:
+                agent_kwargs.pop("reasoning_model", None)
+                orchestrator = Agent(**agent_kwargs)
         return orchestrator, f_agent, i_agent, b_agent, w_agent, s_agent, c_agent
 
     return None, None, None, None, None, None, None

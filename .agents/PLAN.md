@@ -32,4 +32,10 @@
 - [x] Implement `guardrails.py` (`validate_trip_input`, `validate_trip_output`) and HITL approval workflow
 - [x] Expose standard MCP server (`travel_mcp_server.py`) and add `test_agent_eval.py` + `test_mcp_server.py`
 
+## Sprint 7: Persistent PostgreSQL/SQLite DB, Rotating Newsletter, RAG Vector Store & Reasoning Model
+- [x] Add SQLAlchemy ORM persistence (`users`, `bookings`, `trips`, `newsletter_subscribers`, `contact_inquiries`, `knowledge_chunks`) with Render PostgreSQL + SQLite fallback
+- [x] Implement rotating RTL newsletter system via Resend + Footer preview modal
+- [x] Build modular RAG Knowledgebase (`Loader -> Splitter -> Embedder -> VectorStore -> Retriever`) + NoSQL JSON vector store + `/api/v1/knowledge/*` endpoints
+- [x] Integrate `ReasoningTools` + `run_reasoning_audit` + SSE `[STAGE: KNOWLEDGE_RAG]` / `[STAGE: REASONING]` + UI tab in `TripResultView.tsx`
+- [x] Add `search_travel_knowledge` tool to `travel_mcp_server.py` and full pytest + build + E2E verification
 

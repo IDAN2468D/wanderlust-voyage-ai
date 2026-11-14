@@ -20,6 +20,8 @@ import {
   CalendarCheck,
   Radio,
   MessageSquare,
+  Database,
+  Brain,
 } from "lucide-react";
 
 export interface StreamLogItem {
@@ -55,6 +57,22 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
       icon: Sparkles,
       color: "text-purple-400",
       activeBg: "from-purple-600/30 to-indigo-600/20 border-purple-500",
+    },
+    {
+      id: "knowledge_rag_agent",
+      name: "מאגר ידע RAG",
+      role: "אחזור וקטורי VectorStore",
+      icon: Database,
+      color: "text-violet-400",
+      activeBg: "from-violet-600/30 to-purple-600/20 border-violet-500",
+    },
+    {
+      id: "reasoning_agent",
+      name: "מנוע חשיבה Reasoning",
+      role: "ביקורת לוגית Chain-of-Thought",
+      icon: Brain,
+      color: "text-fuchsia-400",
+      activeBg: "from-fuchsia-600/30 to-pink-600/20 border-fuchsia-500",
     },
     {
       id: "flight_hotel_agent",
@@ -173,14 +191,14 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-serif text-lg font-bold text-white tracking-tight">
-                מוניטור חשיבה וסנכרון של 13 סוכני ה-AI האוטונומיים
+                מוניטור חשיבה, RAG וסנכרון של 15 סוכני ה-AI האוטונומיים
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10">
                 STAGE: {currentStage}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              טלמטריה, הפעלת כלים בזמן אמת, תחבורה, קולינריה, שופינג וסנכרון יומנים בהזרמת SSE
+              טלמטריה, אחזור וקטורי (RAG VectorStore), מנוע Reasoning, הפעלת כלים בזמן אמת וסנכרון יומנים בהזרמת SSE
             </p>
           </div>
         </div>
@@ -199,8 +217,8 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
         </div>
       </div>
 
-      {/* 7 Specialist Agents Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 relative z-10">
+      {/* 15 Specialist Agents Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 relative z-10">
         {agents.map((agent) => {
           const Icon = agent.icon;
           const isActive = activeAgent === agent.id;
