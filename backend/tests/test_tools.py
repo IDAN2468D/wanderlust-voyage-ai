@@ -164,12 +164,14 @@ def test_culture_and_events_tools():
 
 def test_orchestrator_7_agents_synthesis():
     """Verify orchestrator synthesizes a complete plan combining all 7 specialists."""
+    from datetime import date, timedelta
     from app.agents.orchestrator import synthesize_deterministic_plan
 
+    future_dt = date.today() + timedelta(days=30)
     plan = synthesize_deterministic_plan(
         origin="TLV",
         destination="באלי, אינדונזיה",
-        start_date="2026-10-15",
+        start_date=future_dt.strftime("%Y-%m-%d"),
         duration_days=7,
         total_budget=3500.0,
         interests=["חופים ורוגע", "קולינריה ויין"],
@@ -185,5 +187,6 @@ def test_orchestrator_7_agents_synthesis():
     assert len(plan["structured_days"]) == 7
     assert plan["recommended_flight"]["booking_url"].startswith("http")
     assert plan["selected_hotel"]["google_maps_url"].startswith("http")
-    assert plan["start_date_formatted"] == "15/10/2026"  # Israeli format DD/MM/YYYY
+    assert plan["start_date_formatted"] == future_dt.strftime("%d/%m/%Y")  # Israeli format DD/MM/YYYY
+
 

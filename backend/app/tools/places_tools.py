@@ -1,7 +1,68 @@
+import asyncio
+import concurrent.futures
 import json
+import logging
 import random
 import urllib.parse
 from typing import Optional, List, Dict, Any
+
+import httpx
+
+logger = logging.getLogger("places_tools")
+
+NOMINATIM_HEADERS = {
+    "User-Agent": "WanderlustVoyageAI/1.0 (https://github.com/IDAN2468D/wanderlust-voyage-ai)"
+}
+
+
+def _run_async(coro):
+    """Execute an async coroutine safely from synchronous tool code."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result(timeout=6.0)
+
+
+async def _enrich_places_with_nominatim(
+    items: List[Dict[str, Any]],
+    destination: str,
+) -> List[Dict[str, Any]]:
+    """
+    Query OpenStreetMap Nominatim API via httpx.AsyncClient (5s timeout) to enrich places
+    with real coordinates and map links, falling back cleanly on error or timeout.
+    """
+    enriched = [dict(item) for item in items]
+    if not enriched:
+        return enriched
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0, headers=NOMINATIM_HEADERS) as client:
+            for item in enriched:
+                query = f"{item['name']}, {destination}"
+                resp = await client.get(
+                    "https://nominatim.openstreetmap.org/search",
+                    params={"q": query, "format": "json", "limit": 1},
+                )
+                resp.raise_for_status()
+                results = resp.json()
+                if isinstance(results, list) and results:
+                    lat = round(float(results[0]["lat"]), 6)
+                    lng = round(float(results[0]["lon"]), 6)
+                    item["lat"] = lat
+                    item["lng"] = lng
+                    item["osm_url"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=16/{lat}/{lng}"
+                    item["google_maps_url"] = f"https://www.google.com/maps/search/?api=1&query={lat},{lng}"
+                    item["geo_source"] = "nominatim"
+                else:
+                    item.setdefault("geo_source", "deterministic_fallback")
+    except (httpx.TimeoutException, httpx.HTTPError, Exception) as exc:
+        logger.warning(f"Nominatim enrichment failed for '{destination}', using deterministic fallback: {exc}")
+        for item in enriched:
+            item.setdefault("geo_source", "deterministic_fallback")
+
+    return enriched
 
 
 def search_attractions(
@@ -334,12 +395,14 @@ def search_attractions(
             },
         ]
 
-    # Add Google Maps deep links to all items
+    # Add Google Maps deep links to all items and enrich via OpenStreetMap Nominatim
     enriched_attractions = []
     for item in catalog[:max_results]:
         item_copy = dict(item)
         item_copy["google_maps_url"] = make_maps_url(item["name"], dest_clean)
         enriched_attractions.append(item_copy)
+
+    enriched_attractions = _run_async(_enrich_places_with_nominatim(enriched_attractions, dest_clean))
 
     return json.dumps({
         "destination": dest_clean,
@@ -554,6 +617,8 @@ def search_restaurants(
 
     for d in dining:
         d["google_maps_url"] = make_maps_url(d["name"])
+
+    dining = _run_async(_enrich_places_with_nominatim(dining, dest_clean))
 
     return json.dumps({
         "destination": dest_clean,

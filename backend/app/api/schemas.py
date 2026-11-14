@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, EmailStr
 
@@ -23,7 +24,8 @@ class TripPlanRequest(BaseModel):
     session_id: Optional[str] = Field(default=None, description="Optional existing session ID for conversation memory")
 
     def get_effective_start_date(self) -> str:
-        return self.start_date or self.departure_date or "2026-10-15"
+        default_date = (date.today() + timedelta(days=30)).strftime("%Y-%m-%d")
+        return self.start_date or self.departure_date or default_date
 
     def get_effective_budget(self) -> float:
         if self.total_budget is not None and self.total_budget > 0:
@@ -62,6 +64,23 @@ class TripPlanResponse(BaseModel):
     calendar_events: Optional[Dict[str, Any]] = None
     ground_alerts: Optional[Dict[str, Any]] = None
     whatsapp_briefings: Optional[Dict[str, Any]] = None
+    budget_overrun_flagged: Optional[bool] = False
+    guardrail_warnings: Optional[List[str]] = None
+
+
+class TripChatRequest(BaseModel):
+    """Payload for multi-turn conversational travel planning."""
+
+    session_id: str = Field(..., min_length=1, description="Session identifier for short/long-term memory")
+    message: str = Field(..., min_length=1, description="Traveler follow-up message or refinement request")
+
+
+class TripChatResponse(BaseModel):
+    """Response from multi-turn conversational travel assistant."""
+
+    session_id: str
+    reply: str
+    updated_plan: Optional[TripPlanResponse] = None
 
 
 class WorkspaceCalendarSyncRequest(BaseModel):
@@ -72,16 +91,19 @@ class WorkspaceCalendarSyncRequest(BaseModel):
     duration_days: int
     flight_number: Optional[str] = "LY-081"
     hotel_name: Optional[str] = None
+    require_approval: bool = False
 
 
 class WorkspaceCalendarSyncResponse(BaseModel):
     """Response containing one-click Google Calendar URL and downloadable iCal (.ics) payload."""
 
-    google_calendar_url: str
-    event_title: str
-    event_details: str
-    location: str
-    ical_data: str
+    status: str = "SUCCESS"
+    action_id: Optional[str] = None
+    google_calendar_url: Optional[str] = None
+    event_title: Optional[str] = None
+    event_details: Optional[str] = None
+    location: Optional[str] = None
+    ical_data: Optional[str] = None
 
 
 class WorkspaceGmailBriefingRequest(BaseModel):
@@ -92,15 +114,33 @@ class WorkspaceGmailBriefingRequest(BaseModel):
     recipient_email: EmailStr
     markdown_plan: str
     total_estimated_usd: float
+    require_approval: bool = False
 
 
 class WorkspaceGmailBriefingResponse(BaseModel):
     """Response confirming email briefing preparation."""
 
     status: str
+    action_id: Optional[str] = None
     recipient: str
     subject: str
     html_preview: str
+
+
+class ApproveActionRequest(BaseModel):
+    """Payload for Human-In-The-Loop approval or cancellation of pending external actions."""
+
+    action_id: str = Field(..., min_length=1, description="Pending action ID")
+    approved: bool = Field(..., description="True to execute action, False to cancel")
+
+
+class ApproveActionResponse(BaseModel):
+    """Response after approving or cancelling a pending external action."""
+
+    action_id: str
+    status: str
+    action_type: str
+    result: Optional[Dict[str, Any]] = None
 
 
 class WorkspaceDocExportRequest(BaseModel):

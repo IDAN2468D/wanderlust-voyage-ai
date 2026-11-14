@@ -1,7 +1,78 @@
+import asyncio
+import concurrent.futures
 import json
+import logging
 import random
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+
+import httpx
+
+logger = logging.getLogger("weather_tools")
+
+
+def _run_async(coro):
+    """Execute an async coroutine safely from synchronous tool code."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result(timeout=6.0)
+
+
+async def _fetch_open_meteo_weather(
+    destination: str,
+    duration_days: int = 7,
+) -> Optional[Dict[str, Any]]:
+    """Fetch live forecast metrics from Open-Meteo Geocoding + Forecast APIs."""
+    query_name = destination.split(",")[0].strip() or destination.strip()
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            geo_resp = await client.get(
+                "https://geocoding-api.open-meteo.com/v1/search",
+                params={"name": query_name, "count": 1, "language": "en", "format": "json"},
+            )
+            geo_resp.raise_for_status()
+            geo_data = geo_resp.json()
+            results = geo_data.get("results") or []
+            if not results:
+                return None
+
+            lat = float(results[0]["latitude"])
+            lon = float(results[0]["longitude"])
+
+            forecast_days = min(max(1, duration_days), 16)
+            weather_resp = await client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": lat,
+                    "longitude": lon,
+                    "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+                    "timezone": "auto",
+                    "forecast_days": forecast_days,
+                },
+            )
+            weather_resp.raise_for_status()
+            daily = weather_resp.json().get("daily") or {}
+
+            highs = [v for v in (daily.get("temperature_2m_max") or []) if v is not None]
+            lows = [v for v in (daily.get("temperature_2m_min") or []) if v is not None]
+            rains = [v for v in (daily.get("precipitation_probability_max") or []) if v is not None]
+
+            if not highs or not lows:
+                return None
+
+            return {
+                "temp_high": round(sum(highs) / len(highs)),
+                "temp_low": round(sum(lows) / len(lows)),
+                "rain_chance": round(max(rains)) if rains else 15,
+                "latitude": lat,
+                "longitude": lon,
+            }
+    except (httpx.TimeoutException, httpx.HTTPError, Exception) as exc:
+        logger.warning(f"Open-Meteo live lookup failed for '{destination}', using deterministic fallback: {exc}")
+        return None
 
 
 def get_destination_weather(
@@ -11,6 +82,7 @@ def get_destination_weather(
 ) -> str:
     """
     Retrieves weather forecast, climate metrics, and plug type data for a destination.
+    Attempts live lookup via Open-Meteo API with automatic fallback to deterministic profiles.
 
     Args:
         destination (str): Target destination city/region (e.g., 'באלי', 'Bali', 'Santorini').
@@ -109,8 +181,10 @@ def get_destination_weather(
     # Match or generate fallback
     profile = None
     for key, data in climate_profiles.items():
-        if key in dest_lower or (key == "swiss_alps" and ("אלפים" in dest_clean or "שוויץ" in dest_clean or "swiss" in dest_lower)):
-            profile = data
+        if key in dest_lower or (
+            key == "swiss_alps" and ("אלפים" in dest_clean or "שוויץ" in dest_clean or "swiss" in dest_lower)
+        ):
+            profile = dict(data)
             break
 
     if not profile:
@@ -129,10 +203,19 @@ def get_destination_weather(
             "clothing_tip": "ביגוד קל ונוח בשכבות, נעלי הליכה איכותיות, משקפי שמש ועליונית קלה לשעות הערב.",
         }
 
+    data_source = "deterministic_fallback"
+    live_weather = _run_async(_fetch_open_meteo_weather(dest_clean, duration_days))
+    if live_weather:
+        profile["temp_high"] = live_weather["temp_high"]
+        profile["temp_low"] = live_weather["temp_low"]
+        profile["rain_chance"] = live_weather["rain_chance"]
+        data_source = "open-meteo"
+
     return json.dumps({
         "destination": dest_clean,
         "start_date": start_date,
         "duration_days": duration_days,
+        "data_source": data_source,
         "metrics": profile,
     }, ensure_ascii=False, indent=2)
 

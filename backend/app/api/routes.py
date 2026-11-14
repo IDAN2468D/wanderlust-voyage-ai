@@ -3,18 +3,22 @@ import logging
 import urllib.parse
 from typing import Dict, Any
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, status, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import StreamingResponse
 
 from app.api.schemas import (
     TripPlanRequest,
     TripPlanResponse,
+    TripChatRequest,
+    TripChatResponse,
     WorkspaceCalendarSyncRequest,
     WorkspaceCalendarSyncResponse,
     WorkspaceGmailBriefingRequest,
     WorkspaceGmailBriefingResponse,
     WorkspaceDocExportRequest,
     WorkspaceDocExportResponse,
+    ApproveActionRequest,
+    ApproveActionResponse,
     TLVHolidayFlightBoardRequest,
     TLVHolidayFlightBoardResponse,
     SendFlightBoardEmailRequest,
@@ -24,9 +28,16 @@ from app.api.schemas import (
 )
 from app.core.security import get_current_user
 from app.services.email_service import email_service
+from app.agents.guardrails import (
+    TripGuardrailError,
+    validate_trip_input,
+    validate_trip_output,
+)
 from app.agents.orchestrator import (
     synthesize_deterministic_plan,
     stream_multi_agent_execution,
+    run_trip_chat,
+    _SESSION_PLANS,
 )
 from app.tools.tlv_flight_board_tools import ISRAELI_HOLIDAYS_2026
 from app.agents.tlv_flight_agent import (
@@ -35,27 +46,47 @@ from app.agents.tlv_flight_agent import (
 )
 
 logger = logging.getLogger("api_routes")
-router = APIRouter(prefix="/v1", tags=["Travel Planner Multi-Agent"])
+core_router = APIRouter(tags=["Travel Planner Multi-Agent"])
+
+# In-memory Human-In-The-Loop pending external actions registry
+PENDING_ACTIONS: Dict[str, Dict[str, Any]] = {}
 
 
 def execute_plan_sync(request: TripPlanRequest, user_id: str) -> TripPlanResponse:
-    """Internal helper to execute synchronous trip planning."""
+    """Internal helper to execute synchronous trip planning with input/output guardrails."""
     session_id = request.session_id or f"session_{uuid.uuid4().hex[:10]}"
     start_date = request.get_effective_start_date()
     effective_budget = request.get_effective_budget()
 
+    try:
+        validate_trip_input(
+            origin=request.origin,
+            destination=request.destination,
+            start_date=start_date,
+            duration_days=request.duration_days,
+            total_budget=effective_budget,
+        )
+    except TripGuardrailError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     logger.info(f"User {user_id} planning trip to {request.destination} (Session: {session_id})")
 
-    result = synthesize_deterministic_plan(
-        origin=request.origin,
-        destination=request.destination,
-        start_date=start_date,
-        duration_days=request.duration_days,
-        total_budget=effective_budget,
-        interests=request.interests,
-        travel_style=request.travel_style,
-        currency=request.currency,
-    )
+    try:
+        result = synthesize_deterministic_plan(
+            origin=request.origin,
+            destination=request.destination,
+            start_date=start_date,
+            duration_days=request.duration_days,
+            total_budget=effective_budget,
+            interests=request.interests,
+            travel_style=request.travel_style,
+            currency=request.currency,
+        )
+        result = validate_trip_output(result, effective_budget)
+    except TripGuardrailError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    _SESSION_PLANS[session_id] = result
 
     return TripPlanResponse(
         session_id=session_id,
@@ -78,14 +109,33 @@ def execute_plan_sync(request: TripPlanRequest, user_id: str) -> TripPlanRespons
         recommended_flight=result.get("recommended_flight"),
         selected_hotel=result.get("selected_hotel"),
         start_date_formatted=result.get("start_date_formatted"),
+        transit_guide=result.get("transit_guide"),
+        culinary_guide=result.get("culinary_guide"),
+        shopping_taxfree=result.get("shopping_taxfree"),
+        calendar_events=result.get("calendar_events"),
+        ground_alerts=result.get("ground_alerts"),
+        whatsapp_briefings=result.get("whatsapp_briefings"),
+        budget_overrun_flagged=result.get("budget_overrun_flagged", False),
+        guardrail_warnings=result.get("guardrail_warnings", []),
     )
 
 
 def execute_plan_stream(request: TripPlanRequest, user_id: str) -> StreamingResponse:
-    """Internal helper to initiate SSE multi-agent streaming."""
+    """Internal helper to initiate SSE multi-agent streaming with input guardrail."""
     session_id = request.session_id or f"session_{uuid.uuid4().hex[:10]}"
     start_date = request.get_effective_start_date()
     effective_budget = request.get_effective_budget()
+
+    try:
+        validate_trip_input(
+            origin=request.origin,
+            destination=request.destination,
+            start_date=start_date,
+            duration_days=request.duration_days,
+            total_budget=effective_budget,
+        )
+    except TripGuardrailError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     logger.info(f"User {user_id} streaming multi-agent plan for {request.destination} (Session: {session_id})")
 
@@ -110,47 +160,8 @@ def execute_plan_stream(request: TripPlanRequest, user_id: str) -> StreamingResp
     )
 
 
-# 1. Existing endpoints
-@router.post("/plan-trip", response_model=TripPlanResponse, status_code=status.HTTP_200_OK)
-async def plan_trip_sync(
-    request: TripPlanRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-):
-    return execute_plan_sync(request, current_user.get("user_id", "guest_user"))
-
-
-@router.post("/plan-trip/stream")
-async def plan_trip_stream(
-    request: TripPlanRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-):
-    return execute_plan_stream(request, current_user.get("user_id", "guest_user"))
-
-
-# 2. SPEC.md Contract endpoints (POST /api/v1/trips/plan)
-@router.post("/trips/plan", response_model=TripPlanResponse, status_code=status.HTTP_200_OK)
-async def trips_plan_sync(
-    request: TripPlanRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-):
-    return execute_plan_sync(request, current_user.get("user_id", "guest_user"))
-
-
-@router.post("/trips/plan/stream")
-async def trips_plan_stream(
-    request: TripPlanRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-):
-    return execute_plan_stream(request, current_user.get("user_id", "guest_user"))
-
-
-# 3. Google Workspace / Google Flow MCP Integration Endpoints
-@router.post("/workspace/sync-calendar", response_model=WorkspaceCalendarSyncResponse)
-async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
-    """
-    Generates a direct 1-click Google Calendar URL and standard iCalendar (.ics) format.
-    Allows instant calendar event scheduling for flights and trip start.
-    """
+def _execute_calendar_sync(request: WorkspaceCalendarSyncRequest) -> WorkspaceCalendarSyncResponse:
+    """Build Google Calendar deep link and RFC 5545 iCalendar payload."""
     dest = request.destination
     start_dt_str = request.start_date
     days = max(1, request.duration_days)
@@ -161,8 +172,6 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
         dt = datetime.now() + timedelta(days=14)
 
     end_dt = dt + timedelta(days=days)
-
-    # Dates in Google Calendar format YYYYMMDDTHHMMSSZ
     start_fmt = dt.strftime("%Y%m%dT090000Z")
     end_fmt = end_dt.strftime("%Y%m%dT180000Z")
 
@@ -171,7 +180,7 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
         f"תוכנית חופשה מלאה עבור {dest} ({days} ימים)\n"
         f"טיסה: {request.flight_number}\n"
         f"מלון: {request.hotel_name or 'מלון בוטיק נבחר'}\n"
-        f"נוצר אוטונומית על ידי Wanderlust Voyage AI & Google Flow MCP"
+        "נוצר אוטונומית על ידי Wanderlust Voyage AI & Google Flow MCP"
     )
 
     params = {
@@ -183,7 +192,6 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
     }
     google_cal_url = f"https://calendar.google.com/calendar/render?{urllib.parse.urlencode(params)}"
 
-    # Generate standard RFC 5545 iCalendar payload
     ical_data = (
         "BEGIN:VCALENDAR\r\n"
         "VERSION:2.0\r\n"
@@ -202,6 +210,7 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
     )
 
     return WorkspaceCalendarSyncResponse(
+        status="SUCCESS",
         google_calendar_url=google_cal_url,
         event_title=title,
         event_details=details,
@@ -210,16 +219,11 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
     )
 
 
-@router.post("/workspace/send-briefing", response_model=WorkspaceGmailBriefingResponse)
-async def send_gmail_briefing(request: WorkspaceGmailBriefingRequest):
-    """
-    Prepares a formatted HTML confirmation briefing and dispatches via Resend
-    with graceful fallback if Resend API key is unconfigured.
-    """
+async def _execute_gmail_briefing(request: WorkspaceGmailBriefingRequest) -> WorkspaceGmailBriefingResponse:
+    """Dispatch trip briefing email via Resend EmailService."""
     dest = request.destination
     subject = f"✈️ תדריך הנסיעה שלך ל{dest} - Wanderlust Voyage AI"
 
-    # Send through Resend EmailService
     result = await email_service.send_trip_briefing(
         recipient_email=str(request.recipient_email),
         destination=dest,
@@ -239,8 +243,138 @@ async def send_gmail_briefing(request: WorkspaceGmailBriefingRequest):
     )
 
 
+# 1. Existing endpoints
+@core_router.post("/plan-trip", response_model=TripPlanResponse, status_code=200)
+async def plan_trip_sync(
+    request: TripPlanRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    return execute_plan_sync(request, current_user.get("user_id", "guest_user"))
 
-@router.post("/workspace/export-doc", response_model=WorkspaceDocExportResponse)
+
+@core_router.post("/plan-trip/stream")
+async def plan_trip_stream(
+    request: TripPlanRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    return execute_plan_stream(request, current_user.get("user_id", "guest_user"))
+
+
+# 2. SPEC.md Contract endpoints (POST /api/v1/trips/plan & /api/trips/plan)
+@core_router.post("/trips/plan", response_model=TripPlanResponse, status_code=200)
+async def trips_plan_sync(
+    request: TripPlanRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    return execute_plan_sync(request, current_user.get("user_id", "guest_user"))
+
+
+@core_router.post("/trips/plan/stream")
+async def trips_plan_stream(
+    request: TripPlanRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    return execute_plan_stream(request, current_user.get("user_id", "guest_user"))
+
+
+@core_router.post("/trips/chat", response_model=TripChatResponse, status_code=200)
+async def trips_chat(
+    request: TripChatRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """Multi-turn conversational travel assistant backed by Agno session memory."""
+    logger.info(f"User {current_user.get('user_id', 'guest_user')} chat message in session {request.session_id}")
+    chat_result = await run_trip_chat(session_id=request.session_id, message=request.message)
+    return TripChatResponse(**chat_result)
+
+
+@core_router.post("/trips/approve-action", response_model=ApproveActionResponse, status_code=200)
+async def approve_pending_action(request: ApproveActionRequest):
+    """Human-In-The-Loop approval endpoint to execute or cancel pending workspace actions."""
+    pending = PENDING_ACTIONS.pop(request.action_id, None)
+    if not pending:
+        raise HTTPException(status_code=404, detail=f"Pending action '{request.action_id}' not found.")
+
+    action_type = pending["action_type"]
+    if not request.approved:
+        return ApproveActionResponse(
+            action_id=request.action_id,
+            status="cancelled",
+            action_type=action_type,
+            result={"message": "Action cancelled by user."},
+        )
+
+    if action_type == "sync_calendar":
+        payload_req = WorkspaceCalendarSyncRequest(**pending["payload"])
+        exec_res = _execute_calendar_sync(payload_req)
+        return ApproveActionResponse(
+            action_id=request.action_id,
+            status="executed",
+            action_type=action_type,
+            result=exec_res.model_dump(),
+        )
+
+    if action_type == "send_briefing":
+        payload_req = WorkspaceGmailBriefingRequest(**pending["payload"])
+        exec_res = await _execute_gmail_briefing(payload_req)
+        return ApproveActionResponse(
+            action_id=request.action_id,
+            status="executed",
+            action_type=action_type,
+            result=exec_res.model_dump(),
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported pending action type: {action_type}")
+
+
+# 3. Google Workspace / Google Flow MCP Integration Endpoints
+@core_router.post("/workspace/sync-calendar", response_model=WorkspaceCalendarSyncResponse)
+async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
+    """
+    Generates a direct 1-click Google Calendar URL and standard iCalendar (.ics) format.
+    Supports Human-In-The-Loop confirmation when require_approval=True.
+    """
+    if request.require_approval:
+        action_id = f"act_{uuid.uuid4().hex[:12]}"
+        PENDING_ACTIONS[action_id] = {
+            "action_type": "sync_calendar",
+            "payload": request.model_dump(),
+        }
+        return WorkspaceCalendarSyncResponse(
+            status="pending_approval",
+            action_id=action_id,
+            location=request.destination,
+            event_title=f"Pending approval: ✈️ חופשה ב{request.destination}",
+        )
+
+    return _execute_calendar_sync(request)
+
+
+@core_router.post("/workspace/send-briefing", response_model=WorkspaceGmailBriefingResponse)
+async def send_gmail_briefing(request: WorkspaceGmailBriefingRequest):
+    """
+    Prepares a formatted HTML confirmation briefing and dispatches via Resend
+    with graceful fallback. Supports Human-In-The-Loop confirmation when require_approval=True.
+    """
+    if request.require_approval:
+        action_id = f"act_{uuid.uuid4().hex[:12]}"
+        PENDING_ACTIONS[action_id] = {
+            "action_type": "send_briefing",
+            "payload": request.model_dump(),
+        }
+        subject = f"✈️ תדריך הנסיעה שלך ל{request.destination} - Wanderlust Voyage AI"
+        return WorkspaceGmailBriefingResponse(
+            status="pending_approval",
+            action_id=action_id,
+            recipient=str(request.recipient_email),
+            subject=subject,
+            html_preview="הפעולה ממתינה לאישור המשתמש (Human-In-The-Loop) לפני שליחת המייל.",
+        )
+
+    return await _execute_gmail_briefing(request)
+
+
+@core_router.post("/workspace/export-doc", response_model=WorkspaceDocExportResponse)
 async def export_google_doc(request: WorkspaceDocExportRequest):
     """
     Exports trip itinerary markdown to Google Drive format.
@@ -258,7 +392,7 @@ async def export_google_doc(request: WorkspaceDocExportRequest):
 
 
 # 4. TLV Holiday Flight Board Endpoints (Skill: tlv-holiday-flight-board)
-@router.get("/flights/holidays")
+@core_router.get("/flights/holidays")
 async def get_israeli_holidays():
     """
     Returns canonical Israeli school-break and holiday dates for 2026.
@@ -279,7 +413,7 @@ async def get_israeli_holidays():
     return {"status": "SUCCESS", "holidays": holidays_list}
 
 
-@router.post("/flights/tlv-holiday-board", response_model=TLVHolidayFlightBoardResponse)
+@core_router.post("/flights/tlv-holiday-board", response_model=TLVHolidayFlightBoardResponse)
 async def generate_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
     """
     Synchronously generates a ranked Ben Gurion holiday departure board with baggage normalization,
@@ -300,7 +434,7 @@ async def generate_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
     return result
 
 
-@router.post("/flights/tlv-holiday-board/stream")
+@core_router.post("/flights/tlv-holiday-board/stream")
 async def stream_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
     """
     Streams multi-stage deliberation and live thought processes for the TLV Holiday Flight Board
@@ -329,7 +463,7 @@ async def stream_tlv_flight_board(request: TLVHolidayFlightBoardRequest):
     )
 
 
-@router.post("/flights/send-board", response_model=EmailDispatchResponse)
+@core_router.post("/flights/send-board", response_model=EmailDispatchResponse)
 async def send_flight_board_email(payload: SendFlightBoardEmailRequest):
     """
     Emails the computed TLV holiday flight board table to the user.
@@ -349,7 +483,7 @@ async def send_flight_board_email(payload: SendFlightBoardEmailRequest):
     )
 
 
-@router.post("/contact", response_model=EmailDispatchResponse)
+@core_router.post("/contact", response_model=EmailDispatchResponse)
 async def submit_contact_inquiry(payload: ContactInquiryRequest):
     """
     Submits a contact/support inquiry and sends an automated confirmation email.
@@ -369,8 +503,8 @@ async def submit_contact_inquiry(payload: ContactInquiryRequest):
     )
 
 
-@router.post("/workspace/booking-confirmation", response_model=EmailDispatchResponse)
-@router.post("/bookings/confirm", response_model=EmailDispatchResponse)
+@core_router.post("/workspace/booking-confirmation", response_model=EmailDispatchResponse)
+@core_router.post("/bookings/confirm", response_model=EmailDispatchResponse)
 async def send_booking_confirmation(payload: BookingConfirmationRequest):
     """
     Emails the official trip booking confirmation and tickets voucher via Resend.
@@ -396,7 +530,7 @@ async def send_booking_confirmation(payload: BookingConfirmationRequest):
     )
 
 
-@router.get("/workspace/download-ics")
+@core_router.get("/workspace/download-ics")
 async def download_calendar_ics(
     destination: str,
     start_date: str = "2026-10-15",
@@ -410,11 +544,11 @@ async def download_calendar_ics(
     from app.tools.calendar_tools import generate_trip_calendar_pack
     effective_days = days if days is not None else duration_days
     cal_pack = generate_trip_calendar_pack(destination, start_date, effective_days)
-    
+
     # Safely format filename for Latin-1 HTTP header compatibility (RFC 5987)
     safe_ascii_name = "wanderlust_trip.ics"
     quoted_name = urllib.parse.quote(destination.strip().replace(" ", "_"))
-    
+
     return Response(
         content=cal_pack["ical_data"].encode("utf-8"),
         media_type="text/calendar; charset=utf-8",
@@ -423,6 +557,11 @@ async def download_calendar_ics(
             "Cache-Control": "no-cache, no-store, must-revalidate",
         },
     )
+
+
+router = APIRouter(prefix="/v1", tags=["Travel Planner Multi-Agent"])
+router.include_router(core_router)
+
 
 
 

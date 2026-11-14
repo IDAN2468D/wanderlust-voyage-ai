@@ -56,11 +56,15 @@ def test_workspace_doc_export():
 
 def test_spec_contract_trips_plan_route():
     """Verify adherence to SPEC.md POST /api/v1/trips/plan contract."""
+    from datetime import date, timedelta
+
+    depart = (date.today() + timedelta(days=30)).strftime("%Y-%m-%d")
+    ret = (date.today() + timedelta(days=37)).strftime("%Y-%m-%d")
     payload = {
         "destination": "Bali, Indonesia",
         "origin": "TLV",
-        "departure_date": "2026-10-15",
-        "return_date": "2026-10-22",
+        "departure_date": depart,
+        "return_date": ret,
         "travelers": 2,
         "budget": 3500.0,
         "currency": "USD",
@@ -77,3 +81,4 @@ def test_spec_contract_trips_plan_route():
     assert "packing_checklist" in data
     assert "safety_info" in data
     assert "seasonal_events" in data
+

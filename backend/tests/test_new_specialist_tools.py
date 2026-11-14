@@ -95,10 +95,13 @@ def test_whatsapp_daily_briefings():
 
 
 def test_full_orchestrator_synthesis():
+    from datetime import date, timedelta
+
+    future_start = (date.today() + timedelta(days=30)).strftime("%Y-%m-%d")
     plan = synthesize_deterministic_plan(
         origin="TLV",
         destination="רומא",
-        start_date="2026-10-15",
+        start_date=future_start,
         duration_days=4,
         total_budget=2000.0,
         interests=["היסטוריה", "אוכל"],
@@ -111,3 +114,4 @@ def test_full_orchestrator_synthesis():
     assert "whatsapp_briefings" in plan
     assert "תחבורה והתניידות" in plan["markdown_plan"]
     assert "שופינג ופטור ממס" in plan["markdown_plan"]
+

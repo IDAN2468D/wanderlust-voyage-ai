@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.api.auth import router as auth_router
-from app.api.routes import router as trip_router
+from app.api.routes import router as trip_router, core_router as trip_compat_router
 
 # Configure structured logging
 logging.basicConfig(
@@ -65,21 +65,10 @@ async def health_check():
     }
 
 
-# Register API subrouters
+# Register API subrouters (/api/v1/* and unversioned /api/* compatibility)
 app.include_router(auth_router, prefix="/api")
 app.include_router(trip_router, prefix="/api")
-
-
-@app.get("/api/workspace/download-ics", tags=["Workspace Integration"])
-async def download_calendar_ics_alias(
-    destination: str,
-    start_date: str = "2026-10-15",
-    duration_days: int = 7,
-    days: int | None = None,
-):
-    """Direct alias for /api/v1/workspace/download-ics for backward compatibility."""
-    from app.api.routes import download_calendar_ics
-    return await download_calendar_ics(destination, start_date, duration_days, days)
+app.include_router(trip_compat_router, prefix="/api")
 
 
 if __name__ == "__main__":

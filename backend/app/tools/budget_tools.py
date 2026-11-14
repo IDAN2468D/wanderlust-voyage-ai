@@ -1,6 +1,12 @@
+import asyncio
+import concurrent.futures
 import json
-from typing import Dict, Any, List
+import logging
+from typing import Dict, Any, List, Optional
 
+import httpx
+
+logger = logging.getLogger("budget_tools")
 
 EXCHANGE_RATES = {
     "USD": 1.0,
@@ -8,6 +14,40 @@ EXCHANGE_RATES = {
     "EUR": 0.92,
     "GBP": 0.79,
 }
+
+
+def _run_async(coro):
+    """Execute an async coroutine safely from synchronous tool code."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result(timeout=6.0)
+
+
+async def _fetch_frankfurter_rates(base: str = "USD") -> Optional[Dict[str, float]]:
+    """Query Frankfurter Exchange Rate API for live USD/EUR/ILS/GBP conversion."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                "https://api.frankfurter.app/latest",
+                params={"from": base, "to": "EUR,ILS,GBP"},
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+            rates = payload.get("rates") or {}
+            if not rates:
+                return None
+            return {
+                "USD": 1.0,
+                "ILS": round(float(rates.get("ILS", EXCHANGE_RATES["ILS"])), 4),
+                "EUR": round(float(rates.get("EUR", EXCHANGE_RATES["EUR"])), 4),
+                "GBP": round(float(rates.get("GBP", EXCHANGE_RATES["GBP"])), 4),
+            }
+    except (httpx.TimeoutException, httpx.HTTPError, Exception) as exc:
+        logger.warning(f"Frankfurter FX lookup failed, using fallback rates: {exc}")
+        return None
 
 
 def calculate_trip_budget(
@@ -68,9 +108,14 @@ def calculate_trip_budget(
         "contingency_buffer": {"amount_usd": emergency_buffer, "percentage": pct(emergency_buffer)},
     }
 
-    # Multi-currency conversions
-    curr_rate = EXCHANGE_RATES.get(currency.upper(), 1.0)
-    ils_rate = EXCHANGE_RATES["ILS"]
+    # Multi-currency conversions (live Frankfurter FX with deterministic fallback)
+    live_rates = _run_async(_fetch_frankfurter_rates("USD"))
+    active_rates = live_rates if live_rates else dict(EXCHANGE_RATES)
+    rates_source = "frankfurter" if live_rates else "deterministic_fallback"
+
+    curr_code = currency.upper()
+    curr_rate = active_rates.get(curr_code, 1.0)
+    ils_rate = active_rates["ILS"]
 
     recommendations: List[str] = []
     if is_approved:
@@ -80,20 +125,24 @@ def calculate_trip_budget(
             f"({remaining_balance * ils_rate:,.0f} ₪, שהם כ-{surplus_pct}% מתקציב היעד) המיועדים לקניות ובילויים ספונטניים."
         )
         recommendations.append(
-            f"🛡️ כרית ביטחון של 10% (${emergency_buffer:,.2f} USD / {emergency_buffer * ils_rate:,.0f} ₪) משוריינת לבלת\"מים ואינה כלולה בהוצאות השוטפות."
+            f"🛡️ כרית ביטחון של 10% (${emergency_buffer:,.2f} USD / {emergency_buffer * ils_rate:,.0f} ₪) "
+            "משוריינת לבלת\"מים ואינה כלולה בהוצאות השוטפות."
         )
     else:
         deficit = abs(remaining_balance)
         recommendations.append(
-            f"Over Budget Warning: ⚠️ התראה: העלות החזויה (${grand_total:,.2f} USD / {grand_total * ils_rate:,.0f} ₪) חורגת מהתקציב המוגדר (${total_budget:,.2f} USD) ב-${deficit:,.2f} USD."
+            f"Over Budget Warning: ⚠️ התראה: העלות החזויה (${grand_total:,.2f} USD / {grand_total * ils_rate:,.0f} ₪) "
+            f"חורגת מהתקציב המוגדר (${total_budget:,.2f} USD) ב-${deficit:,.2f} USD."
         )
         if pct(accommodation_cost) > 35:
             recommendations.append(
-                f"💡 סעיף הלינה תופס {pct(accommodation_cost)}% מהתקציב. מעבר למלון 4 כוכבים או דירת בוטיק יחסוך כ-${accommodation_cost * 0.25:,.0f} USD."
+                f"💡 סעיף הלינה תופס {pct(accommodation_cost)}% מהתקציב. "
+                f"מעבר למלון 4 כוכבים או דירת בוטיק יחסוך כ-${accommodation_cost * 0.25:,.0f} USD."
             )
         if pct(flight_cost) > 40:
             recommendations.append(
-                f"✈️ סעיף הטיסות מהווה {pct(flight_cost)}% מסך התקציב. בחירה בטיסה עם עצירת ביניים קצרה תוזיל את המחיר ב-20%-30%."
+                f"✈️ סעיף הטיסות מהווה {pct(flight_cost)}% מסך התקציב. "
+                "בחירה בטיסה עם עצירת ביניים קצרה תוזיל את המחיר ב-20%-30%."
             )
 
     report: Dict[str, Any] = {
@@ -104,11 +153,14 @@ def calculate_trip_budget(
         "total_projected_expenses_ils": round(grand_total * ils_rate, 2),
         "remaining_balance_usd": remaining_balance,
         "remaining_balance_ils": round(remaining_balance * ils_rate, 2),
+        "selected_currency": curr_code,
+        "total_projected_selected_currency": round(grand_total * curr_rate, 2),
         "is_within_budget": is_approved,
         "duration_days": days,
         "contingency_buffer_percentage": buffer_pct,
         "itemized_breakdown": breakdown,
-        "exchange_rates": EXCHANGE_RATES,
+        "exchange_rates": active_rates,
+        "rates_source": rates_source,
         "recommendations": recommendations,
     }
 

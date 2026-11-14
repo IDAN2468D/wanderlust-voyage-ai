@@ -25,3 +25,11 @@
 ## Sprint 5: BiDi Hebrew Localization & Travel Polish (Day 8)
 - [x] Validate RTL layout styling across all destination modals and result cards
 - [x] Enforce Israeli date convention `DD/MM/YYYY` and ILS (₪) currency conversion
+
+## Sprint 6: Full Course Spec Upgrade (Agno Live Team, Live APIs, Guardrails, HITL, Evals & MCP)
+- [x] Wire live `travel_orchestrator.arun(...)` + multi-turn chat (`POST /api/trips/chat`) with fallback
+- [x] Integrate Open-Meteo, Frankfurter, and OSM Nominatim via `httpx.AsyncClient` (5s timeout + fallback)
+- [x] Implement `guardrails.py` (`validate_trip_input`, `validate_trip_output`) and HITL approval workflow
+- [x] Expose standard MCP server (`travel_mcp_server.py`) and add `test_agent_eval.py` + `test_mcp_server.py`
+
+

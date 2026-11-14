@@ -56,3 +56,22 @@
   1. Set Service Type to `Web Service` (Python 3.11+ runtime or Docker).
   2. Build Command: `pip install --upgrade pip && pip install -r backend/requirements.txt`
   3. Start Command: `cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+## 5. Autonomous Agno Team, Multi-Turn Chat, Guardrails, HITL & MCP Extensions
+- **Multi-Turn Chat (`POST /api/trips/chat`, `/api/v1/trips/chat`)**:
+  - `TripChatRequest`: `session_id`, `message`
+  - `TripChatResponse`: `session_id`, `reply`, `updated_plan`
+  - Backed by `travel_orchestrator.arun(message, session_id=session_id)` with `PostgresDb`/`PostgresAgentStorage` and deterministic fallback when `GEMINI_API_KEY` is absent.
+- **Live External APIs (`httpx.AsyncClient`, 5s timeout + fallback)**:
+  - `weather_tools.py`: Open-Meteo Geocoding & Forecast API
+  - `budget_tools.py`: Frankfurter Exchange Rate API (`USD`, `EUR`, `ILS`, `GBP`)
+  - `places_tools.py`: OpenStreetMap Nominatim Geocoding API
+- **Guardrails (`backend/app/agents/guardrails.py`)**:
+  - `validate_trip_input`: rejects past/invalid dates, non-positive budgets, and budgets `< $50/day`.
+  - `validate_trip_output`: validates required plan keys, Israeli `DD/MM/YYYY` date format, and flags budget overruns.
+- **Human-In-The-Loop (HITL)**:
+  - `require_approval: bool = False` on `/api/workspace/send-briefing` & `/api/workspace/sync-calendar` returning `status: "pending_approval"` + `action_id`.
+  - `POST /api/trips/approve-action` (`action_id`, `approved`) executes or cancels pending actions.
+- **Standard MCP Server (`backend/app/mcp/travel_mcp_server.py`)**:
+  - Exposes `search_flights`, `get_destination_weather`, and `calculate_trip_budget` under `wanderlust-travel-mcp`.
+

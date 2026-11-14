@@ -6,6 +6,8 @@ from typing import AsyncGenerator, Dict, Any, Optional, List
 from datetime import datetime, timedelta
 
 from app.core.config import settings
+from app.agents.guardrails import validate_trip_input, validate_trip_output
+from app.api.schemas import TripPlanResponse
 from app.tools.flight_tools import search_flights, search_accommodations
 from app.tools.places_tools import search_attractions, search_restaurants, get_neighborhood_guide
 from app.tools.budget_tools import calculate_trip_budget
@@ -20,6 +22,10 @@ from app.tools.sentinel_tools import get_ground_sentinel_alerts
 from app.tools.briefing_tools import generate_whatsapp_daily_briefings
 
 logger = logging.getLogger("travel_orchestrator")
+
+# In-memory short-term fallback store when PostgreSQL / Gemini are offline
+_CHAT_HISTORY: Dict[str, List[Dict[str, str]]] = {}
+_SESSION_PLANS: Dict[str, Dict[str, Any]] = {}
 
 AGNO_AVAILABLE = False
 Team = None
@@ -75,9 +81,16 @@ def synthesize_deterministic_plan(
     Executes the 7-agent coordinated travel pipeline deterministically.
     Synthesizes flights, hotels, attractions, weather, safety, culture, and budget.
     """
-    dest_clean = destination.strip()
-    orig_clean = origin.strip().upper()
-    days = max(1, duration_days)
+    validated = validate_trip_input(
+        origin=origin,
+        destination=destination,
+        start_date=start_date,
+        duration_days=duration_days,
+        total_budget=total_budget,
+    )
+    dest_clean = validated["destination"]
+    orig_clean = validated["origin"].upper()
+    days = validated["duration_days"]
 
     # 1. Flights & Lodging (Flight Specialist)
     flight_data_raw = search_flights(orig_clean, dest_clean, start_date)
@@ -367,7 +380,7 @@ def synthesize_deterministic_plan(
 
     full_markdown = "\n".join(md_lines)
 
-    return {
+    plan_data: Dict[str, Any] = {
         "markdown_plan": full_markdown,
         "flight_cost": flight_cost,
         "hotel_cost": hotel_cost,
@@ -391,6 +404,7 @@ def synthesize_deterministic_plan(
         "ground_alerts": sentinel_data,
         "whatsapp_briefings": briefing_data,
     }
+    return validate_trip_output(plan_data, total_budget)
 
 
 async def stream_multi_agent_execution(
@@ -406,10 +420,19 @@ async def stream_multi_agent_execution(
 ) -> AsyncGenerator[str, None]:
     """
     Streams real-time Server-Sent Events (SSE) representing multi-agent deliberation.
-    Emits stage markers [STAGE: ...] and live thought pulses across all 7 specialized agents.
+    Runs live Agno Team orchestrator when GEMINI_API_KEY is configured, falling back
+    seamlessly to synthesize_deterministic_plan if absent or on error.
     """
     def format_sse(event: str, data: Dict[str, Any]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+    validate_trip_input(
+        origin=origin,
+        destination=destination,
+        start_date=start_date,
+        duration_days=duration_days,
+        total_budget=total_budget,
+    )
 
     # Stage 1: Lead Orchestrator Initialization
     yield format_sse("step", {
@@ -417,7 +440,10 @@ async def stream_multi_agent_execution(
         "stage": "ROUTING",
         "status": "active",
         "title": "[STAGE: ROUTING] סוכן התזמור הראשי אותחל",
-        "message": f"מנתח את העדפות הנסיעה עבור {destination} ({duration_days} ימים, תקציב: ${total_budget:,.2f} {currency})...",
+        "message": (
+            f"מנתח את העדפות הנסיעה עבור {destination} "
+            f"({duration_days} ימים, תקציב: ${total_budget:,.2f} {currency})..."
+        ),
     })
     await asyncio.sleep(0.25)
 
@@ -537,26 +563,65 @@ async def stream_multi_agent_execution(
     })
     await asyncio.sleep(0.3)
 
-    # Synthesize complete plan data
-    plan_data = synthesize_deterministic_plan(
-        origin=origin,
-        destination=destination,
-        start_date=start_date,
-        duration_days=duration_days,
-        total_budget=total_budget,
-        interests=interests,
-        travel_style=travel_style,
-        currency=currency,
-    )
+    # Synthesize complete plan data (live Agno Team when configured, deterministic fallback otherwise)
+    plan_data: Optional[Dict[str, Any]] = None
+    gemini_key = settings.GEMINI_API_KEY or os.getenv("GOOGLE_API_KEY", "")
+    if AGNO_AVAILABLE and travel_orchestrator is not None and gemini_key:
+        try:
+            live_prompt = (
+                f"Plan a complete {duration_days}-day trip from {origin} to {destination} "
+                f"starting on {start_date} with a total budget of ${total_budget:.2f} {currency}. "
+                f"Travel style: {travel_style}. Interests: {', '.join(interests or ['general'])}. "
+                f"Use Israeli date format DD/MM/YYYY and ensure all budget numbers are consistent."
+            )
+            run_output = await travel_orchestrator.arun(
+                live_prompt,
+                session_id=session_id,
+                output_schema=TripPlanResponse,
+            )
+            content = getattr(run_output, "content", run_output)
+            if isinstance(content, TripPlanResponse):
+                candidate = content.model_dump()
+            elif isinstance(content, dict):
+                candidate = dict(content)
+            elif isinstance(content, str):
+                parsed = json.loads(content)
+                candidate = parsed if isinstance(parsed, dict) else None
+            else:
+                candidate = None
+
+            if candidate:
+                plan_data = validate_trip_output(candidate, total_budget)
+        except Exception as exc:
+            logger.warning(f"Live Agno Team execution failed, falling back to deterministic plan: {exc}")
+            plan_data = None
+
+    if plan_data is None:
+        plan_data = synthesize_deterministic_plan(
+            origin=origin,
+            destination=destination,
+            start_date=start_date,
+            duration_days=duration_days,
+            total_budget=total_budget,
+            interests=interests,
+            travel_style=travel_style,
+            currency=currency,
+        )
+
+    _SESSION_PLANS[session_id] = plan_data
 
     yield format_sse("tool_call", {
         "agent": "budget_agent",
         "tool": "calculate_trip_budget",
-        "summary": f"סטטוס: {plan_data['budget_status']} | סך הכל: ${plan_data['total_estimated']:,.2f} (כרית ביטחון 10% כלולה).",
+        "summary": (
+            f"סטטוס: {plan_data['budget_status']} | "
+            f"סך הכל: ${plan_data['total_estimated']:,.2f} (כרית ביטחון 10% כלולה)."
+        ),
     })
     await asyncio.sleep(0.2)
 
-    # Stage 8: Transit & Navigation Specialist (NEW AGENT)
+    # Stage 8: Transit & Navigation Specialist
+    transit_guide = plan_data.get("transit_guide") or json.loads(get_transit_guide(destination, duration_days))
     yield format_sse("step", {
         "agent": "transit_agent",
         "stage": "TRANSIT",
@@ -569,11 +634,15 @@ async def stream_multi_agent_execution(
     yield format_sse("tool_call", {
         "agent": "transit_agent",
         "tool": "get_transit_guide",
-        "summary": f"כרטיס מומלץ: {plan_data['transit_guide']['pass_name']} | ציון הליכה: {plan_data['transit_guide']['walking_score']}/10.",
+        "summary": (
+            f"כרטיס מומלץ: {transit_guide['pass_name']} | "
+            f"ציון הליכה: {transit_guide['walking_score']}/10."
+        ),
     })
     await asyncio.sleep(0.2)
 
-    # Stage 9: Culinary, Kosher & Nightlife Specialist (NEW AGENT)
+    # Stage 9: Culinary, Kosher & Nightlife Specialist
+    culinary_guide = plan_data.get("culinary_guide") or json.loads(get_culinary_guide(destination, interests))
     yield format_sse("step", {
         "agent": "culinary_agent",
         "stage": "CULINARY",
@@ -586,11 +655,17 @@ async def stream_multi_agent_execution(
     yield format_sse("tool_call", {
         "agent": "culinary_agent",
         "tool": "get_culinary_guide",
-        "summary": f"נמצאו אפשרויות כשרות: {plan_data['culinary_guide']['kosher_options'][0]['name']} ומסעדות גורמה מובילות.",
+        "summary": (
+            f"נמצאו אפשרויות כשרות: {culinary_guide['kosher_options'][0]['name']} "
+            "ומסעדות גורמה מובילות."
+        ),
     })
     await asyncio.sleep(0.2)
 
-    # Stage 10: Smart Shopper & Tax-Free Specialist (NEW AGENT)
+    # Stage 10: Smart Shopper & Tax-Free Specialist
+    shopping_taxfree = plan_data.get("shopping_taxfree") or json.loads(
+        get_shopping_and_tax_free(destination, estimated_shopping_budget_usd=350.0)
+    )
     yield format_sse("step", {
         "agent": "shopping_taxfree_agent",
         "stage": "SHOPPING",
@@ -603,17 +678,28 @@ async def stream_multi_agent_execution(
     yield format_sse("tool_call", {
         "agent": "shopping_taxfree_agent",
         "tool": "get_shopping_and_tax_free",
-        "summary": f"שיעור מע\"מ: {plan_data['shopping_taxfree']['vat_rate']} | החזר צפוי: ${plan_data['shopping_taxfree']['projected_vat_refund_usd']:.2f} USD.",
+        "summary": (
+            f"שיעור מע\"מ: {shopping_taxfree['vat_rate']} | "
+            f"החזר צפוי: ${shopping_taxfree['projected_vat_refund_usd']:.2f} USD."
+        ),
     })
     await asyncio.sleep(0.2)
 
-    # Stage 11: Calendar & Workspace Specialist (NEW AGENT)
+    # Stage 11: Calendar & Workspace Specialist
+    calendar_events = plan_data.get("calendar_events") or generate_trip_calendar_pack(
+        destination,
+        start_date,
+        duration_days,
+        structured_days=plan_data.get("structured_days"),
+        flight_info=plan_data.get("recommended_flight"),
+        hotel_info=plan_data.get("selected_hotel"),
+    )
     yield format_sse("step", {
         "agent": "calendar_sync_agent",
         "stage": "CALENDAR",
         "status": "running",
         "title": "[STAGE: CALENDAR] סוכן סנכרון יומנים ומסמכים",
-        "message": f"יוצר קישורי סנכרון ל-Google Calendar וקובץ iCalendar (.ics) מלא לכל ימי המסע...",
+        "message": "יוצר קישורי סנכרון ל-Google Calendar וקובץ iCalendar (.ics) מלא לכל ימי המסע...",
     })
     await asyncio.sleep(0.25)
 
@@ -624,7 +710,8 @@ async def stream_multi_agent_execution(
     })
     await asyncio.sleep(0.2)
 
-    # Stage 12: Ground Sentinel & Realtime Alerts (NEW AGENT)
+    # Stage 12: Ground Sentinel & Realtime Alerts
+    ground_alerts = plan_data.get("ground_alerts") or json.loads(get_ground_sentinel_alerts(destination))
     yield format_sse("step", {
         "agent": "ground_sentinel_agent",
         "stage": "SENTINEL",
@@ -637,24 +724,35 @@ async def stream_multi_agent_execution(
     yield format_sse("tool_call", {
         "agent": "ground_sentinel_agent",
         "tool": "get_ground_sentinel_alerts",
-        "summary": f"מדד שביתות: {plan_data['ground_alerts']['strike_risk_index']} | סטטוס: {plan_data['ground_alerts']['safety_badge']}.",
+        "summary": (
+            f"מדד שביתות: {ground_alerts['strike_risk_index']} | "
+            f"סטטוס: {ground_alerts['safety_badge']}."
+        ),
     })
     await asyncio.sleep(0.2)
 
-    # Stage 13: WhatsApp Butler & Daily Briefings (NEW AGENT)
+    # Stage 13: WhatsApp Butler & Daily Briefings
+    whatsapp_briefings = plan_data.get("whatsapp_briefings") or json.loads(
+        generate_whatsapp_daily_briefings(
+            destination,
+            duration_days,
+            plan_data.get("structured_days") or [],
+            weather_metrics=plan_data.get("weather_metrics"),
+        )
+    )
     yield format_sse("step", {
         "agent": "whatsapp_butler_agent",
         "stage": "WHATSAPP",
         "status": "running",
         "title": "[STAGE: WHATSAPP] סוכן קונסיירז' יומי לוואטסאפ",
-        "message": f"מכין הודעות תדריך יומיות ערוכות לבוקר, צהריים וערב עם קישורי שיתוף בלחיצה אחת...",
+        "message": "מכין הודעות תדריך יומיות ערוכות לבוקר, צהריים וערב עם קישורי שיתוף בלחיצה אחת...",
     })
     await asyncio.sleep(0.25)
 
     yield format_sse("tool_call", {
         "agent": "whatsapp_butler_agent",
         "tool": "generate_whatsapp_daily_briefings",
-        "summary": f"נוצרו {plan_data['whatsapp_briefings']['total_briefings']} תדריכי וואטסאפ מוכנים לשיתוף ישיר.",
+        "summary": f"נוצרו {whatsapp_briefings['total_briefings']} תדריכי וואטסאפ מוכנים לשיתוף ישיר.",
     })
     await asyncio.sleep(0.2)
 
@@ -688,21 +786,80 @@ async def stream_multi_agent_execution(
         "hotel_cost": plan_data["hotel_cost"],
         "activities_cost": plan_data["activities_cost"],
         "breakdown": plan_data["itemized_breakdown"],
-        "weather_metrics": plan_data["weather_metrics"],
-        "packing_checklist": plan_data["packing_checklist"],
-        "safety_info": plan_data["safety_info"],
-        "seasonal_events": plan_data["seasonal_events"],
-        "structured_days": plan_data["structured_days"],
-        "recommended_flight": plan_data["recommended_flight"],
-        "selected_hotel": plan_data["selected_hotel"],
-        "start_date_formatted": plan_data["start_date_formatted"],
-        "transit_guide": plan_data["transit_guide"],
-        "culinary_guide": plan_data["culinary_guide"],
-        "shopping_taxfree": plan_data["shopping_taxfree"],
-        "calendar_events": plan_data["calendar_events"],
-        "ground_alerts": plan_data["ground_alerts"],
-        "whatsapp_briefings": plan_data["whatsapp_briefings"],
+        "weather_metrics": plan_data.get("weather_metrics"),
+        "packing_checklist": plan_data.get("packing_checklist"),
+        "safety_info": plan_data.get("safety_info"),
+        "seasonal_events": plan_data.get("seasonal_events"),
+        "structured_days": plan_data.get("structured_days"),
+        "recommended_flight": plan_data.get("recommended_flight"),
+        "selected_hotel": plan_data.get("selected_hotel"),
+        "start_date_formatted": plan_data.get("start_date_formatted"),
+        "transit_guide": transit_guide,
+        "culinary_guide": culinary_guide,
+        "shopping_taxfree": shopping_taxfree,
+        "calendar_events": calendar_events,
+        "ground_alerts": ground_alerts,
+        "whatsapp_briefings": whatsapp_briefings,
+        "budget_overrun_flagged": plan_data.get("budget_overrun_flagged", False),
+        "guardrail_warnings": plan_data.get("guardrail_warnings", []),
     })
+
+
+async def run_trip_chat(session_id: str, message: str) -> Dict[str, Any]:
+    """
+    Execute multi-turn conversational travel planning using travel_orchestrator.arun
+    backed by PostgresDb / PostgresAgentStorage memory, with deterministic session fallback.
+    """
+    history = _CHAT_HISTORY.setdefault(session_id, [])
+    history.append({"role": "user", "content": message})
+
+    gemini_key = settings.GEMINI_API_KEY or os.getenv("GOOGLE_API_KEY", "")
+    updated_plan: Optional[Dict[str, Any]] = None
+    reply: Optional[str] = None
+
+    if AGNO_AVAILABLE and travel_orchestrator is not None and gemini_key:
+        try:
+            run_output = await travel_orchestrator.arun(message, session_id=session_id)
+            content = getattr(run_output, "content", run_output)
+            if isinstance(content, TripPlanResponse):
+                updated_plan = validate_trip_output(content.model_dump(), content.total_budget)
+                _SESSION_PLANS[session_id] = updated_plan
+                reply = updated_plan.get("markdown_plan", "תוכנית הנסיעה עודכנה בהצלחה.")
+            elif isinstance(content, dict) and "markdown_plan" in content:
+                updated_plan = content
+                _SESSION_PLANS[session_id] = updated_plan
+                reply = content["markdown_plan"]
+            else:
+                reply = str(content)
+        except Exception as exc:
+            logger.warning(f"Agno chat execution failed for session '{session_id}', using memory fallback: {exc}")
+
+    if reply is None:
+        cached_plan = _SESSION_PLANS.get(session_id)
+        turn_num = len([m for m in history if m["role"] == "user"])
+        if cached_plan:
+            reply = (
+                f"[שיחה #{turn_num} | זיכרון סשן {session_id}] "
+                f"בהתבסס על התוכנית הפעילה שלך (תאריך יציאה {cached_plan.get('start_date_formatted', '')}, "
+                f"עלות משוערת ${cached_plan.get('total_estimated', 0):,.2f}, "
+                f"סטטוס תקציב: {cached_plan.get('budget_status', 'APPROVED')}): "
+                f"קלטתי את בקשתך (\"{message}\") ואני זמין להתאמות נוספות של טיסות, מלונות, פעילויות ותקציב."
+            )
+        else:
+            prior_context = history[-2]["content"] if len(history) >= 2 else ""
+            context_note = f" (בהמשך להודעה הקודמת: \"{prior_context[:60]}\")" if prior_context else ""
+            reply = (
+                f"[שיחה #{turn_num} | סשן {session_id}] "
+                f"קיבלתי את הודעתך: \"{message}\"{context_note}. "
+                "ניתן לבקש תכנון טיול מלא עם יעד, תאריך יציאה ותקציב כדי שאפעיל את כל סוכני הנסיעות."
+            )
+
+    history.append({"role": "assistant", "content": reply})
+    return {
+        "session_id": session_id,
+        "reply": reply,
+        "updated_plan": updated_plan,
+    }
 
 
 def get_agent_storage(session_id: Optional[str] = None):
@@ -731,12 +888,48 @@ def create_specialist_agents(storage=None):
             logger.warning(f"Failed to initialize Gemini: {e}")
 
     if AGNO_AVAILABLE and model:
-        f_agent = Agent(name="Flight Specialist", role="Search flights", model=model, tools=[search_flights, search_accommodations])
-        i_agent = Agent(name="Itinerary Specialist", role="Build itinerary", model=model, tools=[search_attractions, search_restaurants, get_neighborhood_guide])
-        b_agent = Agent(name="Budget Specialist", role="Audit expenses", model=model, tools=[calculate_trip_budget])
-        w_agent = Agent(name="Weather Specialist", role="Weather & Packing", model=model, tools=[get_destination_weather, generate_packing_checklist])
-        s_agent = Agent(name="Safety Specialist", role="Visa & Safety", model=model, tools=[get_safety_and_visa_info])
-        c_agent = Agent(name="Culture Specialist", role="Festivals & Gems", model=model, tools=[search_seasonal_events_and_gems])
+        f_agent = Agent(
+            name="Flight Specialist",
+            role="Search flights and accommodations",
+            model=model,
+            tools=[search_flights, search_accommodations],
+        )
+        i_agent = Agent(
+            name="Itinerary Specialist",
+            role="Build itinerary and culinary guide",
+            model=model,
+            tools=[search_attractions, search_restaurants, get_neighborhood_guide],
+        )
+        b_agent = Agent(
+            name="Budget Specialist",
+            role="Audit expenses and FX conversions",
+            model=model,
+            tools=[calculate_trip_budget],
+        )
+        w_agent = Agent(
+            name="Weather Specialist",
+            role="Weather & Packing",
+            model=model,
+            tools=[get_destination_weather, generate_packing_checklist],
+        )
+        s_agent = Agent(
+            name="Safety Specialist",
+            role="Visa & Safety",
+            model=model,
+            tools=[get_safety_and_visa_info],
+        )
+        c_agent = Agent(
+            name="Culture Specialist",
+            role="Festivals & Gems",
+            model=model,
+            tools=[search_seasonal_events_and_gems],
+        )
+
+        team_instructions = [
+            "Coordinate specialist agents to produce complete, budget-audited travel plans.",
+            "Always format Israeli dates as DD/MM/YYYY and support USD, EUR, ILS, and GBP.",
+            "Preserve conversation history across turns for multi-turn trip refinement.",
+        ]
 
         if Team is not None:
             orchestrator = Team(
@@ -744,9 +937,18 @@ def create_specialist_agents(storage=None):
                 model=model,
                 members=[f_agent, i_agent, b_agent, w_agent, s_agent, c_agent],
                 db=storage,
+                instructions=team_instructions,
+                add_history_to_context=True,
+                num_history_runs=5,
             )
         else:
-            orchestrator = Agent(name="Travel Team Orchestrator", model=model, db=storage)
+            orchestrator = Agent(
+                name="Travel Team Orchestrator",
+                model=model,
+                db=storage,
+                instructions=team_instructions,
+                add_history_to_context=True,
+            )
         return orchestrator, f_agent, i_agent, b_agent, w_agent, s_agent, c_agent
 
     return None, None, None, None, None, None, None
@@ -759,5 +961,13 @@ def create_travel_system():
 
 # Global instances for export
 storage_instance = get_agent_storage()
-travel_orchestrator, flight_hotel_agent, itinerary_agent, budget_agent, weather_packing_agent, safety_advisory_agent, culture_events_agent = create_specialist_agents(storage_instance)
+(
+    travel_orchestrator,
+    flight_hotel_agent,
+    itinerary_agent,
+    budget_agent,
+    weather_packing_agent,
+    safety_advisory_agent,
+    culture_events_agent,
+) = create_specialist_agents(storage_instance)
 
