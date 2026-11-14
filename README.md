@@ -67,34 +67,34 @@ Every step of the travel planning lifecycle is assigned to a dedicated specialis
 
 ```mermaid
 flowchart TD
-    User([👤 User / Traveler]) -->|Input Parameters| UI[Next.js 15 App Router Frontend]
-    UI -->|GET /api/v1/trips/stream| API[FastAPI Orchestrator Gateway]
+    User(["👤 User / Traveler"]) -->|"Input Parameters"| UI["Next.js 15 App Router Frontend"]
+    UI -->|"POST /api/v1/trips/plan/stream"| API["FastAPI Orchestrator Gateway"]
     
-    subgraph MultiAgentEngine [13 Specialist Autonomous Agents]
-        API --> Orchestrator[Master Orchestrator]
-        Orchestrator --> Flights[Flight Search Engine]
-        Orchestrator --> Hotels[Places & Hotels Curator]
-        Orchestrator --> Budget[Budget & Currency Optimizer]
-        Orchestrator --> Weather[Weather & Packing Agent]
-        Orchestrator --> Culture[Culture & Events Specialist]
-        Orchestrator --> Safety[Safety & Health Advisor]
-        Orchestrator --> Transit[Transit & Metro Navigator]
-        Orchestrator --> Culinary[Culinary & Kosher Guide]
-        Orchestrator --> Shopping[Shopping & Tax-Free Specialist]
-        Orchestrator --> Calendar[Calendar & Workspace Syncer]
-        Orchestrator --> Sentinel[Ground Sentinel & Alert Agent]
-        Orchestrator --> WhatsApp[WhatsApp Concierge Butler]
+    subgraph MultiAgentEngine ["13 Specialist Autonomous Agents"]
+        API --> Orchestrator["Master Orchestrator"]
+        Orchestrator --> Flights["Flight Search Engine"]
+        Orchestrator --> Hotels["Places & Hotels Curator"]
+        Orchestrator --> Budget["Budget & Currency Optimizer"]
+        Orchestrator --> Weather["Weather & Packing Agent"]
+        Orchestrator --> Culture["Culture & Events Specialist"]
+        Orchestrator --> Safety["Safety & Health Advisor"]
+        Orchestrator --> Transit["Transit & Metro Navigator"]
+        Orchestrator --> Culinary["Culinary & Kosher Guide"]
+        Orchestrator --> Shopping["Shopping & Tax-Free Specialist"]
+        Orchestrator --> Calendar["Calendar & Workspace Syncer"]
+        Orchestrator --> Sentinel["Ground Sentinel & Alert Agent"]
+        Orchestrator --> WhatsApp["WhatsApp Concierge Butler"]
     end
 
-    MultiAgentEngine -->|Persistent Sessions| DB[(PostgreSQL 16 Storage)]
-    MultiAgentEngine -->|Reasoning & Synthesis| Gemini[Google Gemini 2.0 / 3.5 Models]
+    MultiAgentEngine -->|"Persistent Sessions"| DB[("PostgreSQL 16 Storage")]
+    MultiAgentEngine -->|"Reasoning & Synthesis"| Gemini["Google Gemini 2.0 / 3.5 Models"]
     
-    API -.->|Server-Sent Events (SSE)| Logs[AgentStreamLogs UI Component]
-    Orchestrator -->|Final Structured Plan| Results[TripResultView Dashboard]
+    API -.->|"Server-Sent Events (SSE)"| Logs["AgentStreamLogs UI Component"]
+    Orchestrator -->|"Final Structured Plan"| Results["TripResultView Dashboard"]
     
-    Results -->|Direct Browser Download| ICS[RFC 5545 .ics Calendar]
-    Results -->|Transactional Dispatch| Email[Resend Email Service]
-    Results -->|Checkout & Ticket| Modal[Booking & Boarding Pass Cockpit]
+    Results -->|"Direct Browser Download"| ICS["RFC 5545 .ics Calendar"]
+    Results -->|"Transactional Dispatch"| Email["Resend Email Service"]
+    Results -->|"Checkout & Ticket"| Modal["Booking & Boarding Pass Cockpit"]
 ```
 
 ---
