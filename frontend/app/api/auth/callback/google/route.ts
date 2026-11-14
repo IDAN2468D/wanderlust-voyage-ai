@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerApiBaseUrl } from "@/utils/apiConfig";
 
 function getPublicOrigin(request: NextRequest): string {
   // If explicitly configured in env, respect that first
@@ -19,6 +20,19 @@ function getPublicOrigin(request: NextRequest): string {
   return `${proto}://${host}`;
 }
 
+function safeRedirectPath(rawState: string | null): string {
+  if (!rawState) return "/";
+  try {
+    const decoded = decodeURIComponent(rawState);
+    if (decoded.startsWith("/") && !decoded.startsWith("//") && !decoded.startsWith("/login")) {
+      return decoded;
+    }
+  } catch {
+    // Ignore malformed URI state
+  }
+  return "/";
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -26,7 +40,7 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
 
   const baseUrl = getPublicOrigin(request);
-  const redirectTarget = state ? decodeURIComponent(state) : "/";
+  const redirectTarget = safeRedirectPath(state);
 
   if (error) {
     console.error("Google OAuth error from provider:", error);
@@ -42,8 +56,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const apiBase =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiBase = getServerApiBaseUrl(
+      request.headers.get("x-forwarded-host") || request.headers.get("host")
+    );
 
     // Exact redirectUri matching Google Cloud Console authorization
     const redirectUri = `${baseUrl}/api/auth/callback/google`;
@@ -57,11 +72,11 @@ export async function GET(request: NextRequest) {
       }),
     });
 
-    const data = await backendRes.json();
+    const data = await backendRes.json().catch(() => ({}));
 
-    if (!backendRes.ok || !data.access_token) {
+    if (!backendRes.ok || !data?.access_token) {
       console.error("Backend failed to exchange Google code:", data);
-      const errMsg = data.detail || "האימות מול Google נכשל בשרת";
+      const errMsg = data?.detail || "האימות מול Google נכשל בשרת";
       return NextResponse.redirect(
         new URL(`/login?error=google_auth_failed&message=${encodeURIComponent(errMsg)}`, baseUrl)
       );
@@ -81,11 +96,13 @@ export async function GET(request: NextRequest) {
       sameSite: "lax",
     });
 
-    response.cookies.set("wanderlust_user", JSON.stringify(data.user), {
-      path: "/",
-      maxAge,
-      sameSite: "lax",
-    });
+    if (data.user) {
+      response.cookies.set("wanderlust_user", JSON.stringify(data.user), {
+        path: "/",
+        maxAge,
+        sameSite: "lax",
+      });
+    }
 
     return response;
   } catch (err: any) {

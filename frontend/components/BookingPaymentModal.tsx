@@ -34,6 +34,7 @@ import {
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
 import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 
 interface BookingPaymentModalProps {
   isOpen: boolean;
@@ -411,7 +412,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     const targetName = customerName.trim() || cardHolder.trim() || user?.full_name || "מטייל יקר";
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const apiBase = getApiBaseUrl();
       await fetch(`${apiBase}/api/v1/workspace/booking-confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -434,7 +435,8 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     } finally {
       // Save confirmed booking to localStorage for user profile
       try {
-        const existing = JSON.parse(localStorage.getItem("wanderlust_user_bookings") || "[]");
+        const parsedExisting = JSON.parse(localStorage.getItem("wanderlust_user_bookings") || "[]");
+        const existing = Array.isArray(parsedExisting) ? parsedExisting : [];
         const record = {
           booking_ref: generatedRef,
           destination: tripDetails.destination,
@@ -453,7 +455,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
           hotel_portion: hotelInSelected,
         };
         localStorage.setItem("wanderlust_user_bookings", JSON.stringify([record, ...existing]));
-      } catch (e) {}
+      } catch {}
 
       setIsProcessing(false);
       setIsSuccess(true);
@@ -475,7 +477,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
     });
 
     if (!success) {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const apiBase = getApiBaseUrl();
       window.open(
         `${apiBase}/api/workspace/download-ics?destination=${encodeURIComponent(
           tripDetails.destination

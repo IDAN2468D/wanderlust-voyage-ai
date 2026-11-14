@@ -37,6 +37,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 
 interface BookingRecord {
   booking_ref: string;
@@ -106,32 +107,40 @@ function ProfileContent() {
       const storedPersonal = localStorage.getItem("wanderlust_user_profile_details");
       if (storedPersonal) {
         const parsed = JSON.parse(storedPersonal);
-        if (parsed.phone) setPhone(parsed.phone);
-        if (parsed.passportNumber) setPassportNumber(parsed.passportNumber);
-        if (parsed.passportExpiry) setPassportExpiry(parsed.passportExpiry);
-        if (parsed.birthDate) setBirthDate(parsed.birthDate);
-        if (parsed.nationality) setNationality(parsed.nationality);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          if (typeof parsed.phone === "string") setPhone(parsed.phone);
+          if (typeof parsed.passportNumber === "string") setPassportNumber(parsed.passportNumber);
+          if (typeof parsed.passportExpiry === "string") setPassportExpiry(parsed.passportExpiry);
+          if (typeof parsed.birthDate === "string") setBirthDate(parsed.birthDate);
+          if (typeof parsed.nationality === "string") setNationality(parsed.nationality);
+        }
       }
-    } catch (e) {}
+    } catch {}
 
     // Load preferences
     try {
       const storedPref = localStorage.getItem("wanderlust_user_preferences");
       if (storedPref) {
         const parsed = JSON.parse(storedPref);
-        if (parsed.seatingPreference) setSeatingPreference(parsed.seatingPreference);
-        if (parsed.dietary) setDietary(parsed.dietary);
-        if (parsed.autoBuffer !== undefined) setAutoBuffer(parsed.autoBuffer);
-        if (parsed.emailNotifications !== undefined) setEmailNotifications(parsed.emailNotifications);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          if (typeof parsed.seatingPreference === "string") setSeatingPreference(parsed.seatingPreference);
+          if (typeof parsed.dietary === "string") setDietary(parsed.dietary);
+          if (typeof parsed.autoBuffer === "boolean") setAutoBuffer(parsed.autoBuffer);
+          if (typeof parsed.emailNotifications === "boolean") setEmailNotifications(parsed.emailNotifications);
+        }
       }
-    } catch (e) {}
+    } catch {}
 
     // Load bookings
     try {
       const storedBookings = localStorage.getItem("wanderlust_user_bookings");
       if (storedBookings) {
         const parsed = JSON.parse(storedBookings);
-        setBookings(parsed);
+        if (Array.isArray(parsed)) {
+          setBookings(parsed.filter((item) => item && typeof item === "object"));
+        } else {
+          setBookings([]);
+        }
       } else {
         // Sample default booking for demo delight if fresh user
         const sampleBooking: BookingRecord = {
@@ -151,15 +160,18 @@ function ProfileContent() {
         };
         setBookings([sampleBooking]);
       }
-    } catch (e) {}
+    } catch {}
 
     // Load saved last trip
     try {
       const lastTrip = localStorage.getItem("wanderlust_last_planned_trip");
       if (lastTrip) {
-        setSavedTrip(JSON.parse(lastTrip));
+        const parsedTrip = JSON.parse(lastTrip);
+        if (parsedTrip && typeof parsedTrip === "object" && typeof parsedTrip.destination === "string") {
+          setSavedTrip(parsedTrip);
+        }
       }
-    } catch (e) {}
+    } catch {}
   }, [user]);
 
   // Handle Save Personal Details
@@ -178,7 +190,7 @@ function ProfileContent() {
       );
       setPersonalSaveStatus("saved");
       setTimeout(() => setPersonalSaveStatus("idle"), 3000);
-    } catch (e) {}
+    } catch {}
   };
 
   // Handle Save Preferences
@@ -196,14 +208,14 @@ function ProfileContent() {
       );
       setPrefSaveStatus("saved");
       setTimeout(() => setPrefSaveStatus("idle"), 3000);
-    } catch (e) {}
+    } catch {}
   };
 
   // Resend booking confirmation voucher to email
   const handleResendVoucher = async (booking: BookingRecord) => {
     setResendingRef(booking.booking_ref);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const apiBase = getApiBaseUrl();
       await fetch(`${apiBase}/api/v1/workspace/booking-confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

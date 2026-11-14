@@ -43,6 +43,7 @@ import { VideoModal } from "@/components/VideoModal";
 import { TripForm, TripFormData } from "@/components/TripForm";
 import { AgentStreamLogs, StreamLogItem } from "@/components/AgentStreamLogs";
 import { TripResultView } from "@/components/TripResultView";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 
 // Curated destinations with rich metadata, category tags and moments
 interface DestinationItem {
@@ -430,7 +431,7 @@ export default function Home() {
       agentSectionRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 150);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+    const apiBase = getApiBaseUrl();
     const streamUrl = `${apiBase}/api/v1/trips/plan/stream`;
 
     const requestPayload = {
@@ -1221,7 +1222,7 @@ export default function Home() {
 
               <div className="pt-3 border-t border-white/10 flex items-center gap-3">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/20">
-                  <Image src={t.avatar} alt={t.name} fill className="object-cover" />
+                  <Image src={t.avatar} alt={t.name} fill unoptimized className="object-cover" />
                 </div>
                 <div className="leading-tight">
                   <div className="font-bold text-xs text-white">{t.name}</div>

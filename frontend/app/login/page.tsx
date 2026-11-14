@@ -22,6 +22,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 
 // יעדי תיירות מרהיבים עבור הקרוסלה בצד ימין (כולל תיאורים ושמות בעברית)
 const SCENIC_SLIDES = [
@@ -62,7 +63,11 @@ const SCENIC_SLIDES = [
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams.get("redirect") || "/";
+  const rawRedirect = searchParams.get("redirect") || "/";
+  const redirectTarget =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.startsWith("/login")
+      ? rawRedirect
+      : "/";
 
   const { login, register, isAuthenticated } = useAuth();
 
@@ -133,7 +138,7 @@ function LoginForm() {
         setErrorMessage("ההתחברות באמצעות Google בוטלה על ידי המשתמש.");
       } else {
         setErrorMessage(
-          messageParam ? decodeURIComponent(messageParam) : "אימות חשבון Google נכשל. אנא נסה שוב."
+          messageParam || "אימות חשבון Google נכשל. אנא נסה שוב."
         );
       }
     }
@@ -241,7 +246,7 @@ function LoginForm() {
             if (savedTripStr) {
               const savedTrip = JSON.parse(savedTripStr);
               if (savedTrip && savedTrip.destination) {
-                const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+                const apiBase = getApiBaseUrl();
                 fetch(`${apiBase}/api/v1/workspace/send-briefing`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -280,7 +285,7 @@ function LoginForm() {
     setForgotSubmitted(true);
     setErrorMessage(null);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -315,7 +320,7 @@ function LoginForm() {
     setIsResetting(true);
     setErrorMessage(null);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

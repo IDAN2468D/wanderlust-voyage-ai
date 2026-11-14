@@ -43,6 +43,7 @@ import {
 import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 import { BookingPaymentModal } from "@/components/BookingPaymentModal";
 
 interface DaySchedule {
@@ -181,6 +182,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
   const toggleChecklistItem = (catIdx: number, itemIdx: number) => {
     setChecklist((prev) => {
+      if (!prev[catIdx]?.items?.[itemIdx]) return prev;
       const copy = JSON.parse(JSON.stringify(prev));
       copy[catIdx].items[itemIdx].checked = !copy[catIdx].items[itemIdx].checked;
       return copy;
@@ -210,7 +212,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   const handleCalendarSync = async () => {
     setCalendarSyncLoading(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/v1/workspace/sync-calendar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -268,7 +270,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
     });
 
     if (!success) {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const apiBase = getApiBaseUrl();
       window.open(
         `${apiBase}/api/workspace/download-ics?destination=${encodeURIComponent(
           destination || "חופשה"
@@ -284,7 +286,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
     if (!emailInput) return;
     setEmailStatus("loading");
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://wanderlust-voyage-ai.onrender.com";
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/v1/workspace/send-briefing`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

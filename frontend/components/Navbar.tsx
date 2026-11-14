@@ -165,7 +165,7 @@ export const Navbar: React.FC = () => {
                     type="button"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center gap-2 text-xs font-semibold text-slate-200 bg-white/10 hover:bg-white/20 pl-3 pr-2 py-1.5 rounded-full border border-white/15 backdrop-blur-md transition shadow-sm group"
-                    title={user.full_name || user.email}
+                    title={user.full_name || user.email || "פרופיל משתמש"}
                   >
                     {user.picture ? (
                       <img
@@ -177,17 +177,17 @@ export const Navbar: React.FC = () => {
                           const target = e.currentTarget;
                           if (!target.dataset.triedFallback) {
                             target.dataset.triedFallback = "true";
-                            target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+                            target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.full_name || "wanderlust")}`;
                           }
                         }}
                       />
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center">
-                        {(user.full_name || user.email)[0].toUpperCase()}
+                        {((user.full_name || user.email || "W").trim().charAt(0) || "W").toUpperCase()}
                       </div>
                     )}
                     <span className="font-medium text-white max-w-[100px] truncate text-right">
-                      {user.full_name || user.email.split("@")[0]}
+                      {user.full_name?.trim() || (user.email ? user.email.split("@")[0] : "מטייל")}
                     </span>
                     <span className="text-[10px] text-slate-400">▾</span>
                   </button>
@@ -205,13 +205,13 @@ export const Navbar: React.FC = () => {
                               const target = e.currentTarget;
                               if (!target.dataset.triedFallback) {
                                 target.dataset.triedFallback = "true";
-                                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+                                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.full_name || "wanderlust")}`;
                               }
                             }}
                           />
                         ) : (
                           <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center shrink-0">
-                            {(user.full_name || user.email)[0].toUpperCase()}
+                            {((user.full_name || user.email || "W").trim().charAt(0) || "W").toUpperCase()}
                           </div>
                         )}
                         <div className="overflow-hidden flex-1 text-right">
@@ -219,7 +219,7 @@ export const Navbar: React.FC = () => {
                             {user.full_name || "מטייל רשום"}
                           </span>
                           <span className="block text-[11px] text-slate-400 truncate font-mono" dir="ltr">
-                            {user.email}
+                            {user.email || ""}
                           </span>
                           <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-mint-500/15 border border-mint-500/30 text-[10px] text-mint-300 font-medium">
                             {user.auth_provider === "google" ? "Google OAuth" : "Wanderlust User"}
@@ -334,29 +334,31 @@ export const Navbar: React.FC = () => {
                         const target = e.currentTarget;
                         if (!target.dataset.triedFallback) {
                           target.dataset.triedFallback = "true";
-                          target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+                          target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.full_name || "wanderlust")}`;
                         }
                       }}
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-teal-500 text-slate-950 font-bold text-xs flex items-center justify-center">
-                      {(user.full_name || user.email)[0].toUpperCase()}
+                      {((user.full_name || user.email || "W").trim().charAt(0) || "W").toUpperCase()}
                     </div>
                   )}
                   <div
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    router.push("/profile");
-                  }}
-                  className="flex items-center gap-3 cursor-pointer p-1 rounded-xl hover:bg-white/5"
-                  title="עבור לפרופיל שלי"
-                >
-                    <span className="block text-white text-xs font-bold truncate max-w-[160px]">
-                      {user.full_name || user.email}
-                    </span>
-                    <span className="block text-[10px] text-slate-400">
-                      {user.auth_provider === "google" ? "מחובר עם Google" : "משתמש מחובר"}
-                    </span>
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push("/profile");
+                    }}
+                    className="flex items-center gap-3 cursor-pointer p-1 rounded-xl hover:bg-white/5"
+                    title="עבור לפרופיל שלי"
+                  >
+                    <div>
+                      <span className="block text-white text-xs font-bold truncate max-w-[160px]">
+                        {user.full_name || user.email || "מטייל רשום"}
+                      </span>
+                      <span className="block text-[10px] text-slate-400">
+                        {user.auth_provider === "google" ? "מחובר עם Google" : "משתמש מחובר"}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <button

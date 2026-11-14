@@ -21,6 +21,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 
 interface HolidayItem {
   key: string;
@@ -184,7 +185,7 @@ export default function TLVHolidayFlightBoardPage() {
   const consoleEndRef = useRef<HTMLDivElement>(null);
   const boardResultsRef = useRef<HTMLDivElement>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiBase = getApiBaseUrl();
 
   // Auto-populate email if user is logged in
   useEffect(() => {

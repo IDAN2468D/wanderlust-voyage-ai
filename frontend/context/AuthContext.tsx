@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Mountain, Loader2 } from "lucide-react";
+import { getApiBaseUrl } from "@/utils/apiConfig";
 
 export interface User {
   id: string;
@@ -42,12 +43,67 @@ const TOKEN_KEY = "wanderlust_auth_token";
 const USER_KEY = "wanderlust_user";
 const PUBLIC_PATHS = ["/login"];
 
+function safeDecodeURIComponent(value: string): string | null {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
+
+function safeStorageGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeStorageSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage quota / private-mode errors
+  }
+}
+
+function safeStorageRemove(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function sanitizeUser(candidate: unknown): User | null {
+  if (!candidate || typeof candidate !== "object") return null;
+  const obj = candidate as Record<string, unknown>;
+  const email = typeof obj.email === "string" ? obj.email.trim() : "";
+  const fullName = typeof obj.full_name === "string" ? obj.full_name.trim() : "";
+
+  if (!email && !fullName) return null;
+  if (email.startsWith("usr_g_") && email.includes("@travelplanner.ai")) return null;
+
+  return {
+    id: typeof obj.id === "string" && obj.id.trim() ? obj.id.trim() : "user",
+    email: email || "traveler@wanderlust.ai",
+    full_name: fullName || null,
+    role: typeof obj.role === "string" && obj.role.trim() ? obj.role.trim() : "user",
+    picture: typeof obj.picture === "string" && obj.picture.trim() ? obj.picture.trim() : null,
+    auth_provider: typeof obj.auth_provider === "string" ? obj.auth_provider : undefined,
+  };
+}
+
 function parseJwtPayload(token: string): any {
   try {
     const parts = token.split(".");
-    if (parts.length < 2) return null;
+    if (parts.length < 2 || !parts[1]) return null;
     const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padLength = (4 - (base64.length % 4)) % 4;
+    if (padLength > 0) {
+      base64 += "=".repeat(padLength);
+    }
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split("")
@@ -55,7 +111,7 @@ function parseJwtPayload(token: string): any {
         .join("")
     );
     return JSON.parse(jsonPayload);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -65,18 +121,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
   // Helper to persist auth tokens in localStorage and document.cookie
   const saveAuthSession = (authToken: string, authUser: User) => {
+    const cleanUser = sanitizeUser(authUser) || authUser;
     setToken(authToken);
-    setUser(authUser);
+    setUser(cleanUser);
     if (typeof window !== "undefined") {
-      localStorage.setItem(TOKEN_KEY, authToken);
-      localStorage.setItem(USER_KEY, JSON.stringify(authUser));
-      // Set cookie for SSR/edge compatibility
-      document.cookie = `${TOKEN_KEY}=${authToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-      document.cookie = `${USER_KEY}=${encodeURIComponent(JSON.stringify(authUser))}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      safeStorageSet(TOKEN_KEY, authToken);
+      safeStorageSet(USER_KEY, JSON.stringify(cleanUser));
+      try {
+        document.cookie = `${TOKEN_KEY}=${encodeURIComponent(authToken)}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        document.cookie = `${USER_KEY}=${encodeURIComponent(JSON.stringify(cleanUser))}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      } catch {
+        // Ignore cookie write failures
+      }
     }
   };
 
@@ -85,10 +143,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     if (typeof window !== "undefined") {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      document.cookie = `${USER_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      safeStorageRemove(TOKEN_KEY);
+      safeStorageRemove(USER_KEY);
+      try {
+        document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        document.cookie = `${USER_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      } catch {
+        // Ignore cookie clear failures
+      }
     }
   };
 
@@ -100,84 +162,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      let storedToken = localStorage.getItem(TOKEN_KEY);
-      let storedUserStr = localStorage.getItem(USER_KEY);
-
-      // Check URL parameters first (e.g. redirected from Google OAuth callback)
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlToken = urlParams.get("auth_token") || urlParams.get("token");
-      if (urlToken) {
-        storedToken = urlToken;
-        localStorage.setItem(TOKEN_KEY, storedToken);
-
-        // Also check if cookie has fresh user data from callback route
-        const userMatch = document.cookie.match(new RegExp(`(?:^|; )${USER_KEY}=([^;]*)`));
-        if (userMatch && userMatch[1]) {
-          storedUserStr = decodeURIComponent(userMatch[1]);
-          localStorage.setItem(USER_KEY, storedUserStr);
-        }
-
-        // Clean up the URL parameter without page reload
-        urlParams.delete("auth_token");
-        urlParams.delete("token");
-        const cleanSearch = urlParams.toString() ? `?${urlParams.toString()}` : "";
-        const cleanUrl = window.location.pathname + cleanSearch;
-        window.history.replaceState({}, "", cleanUrl);
-      }
-
-      // If still no token, check document.cookie fallback
-      if (!storedToken && typeof document !== "undefined") {
-        const tokenMatch = document.cookie.match(new RegExp(`(?:^|; )${TOKEN_KEY}=([^;]*)`));
-        if (tokenMatch && tokenMatch[1]) {
-          storedToken = decodeURIComponent(tokenMatch[1]);
-          localStorage.setItem(TOKEN_KEY, storedToken);
-        }
-        const userMatch = document.cookie.match(new RegExp(`(?:^|; )${USER_KEY}=([^;]*)`));
-        if (userMatch && userMatch[1]) {
-          storedUserStr = decodeURIComponent(userMatch[1]);
-          localStorage.setItem(USER_KEY, storedUserStr);
-        }
-      }
-
-      if (!storedToken) {
-        setIsLoading(false);
-        return;
-      }
+      let hydratedUser: User | null = null;
 
       try {
-        // Discard any stale fallback user mock (e.g. usr_g_... @travelplanner.ai)
-        if (storedUserStr) {
-          try {
-            const parsed = JSON.parse(storedUserStr);
-            if (parsed.email && parsed.email.startsWith("usr_g_") && parsed.email.includes("@travelplanner.ai")) {
-              localStorage.removeItem(USER_KEY);
-              storedUserStr = null;
+        let storedToken = safeStorageGet(TOKEN_KEY);
+        let storedUserStr = safeStorageGet(USER_KEY);
+
+        // Check URL parameters first (e.g. redirected from Google OAuth callback)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlToken = urlParams.get("auth_token") || urlParams.get("token");
+        if (urlToken) {
+          storedToken = urlToken;
+          safeStorageSet(TOKEN_KEY, storedToken);
+
+          // Also check if cookie has fresh user data from callback route
+          const userMatch = document.cookie.match(new RegExp(`(?:^|; )${USER_KEY}=([^;]*)`));
+          if (userMatch && userMatch[1]) {
+            const decodedUser = safeDecodeURIComponent(userMatch[1]);
+            if (decodedUser) {
+              storedUserStr = decodedUser;
+              safeStorageSet(USER_KEY, storedUserStr);
             }
-          } catch {
-            storedUserStr = null;
           }
+
+          // Clean up the URL parameter without page reload
+          urlParams.delete("auth_token");
+          urlParams.delete("token");
+          const cleanSearch = urlParams.toString() ? `?${urlParams.toString()}` : "";
+          const cleanUrl = window.location.pathname + cleanSearch;
+          window.history.replaceState({}, "", cleanUrl);
+        }
+
+        // If still no token, check document.cookie fallback
+        if (!storedToken && typeof document !== "undefined") {
+          const tokenMatch = document.cookie.match(new RegExp(`(?:^|; )${TOKEN_KEY}=([^;]*)`));
+          if (tokenMatch && tokenMatch[1]) {
+            const decodedToken = safeDecodeURIComponent(tokenMatch[1]);
+            if (decodedToken) {
+              storedToken = decodedToken;
+              safeStorageSet(TOKEN_KEY, storedToken);
+            }
+          }
+          const userMatch = document.cookie.match(new RegExp(`(?:^|; )${USER_KEY}=([^;]*)`));
+          if (userMatch && userMatch[1]) {
+            const decodedUser = safeDecodeURIComponent(userMatch[1]);
+            if (decodedUser) {
+              storedUserStr = decodedUser;
+              safeStorageSet(USER_KEY, storedUserStr);
+            }
+          }
+        }
+
+        if (!storedToken) {
+          return;
         }
 
         // Fast hydration: extract claims directly from JWT token
         const jwtClaims = parseJwtPayload(storedToken);
-        if (jwtClaims && jwtClaims.email && !jwtClaims.email.includes("@travelplanner.ai")) {
-          const fastUser: User = {
+        if (
+          jwtClaims &&
+          typeof jwtClaims.email === "string" &&
+          jwtClaims.email.trim() &&
+          !jwtClaims.email.includes("@travelplanner.ai")
+        ) {
+          hydratedUser = sanitizeUser({
             id: jwtClaims.user_id || jwtClaims.sub,
             email: jwtClaims.email,
             full_name: jwtClaims.full_name || jwtClaims.name || null,
             picture: jwtClaims.picture || null,
             role: jwtClaims.role || "user",
             auth_provider: jwtClaims.auth_provider || (jwtClaims.picture ? "google" : "local"),
-          };
-          setUser(fastUser);
-          localStorage.setItem(USER_KEY, JSON.stringify(fastUser));
+          });
         } else if (storedUserStr) {
-          setUser(JSON.parse(storedUserStr));
+          try {
+            const parsed = JSON.parse(storedUserStr);
+            hydratedUser = sanitizeUser(parsed);
+          } catch {
+            hydratedUser = null;
+          }
         }
 
-        setToken(storedToken);
+        if (hydratedUser) {
+          setUser(hydratedUser);
+          setToken(storedToken);
+          safeStorageSet(USER_KEY, JSON.stringify(hydratedUser));
+        } else {
+          safeStorageRemove(USER_KEY);
+        }
 
         // Verify & sync with backend /api/auth/me
+        const apiBase = getApiBaseUrl();
         const res = await fetch(`${apiBase}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
@@ -185,41 +259,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (res.ok) {
-          const freshUser = await res.json();
-          setUser(freshUser);
-          localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
-        } else if (res.status === 401) {
-          // Token expired or invalid
+          const rawFreshUser = await res.json().catch(() => null);
+          const freshUser = sanitizeUser(rawFreshUser);
+          if (freshUser) {
+            setUser(freshUser);
+            setToken(storedToken);
+            safeStorageSet(USER_KEY, JSON.stringify(freshUser));
+          } else if (!hydratedUser) {
+            clearAuthSession();
+          }
+        } else if (res.status === 401 || !hydratedUser) {
+          // Token expired/invalid or local user payload was corrupt
           clearAuthSession();
         }
       } catch (err) {
         console.warn("Could not verify session with backend, continuing with cached session:", err);
+        if (!hydratedUser) {
+          clearAuthSession();
+        }
       } finally {
         setIsLoading(false);
       }
     }
 
     initSession();
-  }, [apiBase]);
+  }, []);
 
   // Login with Email & Password
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         return { success: false, error: data.detail || "כתובת אימייל או סיסמה שגויים" };
       }
 
-      saveAuthSession(data.access_token, data.user);
+      const validUser = sanitizeUser(data.user);
+      if (!data.access_token || !validUser) {
+        return { success: false, error: "תגובת השרת אינה תקינה. אנא נסה שוב." };
+      }
+
+      saveAuthSession(data.access_token, validUser);
       return { success: true };
-    } catch (err: any) {
+    } catch {
       return { success: false, error: "שגיאת תקשורת עם שרת האימות. אנא נסה שוב." };
     }
   };
@@ -227,6 +316,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register with Email, Password and Name
   const register = async (email: string, password: string, fullName?: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -237,15 +327,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         return { success: false, error: data.detail || "שגיאה ברישום המשתמש" };
       }
 
-      saveAuthSession(data.access_token, data.user);
+      const validUser = sanitizeUser(data.user);
+      if (!data.access_token || !validUser) {
+        return { success: false, error: "תגובת השרת אינה תקינה. אנא נסה שוב." };
+      }
+
+      saveAuthSession(data.access_token, validUser);
       return { success: true };
-    } catch (err: any) {
+    } catch {
       return { success: false, error: "שגיאת תקשורת עם השרת בעת ההרשמה" };
     }
   };
@@ -272,21 +367,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profile?.name) payload.name = profile.name;
       if (profile?.picture) payload.picture = profile.picture;
 
+      const apiBase = getApiBaseUrl();
       const res = await fetch(`${apiBase}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         return { success: false, error: data.detail || "שגיאה בהתחברות באמצעות Google" };
       }
 
-      saveAuthSession(data.access_token, data.user);
+      const validUser = sanitizeUser(data.user);
+      if (!data.access_token || !validUser) {
+        return { success: false, error: "פרטי המשתמש שהתקבלו אינם תקינים" };
+      }
+
+      saveAuthSession(data.access_token, validUser);
       return { success: true };
-    } catch (err: any) {
+    } catch {
       return { success: false, error: "שגיאת רשת בהתחברות עם Google" };
     }
   };
@@ -345,15 +446,24 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (isLoading) return;
 
-    const isPublic = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/"));
+    const isPublic = PUBLIC_PATHS.some(
+      (path) => pathname === path || Boolean(pathname?.startsWith(path + "/"))
+    );
 
     if (!isAuthenticated && !isPublic) {
       // Unauthenticated user attempting to access protected area -> redirect to /login
-      const currentUrl = pathname ? `${pathname}${searchParams ? `?${searchParams.toString()}` : ""}` : "/";
+      const queryStr = searchParams?.toString() || "";
+      const currentUrl = pathname ? `${pathname}${queryStr ? `?${queryStr}` : ""}` : "/";
       router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
     } else if (isAuthenticated && pathname === "/login") {
       // Authenticated user already logged in -> redirect to target or home
-      const redirectUrl = searchParams.get("redirect") || "/";
+      const rawRedirect = searchParams?.get("redirect") || "/";
+      const redirectUrl =
+        rawRedirect.startsWith("/") &&
+        !rawRedirect.startsWith("//") &&
+        !rawRedirect.startsWith("/login")
+          ? rawRedirect
+          : "/";
       router.replace(redirectUrl);
     }
   }, [isAuthenticated, isLoading, pathname, router, searchParams]);
@@ -388,7 +498,9 @@ const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   // Prevent flash of protected content while redirecting
-  const isPublic = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/"));
+  const isPublic = PUBLIC_PATHS.some(
+    (path) => pathname === path || Boolean(pathname?.startsWith(path + "/"))
+  );
   if (!isAuthenticated && !isPublic) {
     return (
       <div className="min-h-screen bg-[#070c12] flex items-center justify-center">
