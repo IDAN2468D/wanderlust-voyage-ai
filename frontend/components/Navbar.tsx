@@ -7,6 +7,7 @@ import { SearchModal } from "@/components/SearchModal";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/AuthContext";
+import { useLocale } from "@/context/LocaleContext";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -20,6 +21,7 @@ export const Navbar: React.FC = () => {
 
   const { currency, setCurrency, currencyConfig } = useCurrency();
   const { user, isAuthenticated, logout } = useAuth();
+  const { locale, dir, toggleLocale, t } = useLocale();
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -46,20 +48,20 @@ export const Navbar: React.FC = () => {
   }, [isCurrencyOpen, isUserMenuOpen]);
 
   const NAV_LINKS = [
-    { label: "דף הבית", href: "/" },
-    { label: "טיסות חגים TLV ✈️", href: "/flights" },
-    { label: "יעדים", href: "/destinations" },
-    { label: "חוויות", href: "/experiences" },
-    { label: "מסלולים", href: "/trips" },
-    { label: "אודות", href: "/about" },
-    { label: "בלוג", href: "/blog" },
+    { label: t("דף הבית", "Home"), href: "/" },
+    { label: t("טיסות חגים TLV ✈️", "TLV Holidays ✈️"), href: "/flights" },
+    { label: t("יעדים", "Destinations"), href: "/destinations" },
+    { label: t("חוויות", "Experiences"), href: "/experiences" },
+    { label: t("מסלולים", "Trips"), href: "/trips" },
+    { label: t("אודות", "About"), href: "/about" },
+    { label: t("בלוג", "Blog"), href: "/blog" },
   ];
 
   const currencyList = Object.values(CURRENCIES);
 
   return (
     <>
-      <header className="relative z-30 w-full px-3.5 sm:px-8 lg:px-12 xl:px-14 py-3 sm:py-4 border-b border-white/10 bg-[#060b14]/88 backdrop-blur-2xl sticky top-0 shadow-[0_8px_32px_rgba(0,0,0,0.45)]" dir="rtl">
+      <header className="relative z-30 w-full px-3.5 sm:px-8 lg:px-12 xl:px-14 py-3 sm:py-4 border-b border-white/10 bg-[#060b14]/88 backdrop-blur-2xl sticky top-0 shadow-[0_8px_32px_rgba(0,0,0,0.45)]" dir={dir}>
         <div className="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-2 sm:gap-6">
           {/* Logo (Right side in RTL) */}
           <a href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
@@ -97,8 +99,22 @@ export const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Left Controls (Search, Currency, Plan Button) */}
+          {/* Left Controls (Search, Locale, Currency, Plan Button) */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* BiDi Locale Toggle (HE | EN) */}
+            <button
+              type="button"
+              onClick={toggleLocale}
+              title={t("החלף שפה (עברית / English)", "Switch Language (HE / EN)")}
+              aria-label="Toggle Locale"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/20 border border-white/15 text-[11px] font-bold text-slate-200 transition"
+            >
+              <Globe className="w-3.5 h-3.5 text-mint-400" />
+              <span className={locale === "he" ? "text-mint-300" : "text-slate-400"}>HE</span>
+              <span className="text-slate-600">|</span>
+              <span className={locale === "en" ? "text-mint-300" : "text-slate-400"}>EN</span>
+            </button>
+
             {/* Compact Mobile Currency Pill */}
             <button
               type="button"
@@ -114,8 +130,8 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              title="חיפוש יעדים"
-              aria-label="חיפוש יעדים"
+              title={t("חיפוש יעדים", "Search Destinations")}
+              aria-label={t("חיפוש יעדים", "Search Destinations")}
               className="w-10 h-10 sm:w-auto sm:h-auto sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 backdrop-blur-md border border-white/10 transition flex items-center justify-center"
             >
               <Search className="w-4 h-4" />

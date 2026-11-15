@@ -39,6 +39,8 @@ def search_flights(
         {"name": "וויז אייר (Wizz Air)", "code": "W6"},
         {"name": "קטאר איירווייז (Qatar Airways)", "code": "QR"},
     ]
+    if origin_clean in {"TLV", "ETM", "TEL AVIV", "BEN GURION"}:
+        airlines = [a for a in airlines if a["code"] not in {"EK", "TK", "QR"}]
 
     seed = sum(ord(c) for c in f"{origin_clean}-{dest_clean}-{departure_date}")
     rng = random.Random(seed)

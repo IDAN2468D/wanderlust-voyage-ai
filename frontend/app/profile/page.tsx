@@ -38,6 +38,7 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { getApiBaseUrl } from "@/utils/apiConfig";
+import { loadOfflineVault, OfflineVaultEntry } from "@/utils/offlineVault";
 
 interface BookingRecord {
   booking_ref: string;
@@ -95,6 +96,13 @@ function ProfileContent() {
 
   // Modal for Viewing Voucher
   const [activeVoucher, setActiveVoucher] = useState<BookingRecord | null>(null);
+
+  // Offline Vault, Readiness Timeline & Personal RAG state
+  const [offlineVaultItems, setOfflineVaultItems] = useState<OfflineVaultEntry[]>([]);
+  const [readinessMap, setReadinessMap] = useState<Record<string, any>>({});
+  const [ragDocTitle, setRagDocTitle] = useState("");
+  const [ragDocContent, setRagDocContent] = useState("");
+  const [ragUploadStatus, setRagUploadStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
 
   // Load profile data, DB bookings & DB saved trips on mount
   useEffect(() => {
@@ -170,10 +178,20 @@ function ProfileContent() {
         }
         const emailQuery = user?.email ? `?email=${encodeURIComponent(user.email)}` : "";
 
-        const [bookingsRes, tripsRes] = await Promise.allSettled([
+        const [bookingsRes, tripsRes, prefsRes] = await Promise.allSettled([
           fetch(`${apiBase}/api/v1/bookings${emailQuery}`, { headers }),
           fetch(`${apiBase}/api/v1/trips/history${emailQuery}`, { headers }),
+          fetch(`${apiBase}/api/v1/profile/preferences`, { headers }),
         ]);
+
+        loadOfflineVault().then(setOfflineVaultItems).catch(() => {});
+
+        if (prefsRes.status === "fulfilled" && prefsRes.value.ok) {
+          const pJson = await prefsRes.value.json();
+          if (pJson?.seating_preference) setSeatingPreference(pJson.seating_preference);
+          if (pJson?.dietary) setDietary(pJson.dietary);
+          if (pJson?.passport_expiry) setPassportExpiry(pJson.passport_expiry);
+        }
 
         if (bookingsRes.status === "fulfilled" && bookingsRes.value.ok) {
           const bJson = await bookingsRes.value.json();
@@ -278,8 +296,8 @@ function ProfileContent() {
     } catch {}
   };
 
-  // Handle Save Preferences
-  const handleSavePreferences = (e: React.FormEvent) => {
+  // Handle Save Preferences (localStorage + Backend Profile API)
+  const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       localStorage.setItem(
@@ -291,9 +309,68 @@ function ProfileContent() {
           emailNotifications,
         })
       );
-      setPrefSaveStatus("saved");
-      setTimeout(() => setPrefSaveStatus("idle"), 3000);
     } catch {}
+
+    try {
+      const apiBase = getApiBaseUrl();
+      const token = localStorage.getItem("wanderlust_auth_token");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      await fetch(`${apiBase}/api/v1/profile/preferences`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({
+          seating_preference: seatingPreference,
+          dietary,
+          passport_expiry: passportExpiry || undefined,
+          auto_buffer_10pct: autoBuffer,
+          email_notifications: emailNotifications,
+        }),
+      });
+    } catch {}
+
+    setPrefSaveStatus("saved");
+    setTimeout(() => setPrefSaveStatus("idle"), 3000);
+  };
+
+  const handleLoadReadiness = async (bookingRef: string) => {
+    const apiBase = getApiBaseUrl();
+    try {
+      const res = await fetch(`${apiBase}/api/v1/bookings/${encodeURIComponent(bookingRef)}/readiness`);
+      if (res.ok) {
+        const data = await res.json();
+        setReadinessMap((prev) => ({ ...prev, [bookingRef]: data }));
+      }
+    } catch {}
+  };
+
+  const handleUploadPersonalRag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ragDocTitle.trim() || !ragDocContent.trim()) return;
+    setRagUploadStatus("uploading");
+    const apiBase = getApiBaseUrl();
+    try {
+      const token = localStorage.getItem("wanderlust_auth_token");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(`${apiBase}/api/v1/knowledge/ingest-personal`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          title: ragDocTitle,
+          content: ragDocContent,
+        }),
+      });
+      if (res.ok) {
+        setRagUploadStatus("done");
+        setRagDocTitle("");
+        setRagDocContent("");
+      } else {
+        setRagUploadStatus("error");
+      }
+    } catch {
+      setRagUploadStatus("error");
+    }
   };
 
   // Resend booking confirmation voucher to email
@@ -576,7 +653,16 @@ function ProfileContent() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleLoadReadiness(b.booking_ref)}
+                          className="px-3 py-2.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-indigo-200 text-xs font-bold transition flex items-center gap-1.5"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>ציר מוכנות</span>
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => setActiveVoucher(b)}
@@ -603,10 +689,47 @@ function ProfileContent() {
                         </button>
                       </div>
                     </div>
+
+                    {readinessMap[b.booking_ref]?.milestones && (
+                      <div className="w-full pt-3 mt-2 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                        {readinessMap[b.booking_ref].milestones.map((step: any, sIdx: number) => (
+                          <div key={sIdx} className="p-2.5 rounded-xl bg-indigo-950/30 border border-indigo-400/25">
+                            <div className="font-bold text-indigo-200">{step.window} — {step.title}</div>
+                            <div className="text-slate-300 mt-0.5">{step.details}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
+
+            {/* Offline Travel Vault Section */}
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-mint-400" />
+                  <span>כספת נסיעות אופליין (IndexedDB Offline Vault)</span>
+                </h4>
+                <span className="text-[11px] text-slate-400 font-mono">{offlineVaultItems.length} פריטים שמורים מקומית</span>
+              </div>
+              {offlineVaultItems.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {offlineVaultItems.map((item) => (
+                    <div key={item.id} className="p-3.5 rounded-2xl bg-black/40 border border-mint-400/25 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white">{item.destination}</span>
+                        <span className="font-mono text-mint-300">{item.bookingRef || item.id}</span>
+                      </div>
+                      <div className="text-slate-400">{item.summaryText || item.savedAt}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400">ניתן לשמור כל הזמנה מאושרת לכספת האופליין לצפייה גם ללא חיבור לאינטרנט בטיסה.</p>
+              )}
+            </div>
           </div>
         )}
 
@@ -791,11 +914,12 @@ function ProfileContent() {
             TAB 4: TRAVEL PREFERENCES & AI AGENTS
         ======================================================== */}
         {activeTab === "preferences" && (
+          <div className="space-y-6">
           <form onSubmit={handleSavePreferences} className="wanderlust-glass rounded-3xl p-5 sm:p-8 border border-white/15 space-y-6 text-right">
             <div className="border-b border-white/10 pb-4">
               <h3 className="text-xl font-serif font-bold text-white">העדפות מסע וסוכני בינה מלאכותית</h3>
               <p className="text-xs text-slate-400">
-                הגדרות אלו ינחו את 15 הסוכנים בכל תכנון עתידי שתבצע באתר.
+                הגדרות אלו ינחו את 25 הסוכנים בכל תכנון עתידי שתבצע באתר.
               </p>
             </div>
 
@@ -907,6 +1031,54 @@ function ProfileContent() {
               </button>
             </div>
           </form>
+
+          {/* Personal RAG Document Upload Card */}
+          <form onSubmit={handleUploadPersonalRag} className="wanderlust-glass rounded-3xl p-5 sm:p-8 border border-mint-400/25 space-y-4 text-right">
+            <div className="border-b border-white/10 pb-3">
+              <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-mint-400" />
+                <span>מאגר הידע האישי שלך (Personal RAG Vault)</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                העלה הערות, אישורי מלון או רשימות פרטיות — המידע נשמר במבודד תחת המשתמש שלך ומשמש את הסוכנים בתכנון הבא.
+              </p>
+            </div>
+            <div className="space-y-3 text-xs">
+              <input
+                type="text"
+                required
+                value={ragDocTitle}
+                onChange={(e) => setRagDocTitle(e.target.value)}
+                placeholder="כותרת המסמך (למשל: הזמנת מלון רומא / פוליסת ביטוח)"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white placeholder-slate-500"
+              />
+              <textarea
+                rows={3}
+                required
+                value={ragDocContent}
+                onChange={(e) => setRagDocContent(e.target.value)}
+                placeholder="הדבק כאן טקסט או פרטים חשובים שהסוכנים יזכרו עבורך..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white placeholder-slate-500"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="submit"
+                  disabled={ragUploadStatus === "uploading"}
+                  className="btn-mint px-5 py-2.5 rounded-xl font-bold text-slate-950 flex items-center gap-2 disabled:opacity-60"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{ragUploadStatus === "uploading" ? "שומר ל-VectorStore..." : "הוסף לזיכרון ה-RAG האישי"}</span>
+                </button>
+                {ragUploadStatus === "done" && (
+                  <span className="text-emerald-300 font-semibold">✓ המסמך אונדקס בהצלחה למאגר האישי שלך!</span>
+                )}
+                {ragUploadStatus === "error" && (
+                  <span className="text-rose-300 font-semibold">שגיאה בשמירת המסמך (וודא התחברות).</span>
+                )}
+              </div>
+            </div>
+          </form>
+          </div>
         )}
 
         {/* ========================================================

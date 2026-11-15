@@ -22,6 +22,14 @@ from app.tools.shopping_tools import get_shopping_and_tax_free
 from app.tools.calendar_tools import generate_trip_calendar_pack
 from app.tools.sentinel_tools import get_ground_sentinel_alerts
 from app.tools.briefing_tools import generate_whatsapp_daily_briefings
+from app.tools.memory_tools import load_traveler_memory, check_passport_validity_window
+from app.tools.shabbat_halacha_tools import get_shabbat_halacha_schedule
+from app.tools.connectivity_mobility_tools import get_connectivity_and_mobility_guide
+from app.tools.protection_rerouting_tools import get_protection_and_rerouting_plan
+from app.tools.loyalty_vault_tools import get_loyalty_and_vault_readiness
+from app.tools.group_split_tools import compute_group_cost_split
+from app.tools.replan_tools import apply_itinerary_swap
+from app.agents.critic import run_trip_critic_audit
 
 logger = logging.getLogger("travel_orchestrator")
 
@@ -78,10 +86,17 @@ def synthesize_deterministic_plan(
     interests: List[str],
     travel_style: str = "balanced",
     currency: str = "USD",
+    travelers: int = 2,
+    return_date: Optional[str] = None,
+    shabbat_safe_mode: bool = False,
+    kosher_only: bool = False,
+    accessibility_mode: bool = False,
+    user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Executes the 7-agent coordinated travel pipeline deterministically.
-    Synthesizes flights, hotels, attractions, weather, safety, culture, and budget.
+    Executes the coordinated multi-agent travel pipeline deterministically.
+    Synthesizes flights, hotels, attractions, weather, safety, culture, budget,
+    and Sprint 8-9 specialist modules + Trip Critic verification.
     """
     validated = validate_trip_input(
         origin=origin,
@@ -95,7 +110,7 @@ def synthesize_deterministic_plan(
     days = validated["duration_days"]
 
     # 1. Flights & Lodging (Flight Specialist)
-    flight_data_raw = search_flights(orig_clean, dest_clean, start_date)
+    flight_data_raw = search_flights(orig_clean, dest_clean, start_date, return_date=return_date)
     flight_data = json.loads(flight_data_raw)
     rec_flight = flight_data["flights"][0] if flight_data.get("flights") else {
         "airline": "אל על (EL AL)",
@@ -302,17 +317,18 @@ def synthesize_deterministic_plan(
     for fest in events_data.get("culture_and_events", {}).get("festivals", [])[:2]:
         md_lines.append(f"- 🎪 **{fest['name']}** ({fest['frequency']}): {fest['description']}")
 
+    fx_ils_rate = float((budget_report.get("exchange_rates") or {}).get("ILS", 3.70))
     md_lines.extend([
         "\n---",
         "## 💰 ביקורת תקציב ופירוט פיננסי מלא",
         "| קטגוריה | עלות (USD) | עלות (₪) | אחוז מהתקציב |",
         "| :--- | :--- | :--- | :--- |",
-        f"| ✈️ טיסות | ${budget_report['itemized_breakdown']['flights']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['flights']['amount_usd'] * 3.7:,.0f} ₪ | {budget_report['itemized_breakdown']['flights']['percentage']}% |",
-        f"| 🏨 לינה ומלון | ${budget_report['itemized_breakdown']['accommodation']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['accommodation']['amount_usd'] * 3.7:,.0f} ₪ | {budget_report['itemized_breakdown']['accommodation']['percentage']}% |",
-        f"| 🍽️ אוכל והסעדה | ${budget_report['itemized_breakdown']['food_and_dining']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['food_and_dining']['amount_usd'] * 3.7:,.0f} ₪ | {budget_report['itemized_breakdown']['food_and_dining']['percentage']}% |",
-        f"| 🎟️ אטרקציות וסיורים | ${budget_report['itemized_breakdown']['activities_and_tours']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['activities_and_tours']['amount_usd'] * 3.7:,.0f} ₪ | {budget_report['itemized_breakdown']['activities_and_tours']['percentage']}% |",
-        f"| 🚇 תחבורה מקומית | ${budget_report['itemized_breakdown']['local_transit']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['local_transit']['amount_usd'] * 3.7:,.0f} ₪ | {budget_report['itemized_breakdown']['local_transit']['percentage']}% |",
-        f"| 🛡️ כרית ביטחון (בלת\"ם 10%) | ${budget_report['itemized_breakdown']['contingency_buffer']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['contingency_buffer']['amount_usd'] * 3.7:,.0f} ₪ | {budget_report['itemized_breakdown']['contingency_buffer']['percentage']}% |",
+        f"| ✈️ טיסות | ${budget_report['itemized_breakdown']['flights']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['flights']['amount_usd'] * fx_ils_rate:,.0f} ₪ | {budget_report['itemized_breakdown']['flights']['percentage']}% |",
+        f"| 🏨 לינה ומלון | ${budget_report['itemized_breakdown']['accommodation']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['accommodation']['amount_usd'] * fx_ils_rate:,.0f} ₪ | {budget_report['itemized_breakdown']['accommodation']['percentage']}% |",
+        f"| 🍽️ אוכל והסעדה | ${budget_report['itemized_breakdown']['food_and_dining']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['food_and_dining']['amount_usd'] * fx_ils_rate:,.0f} ₪ | {budget_report['itemized_breakdown']['food_and_dining']['percentage']}% |",
+        f"| 🎟️ אטרקציות וסיורים | ${budget_report['itemized_breakdown']['activities_and_tours']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['activities_and_tours']['amount_usd'] * fx_ils_rate:,.0f} ₪ | {budget_report['itemized_breakdown']['activities_and_tours']['percentage']}% |",
+        f"| 🚇 תחבורה מקומית | ${budget_report['itemized_breakdown']['local_transit']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['local_transit']['amount_usd'] * fx_ils_rate:,.0f} ₪ | {budget_report['itemized_breakdown']['local_transit']['percentage']}% |",
+        f"| 🛡️ כרית ביטחון (בלת\"ם 10%) | ${budget_report['itemized_breakdown']['contingency_buffer']['amount_usd']:,.2f} | {budget_report['itemized_breakdown']['contingency_buffer']['amount_usd'] * fx_ils_rate:,.0f} ₪ | {budget_report['itemized_breakdown']['contingency_buffer']['percentage']}% |",
         f"| **סך הכל עלות משוערת** | **${budget_report['total_projected_expenses_usd']:,.2f}** | **{budget_report['total_projected_expenses_ils']:,.0f} ₪** | **100%** |",
         f"| **תקציב יעד מוגדר** | **${total_budget:,.2f}** | **{budget_report['total_budget_ils']:,.0f} ₪** | - |",
         f"| **יתרה / עודף תקציבי** | **${budget_report['remaining_balance_usd']:,.2f}** | **{budget_report['remaining_balance_ils']:,.0f} ₪** | - |\n",
@@ -352,10 +368,51 @@ def synthesize_deterministic_plan(
     )
     briefing_data = json.loads(briefing_raw)
 
-    # RAG Retrieval Phase: pull top curated destination & Israeli traveler handbook insights
+    # RAG Retrieval Phase: pull top curated destination & Israeli traveler handbook insights (plus personal RAG)
     kb = get_knowledge_base()
     rag_query = f"{dest_clean} {' '.join(interests or [])} transit visa kosher tax-free tlv".strip()
-    rag_hits = kb.retrieve(query=rag_query, destination=dest_clean, top_k=4)
+    rag_hits = kb.retrieve(
+        query=rag_query,
+        destination=dest_clean,
+        top_k=4,
+        owner_user_id=user_id if user_id and user_id != "guest_user" else None,
+    )
+
+    # Sprint 8 & 9 Specialists: Memory, Shabbat/Halacha, Connectivity, Protection, Loyalty, Group Split
+    traveler_mem = load_traveler_memory(user_id)
+    effective_shabbat = bool(shabbat_safe_mode or traveler_mem.get("shabbat_observant"))
+    effective_kosher = bool(kosher_only or traveler_mem.get("kosher_level", "none") != "none")
+    shabbat_data = json.loads(
+        get_shabbat_halacha_schedule(dest_clean, start_date, days, shabbat_safe_mode=effective_shabbat)
+    )
+    connectivity_data = json.loads(
+        get_connectivity_and_mobility_guide(dest_clean, days, travelers=travelers, travel_style=travel_style)
+    )
+    protection_data = json.loads(
+        get_protection_and_rerouting_plan(dest_clean, flight_info=rec_flight, interests=interests, travelers=travelers)
+    )
+    loyalty_data = json.loads(
+        get_loyalty_and_vault_readiness(
+            destination=dest_clean,
+            start_date=start_date,
+            duration_days=days,
+            flight_cost_usd=flight_cost,
+            airline=str(rec_flight.get("airline") or "EL AL"),
+            passport_expiry=traveler_mem.get("passport_expiry"),
+            loyalty_programs=traveler_mem.get("loyalty_programs"),
+        )
+    )
+    group_data = json.loads(
+        compute_group_cost_split(
+            travelers=travelers,
+            flight_cost_per_trip=flight_cost,
+            hotel_cost_total=hotel_cost,
+            activities_cost_total=activities_cost,
+            duration_days=days,
+            fx_ils_rate=fx_ils_rate,
+            fx_eur_rate=float((budget_report.get("exchange_rates") or {}).get("EUR", 0.92)),
+        )
+    )
 
     # Reasoning Engine Audit: 4-step Chain-of-Thought consistency check
     reasoning_trace = run_reasoning_audit(
@@ -416,6 +473,10 @@ def synthesize_deterministic_plan(
     full_markdown = "\n".join(md_lines)
 
     plan_data: Dict[str, Any] = {
+        "destination": dest_clean,
+        "duration_days": days,
+        "start_date": start_date,
+        "total_budget": total_budget,
         "markdown_plan": full_markdown,
         "flight_cost": flight_cost,
         "hotel_cost": hotel_cost,
@@ -440,7 +501,28 @@ def synthesize_deterministic_plan(
         "whatsapp_briefings": briefing_data,
         "rag_knowledge": rag_hits,
         "reasoning_trace": reasoning_trace,
+        "shabbat_halacha": shabbat_data,
+        "connectivity_mobility": connectivity_data,
+        "protection_rerouting": protection_data,
+        "loyalty_vault": loyalty_data,
+        "group_breakdown": group_data,
+        "traveler_memory": {
+            "user_id": traveler_mem.get("user_id"),
+            "shabbat_observant": effective_shabbat,
+            "kosher_only": effective_kosher,
+            "accessibility_mode": bool(accessibility_mode or traveler_mem.get("accessibility_mode")),
+            "passport_check": loyalty_data["readiness_vault"]["passport_check"],
+        },
     }
+    plan_data["critic_audit"] = run_trip_critic_audit(
+        plan_data=plan_data,
+        origin=orig_clean,
+        destination=dest_clean,
+        start_date=start_date,
+        duration_days=days,
+        total_budget=total_budget,
+        shabbat_safe_mode=effective_shabbat,
+    )
     return validate_trip_output(plan_data, total_budget)
 
 
@@ -454,6 +536,12 @@ async def stream_multi_agent_execution(
     travel_style: str = "balanced",
     currency: str = "USD",
     session_id: str = "default_session",
+    travelers: int = 2,
+    return_date: Optional[str] = None,
+    shabbat_safe_mode: bool = False,
+    kosher_only: bool = False,
+    accessibility_mode: bool = False,
+    user_id: Optional[str] = None,
 ) -> AsyncGenerator[str, None]:
     """
     Streams real-time Server-Sent Events (SSE) representing multi-agent deliberation.
@@ -471,6 +559,26 @@ async def stream_multi_agent_execution(
         total_budget=total_budget,
     )
 
+    det_task = asyncio.create_task(
+        asyncio.to_thread(
+            synthesize_deterministic_plan,
+            origin=origin,
+            destination=destination,
+            start_date=start_date,
+            duration_days=duration_days,
+            total_budget=total_budget,
+            interests=interests,
+            travel_style=travel_style,
+            currency=currency,
+            travelers=travelers,
+            return_date=return_date,
+            shabbat_safe_mode=shabbat_safe_mode,
+            kosher_only=kosher_only,
+            accessibility_mode=accessibility_mode,
+            user_id=user_id,
+        )
+    )
+
     # Stage 1: Lead Orchestrator Initialization
     yield format_sse("step", {
         "agent": "travel_orchestrator",
@@ -479,10 +587,20 @@ async def stream_multi_agent_execution(
         "title": "[STAGE: ROUTING] סוכן התזמור הראשי אותחל",
         "message": (
             f"מנתח את העדפות הנסיעה עבור {destination} "
-            f"({duration_days} ימים, תקציב: ${total_budget:,.2f} {currency})..."
+            f"({duration_days} ימים, {travelers} נוסעים, תקציב: ${total_budget:,.2f} {currency})..."
         ),
     })
-    await asyncio.sleep(0.25)
+    await asyncio.sleep(0.15)
+
+    # Stage 1.5: Traveler Memory & Personal RAG
+    yield format_sse("step", {
+        "agent": "travel_memory_agent",
+        "stage": "MEMORY",
+        "status": "running",
+        "title": "[STAGE: MEMORY] סוכן זיכרון מטייל והעדפות אישיות",
+        "message": "טוען העדפות כשרות, שבת, נגישות ובודק חלון תוקף דרכון...",
+    })
+    await asyncio.sleep(0.15)
 
     # Stage 2: Flight & Lodging Specialist
     yield format_sse("step", {
@@ -633,17 +751,21 @@ async def stream_multi_agent_execution(
             logger.warning(f"Live Agno Team execution failed, falling back to deterministic plan: {exc}")
             plan_data = None
 
+    det_plan = await det_task
     if plan_data is None:
-        plan_data = synthesize_deterministic_plan(
-            origin=origin,
-            destination=destination,
-            start_date=start_date,
-            duration_days=duration_days,
-            total_budget=total_budget,
-            interests=interests,
-            travel_style=travel_style,
-            currency=currency,
-        )
+        plan_data = det_plan
+    else:
+        for k in (
+            "shabbat_halacha",
+            "connectivity_mobility",
+            "protection_rerouting",
+            "loyalty_vault",
+            "group_breakdown",
+            "traveler_memory",
+            "critic_audit",
+        ):
+            if not plan_data.get(k):
+                plan_data[k] = det_plan.get(k)
 
     _SESSION_PLANS[session_id] = plan_data
 
@@ -854,6 +976,62 @@ async def stream_multi_agent_execution(
     })
     await asyncio.sleep(0.2)
 
+    # Stage 15.5: Sprint 8 & 9 Specialists & Trip Critic Verification Gate
+    yield format_sse("step", {
+        "agent": "shabbat_halacha_agent",
+        "stage": "SHABBAT_HALACHA",
+        "status": "running",
+        "title": "[STAGE: SHABBAT_HALACHA] סוכן שבת, הלכה והדלקת נרות",
+        "message": f"מחשב זמני הדלקת נרות, הבדלה ומרחק הליכה לבית חב\"ד ב{destination}...",
+    })
+    await asyncio.sleep(0.12)
+
+    yield format_sse("step", {
+        "agent": "connectivity_mobility_agent",
+        "stage": "CONNECTIVITY",
+        "status": "running",
+        "title": "[STAGE: CONNECTIVITY] סוכן eSIM, תקשורת ונהיגה",
+        "message": "משווה חבילות eSIM מול נדידה מהארץ ובודק אזהרות ZTL/רישיון בינלאומי...",
+    })
+    await asyncio.sleep(0.12)
+
+    yield format_sse("step", {
+        "agent": "protection_rerouting_agent",
+        "stage": "PROTECTION",
+        "status": "running",
+        "title": "[STAGE: PROTECTION] סוכן ביטוח, גיבוי וחוק טיבי",
+        "message": "בודק הרחבות ביטוח נדרשות, סיכון קונקשן וזכאות פיצוי לפי חוק טיבי / EU261...",
+    })
+    await asyncio.sleep(0.12)
+
+    yield format_sse("step", {
+        "agent": "loyalty_vault_agent",
+        "stage": "LOYALTY_VAULT",
+        "status": "running",
+        "title": "[STAGE: LOYALTY_VAULT] סוכן מועדוני תעופה וארנק טרום-טיסה",
+        "message": "מחשב כדאיות מימוש נקודות, גישה לטרקלינים בנתב\"ג וטופסי כניסה דיגיטליים...",
+    })
+    await asyncio.sleep(0.12)
+
+    yield format_sse("step", {
+        "agent": "group_split_agent",
+        "stage": "GROUP_SPLIT",
+        "status": "running",
+        "title": "[STAGE: GROUP_SPLIT] סוכן חלוקת עלויות קבוצתית",
+        "message": f"מחשב חלוקה ל-{travelers} נוסעים, תאימות חדרים ופנקס התחשבנות ב-Bit...",
+    })
+    await asyncio.sleep(0.12)
+
+    critic_audit = plan_data.get("critic_audit") or {}
+    yield format_sse("step", {
+        "agent": "trip_critic_agent",
+        "stage": "CRITIC_AUDIT",
+        "status": "running",
+        "title": "[STAGE: CRITIC_AUDIT] סוכן ביקורת, אימות ותיקון עצמי",
+        "message": f"מאמת תאימות נתב\"ג, שבת, גיאוגרפיה ותקציב (סטטוס: {critic_audit.get('status', 'VERIFIED')})...",
+    })
+    await asyncio.sleep(0.15)
+
     # Stage 16: Final Synthesis & Markdown Stream
     yield format_sse("step", {
         "agent": "travel_orchestrator",
@@ -862,7 +1040,7 @@ async def stream_multi_agent_execution(
         "title": "[STAGE: SYNTHESIS] סינתזה סופית ואיחוד דוחות",
         "message": "מרכיב דוח מסע אינטראקטיבי הכולל צ'קליסט אריזה, תחבורה, קולינריה, RAG, Reasoning וסנכרון יומן...",
     })
-    await asyncio.sleep(0.25)
+    await asyncio.sleep(0.2)
 
     # Stream markdown in readable chunks
     full_markdown = plan_data["markdown_plan"]
@@ -900,6 +1078,13 @@ async def stream_multi_agent_execution(
         "whatsapp_briefings": whatsapp_briefings,
         "rag_knowledge": rag_knowledge,
         "reasoning_trace": reasoning_trace,
+        "shabbat_halacha": plan_data.get("shabbat_halacha"),
+        "connectivity_mobility": plan_data.get("connectivity_mobility"),
+        "protection_rerouting": plan_data.get("protection_rerouting"),
+        "loyalty_vault": plan_data.get("loyalty_vault"),
+        "group_breakdown": plan_data.get("group_breakdown"),
+        "traveler_memory": plan_data.get("traveler_memory"),
+        "critic_audit": critic_audit,
         "budget_overrun_flagged": plan_data.get("budget_overrun_flagged", False),
         "guardrail_warnings": plan_data.get("guardrail_warnings", []),
     })
@@ -936,8 +1121,36 @@ async def run_trip_chat(session_id: str, message: str) -> Dict[str, Any]:
 
     if reply is None:
         cached_plan = _SESSION_PLANS.get(session_id)
+        if cached_plan is None:
+            try:
+                from app.db.database import get_db_session
+                from app.db.models import SavedTripModel
+
+                with get_db_session() as db:
+                    row = db.query(SavedTripModel).filter(SavedTripModel.session_id == session_id).first()
+                    if row and row.plan_payload_json:
+                        cached_plan = json.loads(row.plan_payload_json)
+                        _SESSION_PLANS[session_id] = cached_plan
+            except Exception:
+                cached_plan = None
+
         turn_num = len([m for m in history if m["role"] == "user"])
-        if cached_plan:
+        msg_lower = message.lower()
+        if cached_plan and any(k in msg_lower for k in ("גשם", "rain", "מקורה", "שנה", "החלף", "תקציב", "budget", "כשר", "kosher", "swap")):
+            trigger = "weather" if any(k in msg_lower for k in ("גשם", "rain", "מקורה")) else (
+                "budget_cut" if any(k in msg_lower for k in ("תקציב", "budget", "זול")) else (
+                    "kosher" if any(k in msg_lower for k in ("כשר", "kosher")) else "custom_edit"
+                )
+            )
+            replan_res = apply_itinerary_swap(cached_plan, day_number=1, slot="morning", trigger_type=trigger, constraint_note=message)
+            updated_plan = replan_res["updated_plan"]
+            _SESSION_PLANS[session_id] = updated_plan
+            diff = replan_res["diffs"][0]
+            reply = (
+                f"[שיחה #{turn_num} | Re-Planner פעיל] עדכנתי את יום {diff['day_number']} ({diff['slot']}): "
+                f"הוחלף ל-\"{diff['after']}\". עלות מעודכנת: ${updated_plan.get('total_estimated', 0):,.2f}."
+            )
+        elif cached_plan:
             reply = (
                 f"[שיחה #{turn_num} | זיכרון סשן {session_id}] "
                 f"בהתבסס על התוכנית הפעילה שלך (תאריך יציאה {cached_plan.get('start_date_formatted', '')}, "

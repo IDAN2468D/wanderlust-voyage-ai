@@ -89,3 +89,16 @@
   - `GET /api/v1/knowledge/stats` -> indexed document count, vector chunk count, embedder mode, storage backend.
   - `POST /api/v1/knowledge/reindex` -> triggers full `Loader -> Splitter -> Embedder -> VectorStore` re-indexing.
 
+## 7. Sprint 8 & 9 Extensions: Swarm Specialist Roster, Critic Gate & Interactive Co-Pilot
+- **New Specialist & Meta-Agents:**
+  1. `trip_disruption_replan_agent` (`backend/app/tools/replan_tools.py`): Stateful day/slot replanning (`POST /api/v1/trips/{session_id}/replan`, `/replan/stream`) with budget & `.ics` recalculation and `ItineraryDiffItem[]`.
+  2. `trip_critic_agent` (`backend/app/agents/critic.py`): Pre-completion verification & auto-repair gate auditing flight/hotel/Shabbat alignment, geo-coherence, and baggage/FX math.
+  3. `travel_memory_agent` (`backend/app/tools/memory_tools.py`): Persistent `TravelerProfileModel` (`GET/PUT /api/v1/profile/preferences`), passport expiry check, and user-scoped Personal RAG (`owner_user_id` on `KnowledgeChunkModel`, `POST /api/v1/knowledge/ingest-personal`).
+  4. `shabbat_halacha_agent` (`backend/app/tools/shabbat_halacha_tools.py`): Candle-lighting/Havdalah times, Friday 14:00 cutoff, Shabbat-compliant lodging & walking radius.
+  5. `group_split_agent` (`backend/app/tools/group_split_tools.py`): Multi-traveler cost splitting, child/adult pricing, collaborative voting (`POST /api/v1/trips/{session_id}/group-split`, `/vote`), and Bit/PayBox settlement ledger.
+  6. `connectivity_mobility_agent` (`backend/app/tools/connectivity_mobility_tools.py`): eSIM vs. Israeli roaming GB calculator + IDP, ZTL/LEZ, highway vignette, and CDW rental traps.
+  7. `protection_rerouting_agent` (`backend/app/tools/protection_rerouting_tools.py`): Insurance riders + 5-day credit-card rule, MCT layover Plan B, and Israeli Aviation Law ("חוק טיבי") / EU261 compensation calculator.
+  8. `loyalty_vault_agent` (`backend/app/tools/loyalty_vault_tools.py`): EL AL Matmid / Fly Card / Flying Blue CPP optimizer, TLV lounge eligibility, and pre-flight readiness vault.
+  9. `post_booking_concierge_agent` & `watchdog_agent` (`backend/app/tools/concierge_tools.py`): T-30d/T-7d/T-24h readiness timeline (`GET /api/v1/bookings/{booking_ref}/readiness`, `/readiness/stream`), DB-persisted `PendingActionModel` HITL, and `GET /api/v1/ops/live-pulse` + `/api/v1/ops/metrics`.
+- **BiDi & Offline UX:**
+  - `LocaleContext` (`he` RTL ↔ `en` LTR) in `Navbar.tsx`, Interactive Day-Canvas + Geo-Route Map in `TripResultView.tsx`, and IndexedDB Offline Travel Vault.

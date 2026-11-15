@@ -26,6 +26,7 @@ class VectorRecord:
     tags: List[str] = field(default_factory=list)
     aliases: List[str] = field(default_factory=list)
     embedding: List[float] = field(default_factory=list)
+    owner_user_id: Optional[str] = None
 
 
 class VectorStore:
@@ -106,12 +107,54 @@ class VectorStore:
             logger.warning(f"Failed loading NoSQL vector store from {self.store_path}: {exc}")
             return False
 
+    def append_chunks(
+        self,
+        chunks: List[DocumentChunk],
+        embedder: TravelEmbedder,
+        owner_user_id: Optional[str] = None,
+        sync_sql: bool = True,
+    ) -> int:
+        """Append or replace personal chunks without wiping global corpus."""
+        added = 0
+        existing_ids = {r.chunk_id for r in self.records}
+        for chunk in chunks:
+            embedding_input = (
+                f"{chunk.title}\n{chunk.destination}\n"
+                f"{' '.join(chunk.aliases)} {' '.join(chunk.tags)}\n{chunk.content}"
+            )
+            vec = embedder.embed_text(embedding_input)
+            rec = VectorRecord(
+                chunk_id=chunk.chunk_id,
+                doc_id=chunk.doc_id,
+                destination=chunk.destination,
+                category=chunk.category,
+                title=chunk.title,
+                content=chunk.content,
+                source=chunk.source,
+                tags=list(chunk.tags),
+                aliases=list(chunk.aliases),
+                embedding=vec,
+                owner_user_id=owner_user_id,
+            )
+            if chunk.chunk_id in existing_ids:
+                self.records = [rec if r.chunk_id == chunk.chunk_id else r for r in self.records]
+            else:
+                self.records.append(rec)
+                existing_ids.add(chunk.chunk_id)
+            added += 1
+
+        self._save_json_store()
+        if sync_sql:
+            self._sync_to_sql()
+        return added
+
     def search(
         self,
         query_vector: List[float],
         top_k: int = 4,
         destination: Optional[str] = None,
         category: Optional[str] = None,
+        owner_user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Rank chunks by cosine similarity with destination/alias metadata alignment."""
         dest_norm = (destination or "").lower().strip()
@@ -119,6 +162,8 @@ class VectorStore:
 
         scored: List[tuple[float, VectorRecord]] = []
         for rec in self.records:
+            if rec.owner_user_id is not None and rec.owner_user_id != owner_user_id:
+                continue
             if cat_norm and rec.category.lower() != cat_norm:
                 continue
 
@@ -134,6 +179,8 @@ class VectorStore:
                     boost = 0.18
                 elif rec.category == "israeli_traveler_handbook":
                     boost = 0.04
+            if owner_user_id and rec.owner_user_id == owner_user_id:
+                boost += 0.12
 
             final_score = min(1.0, max(0.0, sim + boost))
             scored.append((final_score, rec))
@@ -145,6 +192,7 @@ class VectorStore:
                 {
                     "chunk_id": rec.chunk_id,
                     "doc_id": rec.doc_id,
+                    "owner_user_id": rec.owner_user_id,
                     "destination": rec.destination,
                     "category": rec.category,
                     "title": rec.title,
@@ -175,6 +223,7 @@ class VectorStore:
                         "tags": r.tags,
                         "aliases": r.aliases,
                         "embedding": r.embedding,
+                        "owner_user_id": r.owner_user_id,
                     }
                     for r in self.records
                 ],
@@ -196,6 +245,7 @@ class VectorStore:
                         KnowledgeChunkModel(
                             chunk_id=rec.chunk_id,
                             doc_id=rec.doc_id,
+                            owner_user_id=rec.owner_user_id,
                             destination=rec.destination,
                             category=rec.category,
                             title=rec.title,

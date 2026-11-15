@@ -22,6 +22,11 @@ import {
   MessageSquare,
   Database,
   Brain,
+  Wifi,
+  Award,
+  Users,
+  Scale,
+  Moon,
 } from "lucide-react";
 
 export interface StreamLogItem {
@@ -170,6 +175,62 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
       color: "text-emerald-300",
       activeBg: "from-emerald-500/30 to-green-600/20 border-emerald-400",
     },
+    {
+      id: "travel_memory_agent",
+      name: "זיכרון מטייל",
+      role: "דרכון, כרונולוגיה והעדפות",
+      icon: Brain,
+      color: "text-teal-300",
+      activeBg: "from-teal-500/30 to-cyan-600/20 border-teal-400",
+    },
+    {
+      id: "shabbat_halacha_agent",
+      name: "שבת והלכה",
+      role: "נרות, עירוב וחב\"ד במרחק הליכה",
+      icon: Moon,
+      color: "text-indigo-300",
+      activeBg: "from-indigo-500/30 to-violet-600/20 border-indigo-400",
+    },
+    {
+      id: "connectivity_mobility_agent",
+      name: "קישוריות ונהיגה",
+      role: "eSIM, רישיון בינלאומי ו-EV",
+      icon: Wifi,
+      color: "text-sky-300",
+      activeBg: "from-sky-500/30 to-blue-600/20 border-sky-400",
+    },
+    {
+      id: "protection_rerouting_agent",
+      name: "ביטוח וחוק טיבי",
+      role: "פיצויים וביטול טיסה",
+      icon: Scale,
+      color: "text-rose-300",
+      activeBg: "from-rose-500/30 to-red-600/20 border-rose-400",
+    },
+    {
+      id: "loyalty_vault_agent",
+      name: "מועדונים וכספת",
+      role: "נקודות תעופה, לאונג' ומסמכים",
+      icon: Award,
+      color: "text-yellow-300",
+      activeBg: "from-yellow-500/30 to-amber-600/20 border-yellow-400",
+    },
+    {
+      id: "group_split_agent",
+      name: "פיצול קבוצה",
+      role: "איזון הוצאות וסליקה חכמה",
+      icon: Users,
+      color: "text-lime-300",
+      activeBg: "from-lime-500/30 to-emerald-600/20 border-lime-400",
+    },
+    {
+      id: "trip_critic_agent",
+      name: "מבקר מטה-AI",
+      role: "אימות עומס, זמנים ואיכות",
+      icon: ShieldCheck,
+      color: "text-emerald-400",
+      activeBg: "from-emerald-600/30 to-teal-600/20 border-emerald-500",
+    },
   ];
 
   // Derive current execution stage
@@ -191,7 +252,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-serif text-base sm:text-lg font-bold text-white tracking-tight">
-                מוניטור חשיבה, RAG וסנכרון של 15 סוכני ה-AI האוטונומיים
+                מוניטור חשיבה, RAG וסנכרון של 25 סוכני ה-AI האוטונומיים
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10 shrink-0">
                 STAGE: {currentStage}

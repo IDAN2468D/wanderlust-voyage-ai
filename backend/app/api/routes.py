@@ -38,6 +38,12 @@ from app.api.schemas import (
     KnowledgeChunkResult,
     KnowledgeSearchResponse,
     KnowledgeStatsResponse,
+    TripReplanRequest,
+    TripReplanResponse,
+    GroupSplitRequest,
+    TripVoteRequest,
+    TravelerPreferencesPayload,
+    PersonalKnowledgeIngestRequest,
 )
 from app.core.security import get_current_user
 from app.db.database import get_db, get_db_session
@@ -46,6 +52,8 @@ from app.db.models import (
     ContactInquiryModel,
     NewsletterSubscriberModel,
     SavedTripModel,
+    PendingActionModel,
+    TripVoteModel,
 )
 from app.services.email_service import email_service
 from app.services.email_templates import render_newsletter_html
@@ -178,6 +186,12 @@ def execute_plan_sync(
             interests=request.interests,
             travel_style=request.travel_style,
             currency=request.currency,
+            travelers=request.travelers,
+            return_date=request.return_date,
+            shabbat_safe_mode=request.shabbat_safe_mode,
+            kosher_only=request.kosher_only,
+            accessibility_mode=request.accessibility_mode,
+            user_id=user_id,
         )
         result = validate_trip_output(result, effective_budget)
     except TripGuardrailError as exc:
@@ -229,6 +243,13 @@ def execute_plan_sync(
         whatsapp_briefings=result.get("whatsapp_briefings"),
         rag_knowledge=result.get("rag_knowledge"),
         reasoning_trace=result.get("reasoning_trace"),
+        shabbat_halacha=result.get("shabbat_halacha"),
+        connectivity_mobility=result.get("connectivity_mobility"),
+        protection_rerouting=result.get("protection_rerouting"),
+        loyalty_vault=result.get("loyalty_vault"),
+        group_breakdown=result.get("group_breakdown"),
+        traveler_memory=result.get("traveler_memory"),
+        critic_audit=result.get("critic_audit"),
         budget_overrun_flagged=result.get("budget_overrun_flagged", False),
         guardrail_warnings=result.get("guardrail_warnings", []),
     )
@@ -269,6 +290,12 @@ def execute_plan_stream(
             travel_style=request.travel_style,
             currency=request.currency,
             session_id=session_id,
+            travelers=request.travelers,
+            return_date=request.return_date,
+            shabbat_safe_mode=request.shabbat_safe_mode,
+            kosher_only=request.kosher_only,
+            accessibility_mode=request.accessibility_mode,
+            user_id=user_id,
         ):
             if sse_block.startswith("event: chunk"):
                 try:
@@ -455,15 +482,65 @@ async def trips_chat(
     return TripChatResponse(**chat_result)
 
 
+def _save_pending_action(action_id: str, action_type: str, payload: Dict[str, Any]) -> None:
+    PENDING_ACTIONS[action_id] = {"action_type": action_type, "payload": payload}
+    try:
+        with get_db_session() as db:
+            db.add(
+                PendingActionModel(
+                    action_id=action_id,
+                    action_type=action_type,
+                    payload_json=json.dumps(payload, ensure_ascii=False, default=str),
+                    status="pending",
+                )
+            )
+            db.commit()
+    except Exception as exc:
+        logger.warning(f"Failed to persist pending action {action_id}: {exc}")
+
+
+def _pop_pending_action(action_id: str) -> Optional[Dict[str, Any]]:
+    pending = PENDING_ACTIONS.pop(action_id, None)
+    if pending:
+        return pending
+    try:
+        with get_db_session() as db:
+            row = (
+                db.query(PendingActionModel)
+                .filter(PendingActionModel.action_id == action_id, PendingActionModel.status == "pending")
+                .first()
+            )
+            if row:
+                return {
+                    "action_type": row.action_type,
+                    "payload": json.loads(row.payload_json),
+                }
+    except Exception as exc:
+        logger.warning(f"Failed to load pending action {action_id}: {exc}")
+    return None
+
+
+def _mark_pending_action_status(action_id: str, status_val: str) -> None:
+    try:
+        with get_db_session() as db:
+            row = db.query(PendingActionModel).filter(PendingActionModel.action_id == action_id).first()
+            if row:
+                row.status = status_val
+                db.commit()
+    except Exception as exc:
+        logger.warning(f"Failed to update pending action {action_id} status: {exc}")
+
+
 @core_router.post("/trips/approve-action", response_model=ApproveActionResponse, status_code=200)
 async def approve_pending_action(request: ApproveActionRequest):
     """Human-In-The-Loop approval endpoint to execute or cancel pending workspace actions."""
-    pending = PENDING_ACTIONS.pop(request.action_id, None)
+    pending = _pop_pending_action(request.action_id)
     if not pending:
         raise HTTPException(status_code=404, detail=f"Pending action '{request.action_id}' not found.")
 
     action_type = pending["action_type"]
     if not request.approved:
+        _mark_pending_action_status(request.action_id, "cancelled")
         return ApproveActionResponse(
             action_id=request.action_id,
             status="cancelled",
@@ -474,6 +551,7 @@ async def approve_pending_action(request: ApproveActionRequest):
     if action_type == "sync_calendar":
         payload_req = WorkspaceCalendarSyncRequest(**pending["payload"])
         exec_res = _execute_calendar_sync(payload_req)
+        _mark_pending_action_status(request.action_id, "executed")
         return ApproveActionResponse(
             action_id=request.action_id,
             status="executed",
@@ -484,6 +562,7 @@ async def approve_pending_action(request: ApproveActionRequest):
     if action_type == "send_briefing":
         payload_req = WorkspaceGmailBriefingRequest(**pending["payload"])
         exec_res = await _execute_gmail_briefing(payload_req)
+        _mark_pending_action_status(request.action_id, "executed")
         return ApproveActionResponse(
             action_id=request.action_id,
             status="executed",
@@ -503,10 +582,7 @@ async def sync_calendar_event(request: WorkspaceCalendarSyncRequest):
     """
     if request.require_approval:
         action_id = f"act_{uuid.uuid4().hex[:12]}"
-        PENDING_ACTIONS[action_id] = {
-            "action_type": "sync_calendar",
-            "payload": request.model_dump(),
-        }
+        _save_pending_action(action_id, "sync_calendar", request.model_dump())
         return WorkspaceCalendarSyncResponse(
             status="pending_approval",
             action_id=action_id,
@@ -525,10 +601,7 @@ async def send_gmail_briefing(request: WorkspaceGmailBriefingRequest):
     """
     if request.require_approval:
         action_id = f"act_{uuid.uuid4().hex[:12]}"
-        PENDING_ACTIONS[action_id] = {
-            "action_type": "send_briefing",
-            "payload": request.model_dump(),
-        }
+        _save_pending_action(action_id, "send_briefing", request.model_dump())
         subject = f"✈️ תדריך הנסיעה שלך ל{request.destination} - Wanderlust Voyage AI"
         return WorkspaceGmailBriefingResponse(
             status="pending_approval",
@@ -1083,6 +1156,239 @@ async def knowledge_reindex_endpoint():
     kb = get_knowledge_base()
     stats = kb.ensure_indexed(force=True)
     return KnowledgeStatsResponse(**stats)
+
+
+# 7. Sprint 8 & 9 Endpoints: Replan, Group Split/Voting, Memory, Readiness & Ops
+def _load_session_plan(session_id: str) -> Optional[Dict[str, Any]]:
+    plan = _SESSION_PLANS.get(session_id)
+    if plan:
+        return plan
+    try:
+        with get_db_session() as db:
+            row = db.query(SavedTripModel).filter(SavedTripModel.session_id == session_id).first()
+            if row and row.plan_payload_json:
+                parsed = json.loads(row.plan_payload_json)
+                _SESSION_PLANS[session_id] = parsed
+                return parsed
+    except Exception:
+        pass
+    return None
+
+
+@core_router.post("/trips/{session_id}/replan", response_model=TripReplanResponse, status_code=200)
+async def replan_trip_day_endpoint(session_id: str, payload: TripReplanRequest):
+    """Mutate a single day/slot in a planned trip and persist updated budget & .ics."""
+    from app.tools.replan_tools import apply_itinerary_swap
+
+    plan = _load_session_plan(session_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="סשן תכנון הטיול לא נמצא")
+    res = apply_itinerary_swap(
+        plan_payload=plan,
+        day_number=payload.affected_day,
+        slot=payload.slot,
+        trigger_type=payload.trigger_type,
+        constraint_note=payload.constraint_note or "",
+    )
+    updated = res["updated_plan"]
+    _SESSION_PLANS[session_id] = updated
+    _persist_trip_to_db(
+        session_id=session_id,
+        user_id=None,
+        user_email=None,
+        origin=str(updated.get("origin") or "TLV"),
+        destination=str(updated.get("destination") or "Rome"),
+        start_date=updated.get("start_date"),
+        duration_days=int(updated.get("duration_days", 7)),
+        total_budget=float(updated.get("total_budget", 2400.0)),
+        total_estimated=float(updated.get("total_estimated", 0.0)),
+        budget_status=str(updated.get("budget_status", "APPROVED")),
+        travel_style=str(updated.get("travel_style", "balanced")),
+        markdown_plan=str(updated.get("markdown_plan", "")),
+        plan_payload=updated,
+    )
+    return TripReplanResponse(
+        session_id=session_id,
+        trigger_type=payload.trigger_type,
+        diffs=res["diffs"],
+        updated_plan=updated,
+    )
+
+
+@core_router.post("/trips/{session_id}/replan/stream")
+async def replan_trip_day_stream_endpoint(session_id: str, payload: TripReplanRequest):
+    """SSE stream for live day re-planning diff preview."""
+    import asyncio
+    from app.tools.replan_tools import apply_itinerary_swap
+
+    plan = _load_session_plan(session_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="סשן תכנון הטיול לא נמצא")
+
+    async def _stream():
+        def fmt(ev: str, d: Dict[str, Any]) -> str:
+            return f"event: {ev}\ndata: {json.dumps(d, ensure_ascii=False)}\n\n"
+
+        yield fmt("step", {
+            "agent": "trip_disruption_replan_agent",
+            "stage": "REPLAN",
+            "message": f"מחשב חלופה ליום {payload.affected_day} ({payload.slot}) לפי אילוץ: {payload.trigger_type}...",
+        })
+        await asyncio.sleep(0.15)
+        res = apply_itinerary_swap(
+            plan_payload=plan,
+            day_number=payload.affected_day,
+            slot=payload.slot,
+            trigger_type=payload.trigger_type,
+            constraint_note=payload.constraint_note or "",
+        )
+        updated = res["updated_plan"]
+        _SESSION_PLANS[session_id] = updated
+        yield fmt("diff", {"diffs": res["diffs"]})
+        yield fmt("done", {"session_id": session_id, "diffs": res["diffs"], "updated_plan": updated})
+
+    return StreamingResponse(_stream(), media_type="text/event-stream")
+
+
+@core_router.post("/trips/{session_id}/group-split", status_code=200)
+async def group_split_endpoint(session_id: str, payload: GroupSplitRequest):
+    """Compute multi-traveler cost split & Bit/PayBox settlement ledger for an existing plan."""
+    from app.tools.group_split_tools import compute_group_cost_split
+
+    plan = _load_session_plan(session_id) or {}
+    profiles = [p.model_dump() for p in payload.traveler_profiles] if payload.traveler_profiles else None
+    raw = compute_group_cost_split(
+        travelers=payload.travelers,
+        flight_cost_per_trip=float(plan.get("flight_cost", 550.0)),
+        hotel_cost_total=float(plan.get("hotel_cost", 700.0)),
+        activities_cost_total=float(plan.get("activities_cost", 150.0)),
+        duration_days=int(plan.get("duration_days", 7)),
+        traveler_profiles=profiles,
+    )
+    return json.loads(raw)
+
+
+@core_router.post("/trips/{session_id}/vote", status_code=201)
+async def trip_vote_endpoint(session_id: str, payload: TripVoteRequest, db: Session = Depends(get_db)):
+    """Cast a collaborative group vote on a flight, hotel, or activity."""
+    row = TripVoteModel(
+        session_id=session_id,
+        voter_name=payload.voter_name,
+        item_type=payload.item_type,
+        item_id=payload.item_id,
+        vote=payload.vote,
+        comment=payload.comment,
+    )
+    db.add(row)
+    db.commit()
+    votes = db.query(TripVoteModel).filter(TripVoteModel.session_id == session_id).all()
+    return {
+        "status": "RECORDED",
+        "session_id": session_id,
+        "total_votes": len(votes),
+        "votes": [
+            {"voter_name": v.voter_name, "item_type": v.item_type, "item_id": v.item_id, "vote": v.vote, "comment": v.comment}
+            for v in votes
+        ],
+    }
+
+
+@core_router.get("/trips/{session_id}/votes", status_code=200)
+async def get_trip_votes_endpoint(session_id: str, db: Session = Depends(get_db)):
+    votes = db.query(TripVoteModel).filter(TripVoteModel.session_id == session_id).all()
+    return {
+        "session_id": session_id,
+        "total_votes": len(votes),
+        "votes": [
+            {"voter_name": v.voter_name, "item_type": v.item_type, "item_id": v.item_id, "vote": v.vote, "comment": v.comment}
+            for v in votes
+        ],
+    }
+
+
+@core_router.get("/profile/preferences", status_code=200)
+async def get_profile_preferences_endpoint(current_user: dict = Depends(get_current_user)):
+    from app.tools.memory_tools import load_traveler_memory
+
+    return load_traveler_memory(current_user.get("user_id"))
+
+
+@core_router.put("/profile/preferences", status_code=200)
+async def update_profile_preferences_endpoint(
+    payload: TravelerPreferencesPayload,
+    current_user: dict = Depends(get_current_user),
+):
+    from app.tools.memory_tools import update_traveler_memory
+
+    uid = str(current_user.get("user_id") or "guest_user")
+    return update_traveler_memory(uid, payload.model_dump(exclude_unset=True))
+
+
+@core_router.post("/knowledge/ingest-personal", status_code=201)
+async def ingest_personal_knowledge_endpoint(
+    payload: PersonalKnowledgeIngestRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    from app.tools.memory_tools import ingest_user_travel_document
+
+    uid = str(current_user.get("user_id") or "guest_user")
+    return ingest_user_travel_document(
+        user_id=uid,
+        title=payload.title,
+        content=payload.content,
+        destination=payload.destination,
+        doc_type=payload.doc_type,
+    )
+
+
+@core_router.get("/bookings/{booking_ref}/readiness", status_code=200)
+async def booking_readiness_endpoint(booking_ref: str, db: Session = Depends(get_db)):
+    from app.tools.concierge_tools import build_pre_departure_timeline
+
+    booking = db.query(BookingModel).filter(BookingModel.booking_ref == booking_ref).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="הזמנה לא נמצאה")
+    return build_pre_departure_timeline(
+        booking_ref=booking.booking_ref,
+        destination=booking.destination,
+        duration_days=booking.duration_days,
+        total_amount=booking.total_amount,
+    )
+
+
+@core_router.get("/ops/live-pulse", status_code=200)
+async def ops_live_pulse_endpoint():
+    """Live TLV Hub FX rates (Frankfurter) + terminal advisory pulse."""
+    from app.tools.budget_tools import _fetch_frankfurter_rates, EXCHANGE_RATES
+
+    fx = await _fetch_frankfurter_rates("USD") or dict(EXCHANGE_RATES)
+    return {
+        "status": "LIVE",
+        "hub": "TLV (Ben Gurion Terminal 3)",
+        "recommended_arrival_hours": 3.0,
+        "fx_rates": fx,
+        "routes_highlight": [
+            {"route": "TLV ⇄ HND", "note": "טוקיו • ישיר / 1 עצירה"},
+            {"route": "TLV ⇄ FCO", "note": "רומא • טיסות יומיות"},
+            {"route": "TLV ⇄ JTR", "note": "סנטוריני • עונתי ישיר"},
+        ],
+    }
+
+
+@core_router.get("/ops/metrics", status_code=200)
+async def ops_metrics_endpoint(db: Session = Depends(get_db)):
+    """Operational telemetry & database posture."""
+    from app.db.database import get_active_db_backend
+
+    return {
+        "db_backend": get_active_db_backend(),
+        "agents_registered": 25,
+        "cached_sessions": len(_SESSION_PLANS),
+        "saved_trips_count": db.query(SavedTripModel).count(),
+        "bookings_count": db.query(BookingModel).count(),
+        "knowledge_chunks_count": get_knowledge_base().get_stats().get("chunks_indexed", 0),
+        "pending_actions_count": db.query(PendingActionModel).filter(PendingActionModel.status == "pending_approval").count(),
+    }
 
 
 router = APIRouter(prefix="/v1", tags=["Travel Planner Multi-Agent"])

@@ -22,4 +22,4 @@
    - Backend services hosted on Render () must possess robust start commands (), hermetic dependency isolation, and graceful fallback mocks to prevent status 127 exit codes.
    - Frontend Next.js builds on Vercel must maintain zero-overhead SSR and type safety.
 5. **Localization & BiDi Standard:**
-   - Support both English and native Hebrew (RTL). Dates must be formatted as  in Israeli locale contexts, and currencies must support USD ($), EUR (€), and ILS (₪).
+   - Support both English and native Hebrew (RTL). Dates must be formatted as `DD/MM/YYYY` in Israeli locale contexts, and currencies must support USD ($), EUR (€), and ILS (₪).

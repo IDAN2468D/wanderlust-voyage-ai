@@ -362,9 +362,31 @@ export default function Home() {
   const [whatsappBriefings, setWhatsappBriefings] = useState<any>(null);
   const [ragKnowledge, setRagKnowledge] = useState<any[]>([]);
   const [reasoningTrace, setReasoningTrace] = useState<any>(null);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [currentTravelers, setCurrentTravelers] = useState<number>(2);
+  const [shabbatHalacha, setShabbatHalacha] = useState<any>(null);
+  const [connectivityMobility, setConnectivityMobility] = useState<any>(null);
+  const [protectionRerouting, setProtectionRerouting] = useState<any>(null);
+  const [loyaltyVault, setLoyaltyVault] = useState<any>(null);
+  const [groupBreakdown, setGroupBreakdown] = useState<any>(null);
+  const [travelerMemory, setTravelerMemory] = useState<any>(null);
+  const [criticAudit, setCriticAudit] = useState<any>(null);
+  const [livePulse, setLivePulse] = useState<any>(null);
+  const [isLivePulseOpen, setIsLivePulseOpen] = useState<boolean>(false);
 
   const agentSectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Fetch Live Ops & FX Pulse on mount
+  useEffect(() => {
+    const apiBase = getApiBaseUrl();
+    fetch(`${apiBase}/api/v1/ops/live-pulse`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setLivePulse(data);
+      })
+      .catch(() => {});
+  }, []);
 
   // Check URL search parameters on mount
   useEffect(() => {
@@ -427,8 +449,17 @@ export default function Home() {
     setWhatsappBriefings(null);
     setRagKnowledge([]);
     setReasoningTrace(null);
+    setSessionId("");
+    setShabbatHalacha(null);
+    setConnectivityMobility(null);
+    setProtectionRerouting(null);
+    setLoyaltyVault(null);
+    setGroupBreakdown(null);
+    setTravelerMemory(null);
+    setCriticAudit(null);
     setCurrentDestination(formData.destination);
     setCurrentDuration(formData.durationDays);
+    setCurrentTravelers(formData.travelers || 2);
 
     // Scroll to agent telemetry section
     setTimeout(() => {
@@ -446,6 +477,11 @@ export default function Home() {
       total_budget: formData.totalBudget,
       interests: formData.interests,
       travel_style: formData.travelStyle,
+      travelers: formData.travelers || 2,
+      shabbat_safe_mode: Boolean(formData.shabbatSafeMode),
+      kosher_only: Boolean(formData.kosherOnly),
+      accessibility_mode: Boolean(formData.accessibilityMode),
+      planner_mode: formData.plannerMode || "all_in_one",
     };
 
     let authToken: string | null = null;
@@ -564,6 +600,14 @@ export default function Home() {
               setWhatsappBriefings(data.whatsapp_briefings || null);
               setRagKnowledge(data.rag_knowledge || []);
               setReasoningTrace(data.reasoning_trace || null);
+              setSessionId(data.session_id || "");
+              setShabbatHalacha(data.shabbat_halacha || null);
+              setConnectivityMobility(data.connectivity_mobility || null);
+              setProtectionRerouting(data.protection_rerouting || null);
+              setLoyaltyVault(data.loyalty_vault || null);
+              setGroupBreakdown(data.group_breakdown || null);
+              setTravelerMemory(data.traveler_memory || null);
+              setCriticAudit(data.critic_audit || null);
               setActiveAgent(null);
               setLogs((prev) => [
                 ...prev,
@@ -572,8 +616,8 @@ export default function Home() {
                   type: "done",
                   agent: "travel_orchestrator",
                   stage: "COMPLETE",
-                  title: "התוכנית הושלמה בהצלחה ע\"י 15 סוכני ה-AI האוטונומיים",
-                  message: `כל משימות 15 הסוכנים, אחזור ה-RAG וביקורת ה-Reasoning סוכמו במלואן. סטטוס תקציב: ${
+                  title: "התוכנית הושלמה בהצלחה ע\"י 25 סוכני ה-AI האוטונומיים",
+                  message: `כל משימות 25 הסוכנים, אחזור ה-RAG וביקורת ה-Critic סוכמו במלואן. סטטוס תקציב: ${
                     data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"
                   }`,
                   timestamp: nowTime,
@@ -643,6 +687,14 @@ export default function Home() {
           setWhatsappBriefings(syncData.whatsapp_briefings || null);
           setRagKnowledge(syncData.rag_knowledge || []);
           setReasoningTrace(syncData.reasoning_trace || null);
+          setSessionId(syncData.session_id || "");
+          setShabbatHalacha(syncData.shabbat_halacha || null);
+          setConnectivityMobility(syncData.connectivity_mobility || null);
+          setProtectionRerouting(syncData.protection_rerouting || null);
+          setLoyaltyVault(syncData.loyalty_vault || null);
+          setGroupBreakdown(syncData.group_breakdown || null);
+          setTravelerMemory(syncData.traveler_memory || null);
+          setCriticAudit(syncData.critic_audit || null);
 
           try {
             localStorage.setItem(
@@ -689,18 +741,23 @@ export default function Home() {
       {/* ========================================================
           LIVE AIRPORT & TELEMETRY TICKER BAR (Liquid Glass 4.0 Pro)
       ======================================================== */}
-      <div className="relative z-20 border-y border-white/10 bg-black/40 backdrop-blur-xl py-2 px-4 sm:px-8 lg:px-12 xl:px-14 text-[11px] select-none overflow-hidden">
+      <div className="relative z-20 border-y border-white/10 bg-black/40 backdrop-blur-xl py-2 px-4 sm:px-8 lg:px-12 xl:px-14 text-[11px] select-none">
         <div
           className="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-6 whitespace-nowrap overflow-x-auto no-scrollbar scrollbar-none"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <div className="flex items-center gap-2 font-bold text-mint-400 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsLivePulseOpen((prev) => !prev)}
+            className="flex items-center gap-2 font-bold text-mint-400 shrink-0 hover:text-mint-300 transition"
+          >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-mint-500" />
             </span>
-            <span>טלמטריה חיה נתב"ג (TLV Hub)</span>
-          </div>
+            <span>טלמטריה חיה נתב&quot;ג (TLV Hub)</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-mint-500/15 border border-mint-400/30">LIVE FX &amp; OPS ▾</span>
+          </button>
 
           <div
             className="flex items-center gap-6 text-slate-300 font-mono py-0.5 no-scrollbar scrollbar-none overflow-x-auto"
@@ -708,7 +765,7 @@ export default function Home() {
           >
             <span className="flex items-center gap-1.5 shrink-0">
               <Plane className="w-3 h-3 text-cyan-400" />
-              <span>TLV ⇄ HND: 11h 20m • טיסות פתוחות</span>
+              <span>TLV {livePulse?.tlv_status?.terminal_3_load || "עומס רגיל"} • תור ביטחון ~{livePulse?.tlv_status?.security_wait_minutes ?? 22} דק&apos;</span>
             </span>
             <span className="text-white/20 shrink-0">|</span>
             <span className="flex items-center gap-1.5 shrink-0">
@@ -721,15 +778,50 @@ export default function Home() {
             <span className="text-white/20 shrink-0">|</span>
             <span className="flex items-center gap-1.5 shrink-0">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
-              <span>שער יציג: 1 USD = ₪3.72 • 1 EUR = ₪4.02</span>
+              <span>
+                שער יציג: 1 USD = ₪{(livePulse?.fx?.USD_ILS ?? 3.7).toFixed(2)} • 1 EUR = ₪{(livePulse?.fx?.EUR_ILS ?? 4.02).toFixed(2)}
+              </span>
             </span>
             <span className="text-white/20 shrink-0">|</span>
             <span className="text-amber-400 flex items-center gap-1 shrink-0">
               <Zap className="w-3 h-3" />
-              <span>15 סוכני AI פעילים כעת במקביל</span>
+              <span>{livePulse?.agents_registered ?? 25} סוכני AI פעילים כעת במקביל</span>
             </span>
           </div>
         </div>
+
+        {isLivePulseOpen && (
+          <div className="max-w-3xl mx-auto mt-2 p-3.5 rounded-2xl wanderlust-glass border border-mint-400/30 bg-[#08101c]/95 shadow-2xl text-right space-y-2 z-50">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="font-bold text-xs text-mint-300">Live Ops &amp; FX Telemetry — מערכת מופעלת נתב&quot;ג</span>
+              <button
+                type="button"
+                onClick={() => setIsLivePulseOpen(false)}
+                className="text-[11px] text-slate-400 hover:text-white px-2 py-0.5 rounded bg-white/5"
+              >
+                סגור ✕
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
+                <div className="text-slate-400">USD ➔ ILS</div>
+                <div className="font-mono font-bold text-white text-sm">₪{(livePulse?.fx?.USD_ILS ?? 3.7).toFixed(3)}</div>
+              </div>
+              <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
+                <div className="text-slate-400">EUR ➔ ILS</div>
+                <div className="font-mono font-bold text-white text-sm">₪{(livePulse?.fx?.EUR_ILS ?? 4.02).toFixed(3)}</div>
+              </div>
+              <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
+                <div className="text-slate-400">TLV טרמינל 3</div>
+                <div className="font-bold text-cyan-300">{livePulse?.tlv_status?.terminal_3_load || "רגיל"}</div>
+              </div>
+              <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
+                <div className="text-slate-400">סוכנים רשומים</div>
+                <div className="font-mono font-bold text-mint-300">{livePulse?.agents_registered ?? 25} / 25</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ========================================================
@@ -957,6 +1049,16 @@ export default function Home() {
               whatsappBriefings={whatsappBriefings}
               ragKnowledge={ragKnowledge}
               reasoningTrace={reasoningTrace}
+              sessionId={sessionId}
+              travelers={currentTravelers}
+              shabbatHalacha={shabbatHalacha}
+              connectivityMobility={connectivityMobility}
+              protectionRerouting={protectionRerouting}
+              loyaltyVault={loyaltyVault}
+              groupBreakdown={groupBreakdown}
+              travelerMemory={travelerMemory}
+              criticAudit={criticAudit}
+              onStructuredDaysUpdate={setStructuredDays}
             />
           )}
         </section>

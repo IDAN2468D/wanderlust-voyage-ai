@@ -35,6 +35,7 @@ import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext
 import { useAuth } from "@/context/AuthContext";
 import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
 import { getApiBaseUrl } from "@/utils/apiConfig";
+import { saveToOfflineVault } from "@/utils/offlineVault";
 
 interface BookingPaymentModalProps {
   isOpen: boolean;
@@ -164,6 +165,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingRef, setBookingRef] = useState("");
   const [copiedRef, setCopiedRef] = useState(false);
+  const [vaultSaved, setVaultSaved] = useState(false);
 
   // Populate logged-in user details
   useEffect(() => {
@@ -640,6 +642,28 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
               >
                 <Share2 className="w-4 h-4 text-emerald-400" />
                 <span>שתף שובר ב-WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  await saveToOfflineVault({
+                    id: bookingRef || `vault_${Date.now()}`,
+                    bookingRef: bookingRef,
+                    destination: tripDetails.destination,
+                    savedAt: new Date().toISOString(),
+                    summaryText: `${tripDetails.durationDays} ימים • ${totalInSelectedCurrency} ${currencyConfig.code} (${customerName})`,
+                  });
+                  setVaultSaved(true);
+                }}
+                className={`px-5 py-3 rounded-2xl border text-xs font-bold flex items-center gap-2 transition shadow-md ${
+                  vaultSaved
+                    ? "bg-mint-500/20 border-mint-400 text-mint-200"
+                    : "bg-indigo-600/20 hover:bg-indigo-600/30 border-indigo-500/30 text-indigo-200"
+                }`}
+              >
+                <Lock className="w-4 h-4 text-mint-400" />
+                <span>{vaultSaved ? "נשמר בכספת האופליין ✓" : "שמור לכספת אופליין (Offline Vault)"}</span>
               </button>
 
               <button

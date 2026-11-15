@@ -41,6 +41,15 @@ import {
   MessageSquare,
   Database,
   Brain,
+  Wifi,
+  Award,
+  Users,
+  Scale,
+  Moon,
+  RefreshCw,
+  ThumbsUp,
+  SlidersHorizontal,
+  Map as MapIcon,
 } from "lucide-react";
 import { downloadCalendarIcsFile } from "@/utils/calendarIcs";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -113,6 +122,16 @@ interface TripResultViewProps {
   whatsappBriefings?: any;
   ragKnowledge?: any[];
   reasoningTrace?: any;
+  sessionId?: string;
+  travelers?: number;
+  shabbatHalacha?: any;
+  connectivityMobility?: any;
+  protectionRerouting?: any;
+  loyaltyVault?: any;
+  groupBreakdown?: any;
+  travelerMemory?: any;
+  criticAudit?: any;
+  onStructuredDaysUpdate?: (days: any[]) => void;
 }
 
 export const TripResultView: React.FC<TripResultViewProps> = ({
@@ -141,6 +160,16 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   whatsappBriefings,
   ragKnowledge,
   reasoningTrace,
+  sessionId,
+  travelers = 2,
+  shabbatHalacha,
+  connectivityMobility,
+  protectionRerouting,
+  loyaltyVault,
+  groupBreakdown,
+  travelerMemory,
+  criticAudit,
+  onStructuredDaysUpdate,
 }) => {
   const [activeTab, setActiveTab] = useState<
     | "itinerary"
@@ -154,6 +183,9 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
     | "events"
     | "budget"
     | "rag_reasoning"
+    | "shabbat_mobility"
+    | "protection_vault"
+    | "group_split"
     | "raw"
   >("itinerary");
   const [copied, setCopied] = useState(false);
@@ -161,6 +193,23 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isStickyDockDismissed, setIsStickyDockDismissed] = useState(false);
   const [openDays, setOpenDays] = useState<Record<number, boolean>>({ 1: true, 2: true });
+  const [lockedDays, setLockedDays] = useState<Record<number, boolean>>({});
+  const [showGeoRoute, setShowGeoRoute] = useState(false);
+
+  // Co-Pilot Re-Planner Drawer state
+  const [isReplanOpen, setIsReplanOpen] = useState(false);
+  const [replanDayNumber, setReplanDayNumber] = useState<number>(1);
+  const [replanSlot, setReplanSlot] = useState<"morning" | "afternoon" | "evening">("morning");
+  const [replanInstruction, setReplanInstruction] = useState<string>("");
+  const [replanLoading, setReplanLoading] = useState(false);
+  const [replanStreamLogs, setReplanStreamLogs] = useState<string[]>([]);
+  const [replanDiffs, setReplanDiffs] = useState<any[]>([]);
+
+  // Group Split & Voting state
+  const [splitMode, setSplitMode] = useState<"equal" | "proportional" | "custom">("equal");
+  const [groupSplitData, setGroupSplitData] = useState<any>(groupBreakdown || null);
+  const [splitLoading, setSplitLoading] = useState(false);
+  const [votesData, setVotesData] = useState<Record<string, number>>({});
 
   const { user } = useAuth();
 
@@ -201,6 +250,123 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
   const toggleDay = (dayNum: number) => {
     setOpenDays((prev) => ({ ...prev, [dayNum]: !prev[dayNum] }));
+  };
+
+  const toggleLockDay = (dayNum: number) => {
+    setLockedDays((prev) => ({ ...prev, [dayNum]: !prev[dayNum] }));
+  };
+
+  const handleCoPilotReplan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replanInstruction.trim()) return;
+    setReplanLoading(true);
+    setReplanStreamLogs(["מאתחל סוכן Re-Planner..."]);
+    setReplanDiffs([]);
+
+    const apiBase = getApiBaseUrl();
+    const sid = sessionId || "default_session";
+    const lockedList = Object.entries(lockedDays)
+      .filter(([, locked]) => locked)
+      .map(([d]) => Number(d));
+
+    const payload = {
+      day_number: replanDayNumber,
+      slot: replanSlot,
+      instruction: replanInstruction,
+      locked_days: lockedList,
+    };
+
+    try {
+      const res = await fetch(`${apiBase}/api/v1/trips/${sid}/replan/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const blocks = buffer.split("\n\n");
+          buffer = blocks.pop() || "";
+          for (const block of blocks) {
+            const evtLine = block.split("\n").find((l) => l.startsWith("event:"));
+            const dataLine = block.split("\n").find((l) => l.startsWith("data:"));
+            if (!dataLine) continue;
+            const evt = evtLine ? evtLine.replace("event:", "").trim() : "step";
+            try {
+              const parsed = JSON.parse(dataLine.replace("data:", "").trim());
+              if (evt === "step" && parsed.message) {
+                setReplanStreamLogs((prev) => [...prev, parsed.message]);
+              } else if (evt === "done") {
+                if (parsed.diffs) setReplanDiffs(parsed.diffs);
+                if (parsed.updated_days && onStructuredDaysUpdate) {
+                  onStructuredDaysUpdate(parsed.updated_days);
+                }
+                setReplanStreamLogs((prev) => [...prev, "העדכון הושלם והמסלול סונכרן!"]);
+              }
+            } catch {}
+          }
+        }
+      } else {
+        const fallbackRes = await fetch(`${apiBase}/api/v1/trips/${sid}/replan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (fallbackRes.ok) {
+          const data = await fallbackRes.json();
+          if (data.diffs) setReplanDiffs(data.diffs);
+          if (data.updated_days && onStructuredDaysUpdate) {
+            onStructuredDaysUpdate(data.updated_days);
+          }
+          setReplanStreamLogs((prev) => [...prev, "העדכון הושלם בהצלחה."]);
+        }
+      }
+    } catch {
+      setReplanStreamLogs((prev) => [...prev, "לא ניתן היה להתחבר לשרת Re-Planner כרגע."]);
+    } finally {
+      setReplanLoading(false);
+    }
+  };
+
+  const handleComputeGroupSplit = async (mode: "equal" | "proportional" | "custom") => {
+    setSplitMode(mode);
+    setSplitLoading(true);
+    const apiBase = getApiBaseUrl();
+    const sid = sessionId || "default_session";
+    try {
+      const res = await fetch(`${apiBase}/api/v1/trips/${sid}/group-split`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travelers_count: travelers || 2,
+          split_mode: mode,
+          total_cost_usd: totalEstimated || 2400,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGroupSplitData(data);
+      }
+    } catch {}
+    setSplitLoading(false);
+  };
+
+  const handleVoteItem = async (itemKey: string) => {
+    const apiBase = getApiBaseUrl();
+    const sid = sessionId || "default_session";
+    setVotesData((prev) => ({ ...prev, [itemKey]: (prev[itemKey] || 0) + 1 }));
+    try {
+      await fetch(`${apiBase}/api/v1/trips/${sid}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_id: itemKey, item_type: "activity", vote: 1, voter_name: user?.full_name || "מטייל" }),
+      });
+    } catch {}
   };
 
   const { currency, currencyConfig, formatPrice } = useCurrency();
@@ -645,6 +811,42 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab("shabbat_mobility")}
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
+              activeTab === "shabbat_mobility"
+                ? "bg-indigo-500/20 text-indigo-300 border border-indigo-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Moon className="w-3.5 h-3.5" />
+            <span>שבת, הלכה וקישוריות</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("protection_vault")}
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
+              activeTab === "protection_vault"
+                ? "bg-rose-500/20 text-rose-300 border border-rose-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Scale className="w-3.5 h-3.5" />
+            <span>ביטוח, חוק טיבי וביקורת AI</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("group_split")}
+            className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
+              activeTab === "group_split"
+                ? "bg-lime-500/20 text-lime-300 border border-lime-400/40 shadow-md"
+                : "text-slate-400 hover:text-white bg-white/5 border border-transparent"
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>פיצול קבוצה והצבעות</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("raw")}
             className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2.5 rounded-xl transition ${
               activeTab === "raw"
@@ -776,38 +978,135 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             {/* Structured Daily Schedule Accordion */}
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-serif font-bold text-white">תוכנית יומית מפורטת</h3>
-                <span className="text-xs text-slate-400">{durationDays} ימים מתוכננים בהתאמה אישית</span>
+                <div>
+                  <h3 className="text-lg font-serif font-bold text-white">תוכנית יומית מפורטת</h3>
+                  <span className="text-xs text-slate-400">{durationDays} ימים מתוכננים בהתאמה אישית</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowGeoRoute((prev) => !prev)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 ${
+                      showGeoRoute
+                        ? "bg-indigo-500/25 border-indigo-400/50 text-indigo-200"
+                        : "bg-white/5 border-white/10 text-slate-300 hover:text-white"
+                    }`}
+                  >
+                    <MapIcon className="w-3.5 h-3.5 text-indigo-300" />
+                    <span>{showGeoRoute ? "הסתר מפת מסלול ורדיוס שבת" : "מפת מסלול ורדיוס שבת"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsReplanOpen(true)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-mint-500/20 hover:bg-mint-500/30 border border-mint-400/40 text-mint-200 transition flex items-center gap-1.5"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span>Co-Pilot לשינוי יום</span>
+                  </button>
+                </div>
               </div>
+
+              {showGeoRoute && structuredDays && structuredDays.length > 0 && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#08101c]/90 border border-indigo-400/30 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span className="font-bold text-indigo-200 flex items-center gap-1.5">
+                      <MapIcon className="w-4 h-4 text-indigo-400" />
+                      <span>קנבס מסלול גאוגרפי ורדיוס הליכה לשבת ({shabbatHalacha?.walking_radius_km ?? 1.5} ק&quot;מ מהמלון)</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">{selectedHotel?.name || destination}</span>
+                  </div>
+                  <div className="relative rounded-xl bg-black/50 border border-white/10 p-4 overflow-hidden">
+                    <svg viewBox="0 0 600 180" className="w-full h-40">
+                      <circle cx="300" cy="90" r="72" fill="rgba(99,102,241,0.12)" stroke="rgba(129,140,248,0.55)" strokeDasharray="5 5" strokeWidth="1.5" />
+                      <circle cx="300" cy="90" r="8" fill="#2dd4bf" />
+                      <text x="300" y="114" textAnchor="middle" fill="#cbd5e1" fontSize="10">🏨 מלון מרכזי (0 ק&quot;מ)</text>
+                      {structuredDays.slice(0, 5).map((d, idx) => {
+                        const angle = (idx / Math.min(structuredDays.length, 5)) * Math.PI * 2 - Math.PI / 2;
+                        const x = 300 + Math.cos(angle) * 145;
+                        const y = 90 + Math.sin(angle) * 58;
+                        return (
+                          <g key={d.day_number}>
+                            <line x1="300" y1="90" x2={x} y2={y} stroke="rgba(45,212,191,0.35)" strokeWidth="1.5" />
+                            <circle cx={x} cy={y} r="11" fill="#0f172a" stroke="#38bdf8" strokeWidth="2" />
+                            <text x={x} y={y + 4} textAnchor="middle" fill="#e2e8f0" fontSize="10" fontWeight="bold">
+                              D{d.day_number}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              )}
 
               {structuredDays && structuredDays.length > 0 ? (
                 structuredDays.map((day) => {
                   const isOpen = openDays[day.day_number] ?? true;
+                  const isLocked = Boolean(lockedDays[day.day_number]);
                   return (
                     <div
                       key={day.day_number}
-                      className="rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-lg transition-all"
+                      className={`rounded-2xl border bg-black/40 overflow-hidden shadow-lg transition-all ${
+                        isLocked ? "border-amber-400/50" : "border-white/10"
+                      }`}
                     >
                       {/* Accordion Day Header */}
-                      <button
-                        type="button"
-                        onClick={() => toggleDay(day.day_number)}
-                        className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-right bg-white/[0.03] hover:bg-white/[0.06] transition"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-right bg-white/[0.03] hover:bg-white/[0.06] transition">
+                        <button
+                          type="button"
+                          onClick={() => toggleDay(day.day_number)}
+                          className="flex items-center gap-3 min-w-0 flex-1 text-right"
+                        >
                           <span className="w-7 h-7 rounded-xl bg-mint-500/20 text-mint-300 border border-mint-400/30 flex items-center justify-center font-bold text-xs shrink-0">
                             {day.day_number}
                           </span>
                           <div className="min-w-0">
-                            <div className="font-bold text-sm text-white truncate">{day.title}</div>
+                            <div className="font-bold text-sm text-white truncate flex items-center gap-2">
+                              <span>{day.title}</span>
+                              {isLocked && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                                  נעול
+                                </span>
+                              )}
+                            </div>
                             <div className="text-[11px] text-slate-400">{day.date_formatted}</div>
                           </div>
-                        </div>
+                        </button>
 
-                        <div className="flex items-center gap-2 text-slate-400 shrink-0">
-                          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        <div className="flex items-center gap-1.5 text-slate-400 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleLockDay(day.day_number)}
+                            title={isLocked ? "שחרר נעילת יום" : "נעל יום בפני שינויים"}
+                            className={`p-1.5 rounded-lg border text-[11px] transition ${
+                              isLocked
+                                ? "bg-amber-500/20 border-amber-400/40 text-amber-300"
+                                : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReplanDayNumber(day.day_number);
+                              setIsReplanOpen(true);
+                            }}
+                            title="החלף פעילות ביום זה עם Co-Pilot"
+                            className="px-2 py-1 rounded-lg bg-mint-500/15 hover:bg-mint-500/25 border border-mint-400/30 text-mint-300 text-[11px] font-semibold flex items-center gap-1 transition"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            <span className="hidden sm:inline">שנה</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleDay(day.day_number)}
+                            className="p-1.5 text-slate-400 hover:text-white"
+                          >
+                            {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
                         </div>
-                      </button>
+                      </div>
 
                       {/* Day Details */}
                       {isOpen && (
@@ -1780,6 +2079,269 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
         )}
 
         {/* =========================================================================
+            TAB: SHABBAT, HALACHA & CONNECTIVITY / MOBILITY
+        ========================================================================= */}
+        {activeTab === "shabbat_mobility" && (
+          <div className="space-y-5 text-right">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Shabbat & Halacha Card */}
+              <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-400/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
+                    <Moon className="w-4 h-4" />
+                    <span>זמני שבת, כשרות וחב&quot;ד</span>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
+                    רדיוס הליכה: {shabbatHalacha?.walking_radius_km ?? 1.5} ק&quot;מ
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/10">
+                    <div className="text-slate-400">הדלקת נרות</div>
+                    <div className="font-mono font-bold text-white mt-0.5">{shabbatHalacha?.candle_lighting || "18:45 (משוער)"}</div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/10">
+                    <div className="text-slate-400">צאת שבת (הבדלה)</div>
+                    <div className="font-mono font-bold text-white mt-0.5">{shabbatHalacha?.havdalah || "19:48 (משוער)"}</div>
+                  </div>
+                </div>
+                {shabbatHalacha?.chabad_house && (
+                  <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs">
+                    <div className="font-bold text-indigo-200">בית חב&quot;ד קרוב: {shabbatHalacha.chabad_house.name || `חב"ד ${destination}`}</div>
+                    <div className="text-slate-300 mt-0.5">{shabbatHalacha.chabad_house.address || "מרכז העיר, נגיש בהליכה"}</div>
+                  </div>
+                )}
+                {shabbatHalacha?.shabbat_notes && Array.isArray(shabbatHalacha.shabbat_notes) && (
+                  <ul className="space-y-1 text-xs text-slate-300 list-disc list-inside">
+                    {shabbatHalacha.shabbat_notes.map((n: string, i: number) => (
+                      <li key={i}>{n}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Connectivity & Mobility Card */}
+              <div className="p-5 rounded-2xl bg-sky-950/30 border border-sky-400/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sky-300 font-bold text-sm">
+                    <Wifi className="w-4 h-4" />
+                    <span>eSIM, קישוריות ורישיון נהיגה</span>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200 border border-sky-400/30">
+                    {connectivityMobility?.idp_required ? "נדרש רישיון בינלאומי (IDP)" : "רישיון ישראלי תקף"}
+                  </span>
+                </div>
+                {connectivityMobility?.esim_options && Array.isArray(connectivityMobility.esim_options) ? (
+                  <div className="space-y-2">
+                    {connectivityMobility.esim_options.slice(0, 3).map((esim: any, idx: number) => (
+                      <div key={idx} className="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between text-xs">
+                        <div>
+                          <div className="font-bold text-white">{esim.provider} — {esim.data_gb}GB</div>
+                          <div className="text-[11px] text-slate-400">{esim.validity_days} ימים • {esim.network || "5G/LTE"}</div>
+                        </div>
+                        <span className="font-mono font-bold text-mint-300">{formatPrice(esim.price_usd)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-300">חבילות eSIM מקומיות זמינות החל מ-$12 ל-10GB.</p>
+                )}
+                {connectivityMobility?.driving_tips && (
+                  <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-slate-300">
+                    🚗 {Array.isArray(connectivityMobility.driving_tips) ? connectivityMobility.driving_tips.join(" • ") : connectivityMobility.driving_tips}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {travelerMemory && (
+              <div className="p-4 rounded-2xl bg-teal-950/30 border border-teal-400/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-teal-200 font-bold">
+                  <Brain className="w-4 h-4" />
+                  <span>זיכרון מטייל ובדיקת דרכון (6 חודשים):</span>
+                </div>
+                <span className="text-slate-200">
+                  {travelerMemory.passport_check?.status_message || "תוקף דרכון מאומת • העדפות פרופיל סונכרנו"}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: PROTECTION, TIVI LAW, LOYALTY VAULT & META-CRITIC AUDIT
+        ========================================================================= */}
+        {activeTab === "protection_vault" && (
+          <div className="space-y-5 text-right">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Protection & Tivi Law */}
+              <div className="p-5 rounded-2xl bg-rose-950/25 border border-rose-400/30 space-y-3">
+                <div className="flex items-center gap-2 text-rose-300 font-bold text-sm">
+                  <Scale className="w-4 h-4" />
+                  <span>הגנת נוסע, ביטוח וחוק טיבי</span>
+                </div>
+                <div className="p-3 rounded-xl bg-black/40 border border-white/10 text-xs space-y-1">
+                  <div className="font-bold text-white">חוק שירותי תעופה (חוק טיבי):</div>
+                  <div className="text-slate-300">
+                    {protectionRerouting?.tivi_law_summary || "זכאות לפיצוי כספי וסיוע במקרה של עיכוב מעל 8 שעות או ביטול טיסה מנתב\"ג."}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs space-y-1">
+                  <div className="font-bold text-rose-200">המלצת ביטוח נסיעות:</div>
+                  <div className="text-slate-300">
+                    {protectionRerouting?.insurance_recommendation?.plan_name || "ביטוח מורחב כולל כיסוי ביטול טיסה וציוד"} —{" "}
+                    <span className="font-mono text-mint-300 font-bold">
+                      {formatPrice(protectionRerouting?.insurance_recommendation?.estimated_usd ?? 45)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Loyalty & Vault */}
+              <div className="p-5 rounded-2xl bg-amber-950/25 border border-amber-400/30 space-y-3">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+                  <Award className="w-4 h-4" />
+                  <span>מועדוני תעופה, לאונג&apos; וכספת מסמכים</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/10">
+                    <div className="text-slate-400">נקודות משוערות לטיסה</div>
+                    <div className="font-mono font-bold text-amber-300 text-sm">
+                      +{loyaltyVault?.estimated_points_earned ?? 2400} pts
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/10">
+                    <div className="text-slate-400">טרקלין בנתב&quot;ג</div>
+                    <div className="font-bold text-white text-xs mt-0.5">
+                      {loyaltyVault?.lounge_access || "דן / פתאל (בהתאם לכרטיס אשראי)"}
+                    </div>
+                  </div>
+                </div>
+                {loyaltyVault?.document_checklist && Array.isArray(loyaltyVault.document_checklist) && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {loyaltyVault.document_checklist.map((doc: string, idx: number) => (
+                      <span key={idx} className="text-[11px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-200">
+                        ✓ {doc}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Meta-Critic Audit Card */}
+            {criticAudit && (
+              <div className="p-5 rounded-2xl bg-emerald-950/25 border border-emerald-400/35 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>ביקורת מטה-AI (Trip Critic Agent)</span>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold font-mono">
+                    ציון איכות: {criticAudit.overall_score ?? 92}/100 ({criticAudit.verdict || "PASSED"})
+                  </span>
+                </div>
+                {criticAudit.findings && Array.isArray(criticAudit.findings) && (
+                  <ul className="space-y-1.5 text-xs text-slate-200">
+                    {criticAudit.findings.map((f: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: GROUP COST SPLIT & COLLABORATIVE VOTING
+        ========================================================================= */}
+        {activeTab === "group_split" && (
+          <div className="space-y-5 text-right">
+            <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Users className="w-4 h-4 text-lime-400" />
+                    <span>פיצול עלויות קבוצתי ({travelers} מטיילים) והצבעה משותפת</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">בחר מודל חלוקה לחישוב מיידי של העלות לכל נוסע</p>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 text-xs">
+                  {(["equal", "proportional", "custom"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => handleComputeGroupSplit(mode)}
+                      disabled={splitLoading}
+                      className={`px-3 py-1.5 rounded-lg font-semibold transition ${
+                        splitMode === mode
+                          ? "bg-lime-400 text-slate-950 font-bold"
+                          : "text-slate-300 hover:text-white"
+                      }`}
+                    >
+                      {mode === "equal" ? "שווה בשווה" : mode === "proportional" ? "יחסי (מבוגר/ילד)" : "מותאם"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-white/[0.04] border border-white/10">
+                  <div className="text-slate-400">עלות כוללת לקבוצה</div>
+                  <div className="text-lg font-black text-white mt-1">
+                    {formatPrice(groupSplitData?.total_cost_usd ?? totalEstimated ?? 2400)}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-lime-500/10 border border-lime-400/30">
+                  <div className="text-lime-300">חלק ממוצע למטייל</div>
+                  <div className="text-lg font-black text-white mt-1">
+                    {formatPrice(groupSplitData?.per_person_usd ?? ((totalEstimated || 2400) / Math.max(1, travelers)))}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-white/[0.04] border border-white/10">
+                  <div className="text-slate-400">מודל סליקה</div>
+                  <div className="font-bold text-mint-300 mt-1">bit / PayBox / אשראי מפוצל</div>
+                </div>
+              </div>
+
+              {/* Voting Strip on Key Trip Highlights */}
+              {structuredDays && structuredDays.length > 0 && (
+                <div className="space-y-2 pt-3 border-t border-white/10">
+                  <div className="text-xs font-bold text-slate-300">הצבעת חברי הקבוצה על אטרקציות מובילות:</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {structuredDays.slice(0, 4).map((d) => {
+                      const key = `day_${d.day_number}_${d.morning.activity}`;
+                      const count = votesData[key] || 0;
+                      return (
+                        <div key={key} className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0">
+                            <div className="font-bold text-white truncate">יום {d.day_number}: {d.morning.activity}</div>
+                            <div className="text-[11px] text-slate-400 truncate">{d.afternoon.dining}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleVoteItem(key)}
+                            className="px-2.5 py-1.5 rounded-lg bg-lime-500/15 hover:bg-lime-500/30 border border-lime-400/30 text-lime-200 font-bold flex items-center gap-1 shrink-0 transition"
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                            <span>{count}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
             TAB 6: RAW MARKDOWN VIEW
         ========================================================================= */}
         {activeTab === "raw" && (
@@ -2000,6 +2562,100 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-Over Co-Pilot Day Re-Planner Drawer */}
+      {isReplanOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-sm" dir="rtl">
+          <div className="w-full max-w-md h-full bg-[#09111e] border-r border-white/15 p-5 sm:p-6 overflow-y-auto shadow-2xl space-y-4 text-right">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-mint-300 font-bold text-base">
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Co-Pilot לשינוי יום {replanDayNumber}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsReplanOpen(false)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCoPilotReplan} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">בחר יום</label>
+                  <select
+                    value={replanDayNumber}
+                    onChange={(e) => setReplanDayNumber(Number(e.target.value))}
+                    className="w-full p-2.5 rounded-xl bg-black/50 border border-white/15 text-white"
+                  >
+                    {(structuredDays || [{ day_number: 1 }]).map((d) => (
+                      <option key={d.day_number} value={d.day_number}>
+                        יום {d.day_number}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">חלק ביום</label>
+                  <select
+                    value={replanSlot}
+                    onChange={(e) => setReplanSlot(e.target.value as "morning" | "afternoon" | "evening")}
+                    className="w-full p-2.5 rounded-xl bg-black/50 border border-white/15 text-white"
+                  >
+                    <option value="morning">בוקר</option>
+                    <option value="afternoon">צהריים ואוכל</option>
+                    <option value="evening">ערב</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1">מה תרצה לשנות?</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={replanInstruction}
+                  onChange={(e) => setReplanInstruction(e.target.value)}
+                  placeholder="לדוגמה: החלף למוזיאון מקורה בגלל גשם, או למסעדה כשרה שקטה..."
+                  className="w-full p-3 rounded-xl bg-black/50 border border-white/15 text-white placeholder-slate-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={replanLoading}
+                className="w-full btn-mint py-2.5 rounded-xl font-bold text-slate-950 flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <RefreshCw className={`w-4 h-4 ${replanLoading ? "animate-spin" : ""}`} />
+                <span>{replanLoading ? "מעדכן את היום..." : "בצע החלפה חכמה (SSE)"}</span>
+              </button>
+            </form>
+
+            {replanStreamLogs.length > 0 && (
+              <div className="p-3 rounded-xl bg-black/50 border border-white/10 space-y-1 text-[11px] font-mono text-slate-300">
+                {replanStreamLogs.map((msg, i) => (
+                  <div key={i}>▸ {msg}</div>
+                ))}
+              </div>
+            )}
+
+            {replanDiffs.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-mint-300">תצוגה מקדימה של השינוי (Diff):</div>
+                {replanDiffs.map((diff, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-mint-500/10 border border-mint-400/30 text-xs space-y-1">
+                    <div className="font-bold text-white">יום {diff.day_number} • {diff.slot}</div>
+                    <div className="text-rose-300 line-through">{diff.before}</div>
+                    <div className="text-emerald-300 font-semibold">{diff.after}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

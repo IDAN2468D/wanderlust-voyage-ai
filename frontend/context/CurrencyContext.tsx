@@ -54,11 +54,18 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 
 const STORAGE_KEY = "wanderlust_preferred_currency";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [liveRates, setLiveRates] = useState<Record<CurrencyCode, number>>({
+    USD: 1.0,
+    ILS: 3.7,
+    EUR: 0.92,
+  });
 
-  // Load preferred currency from localStorage on mount
+  // Load preferred currency from localStorage on mount & hydrate live FX rates
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as CurrencyCode | null;
@@ -70,6 +77,21 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setIsInitialized(true);
     }
+
+    fetch(`${API_BASE}/api/v1/ops/live-pulse`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.fx) {
+          setLiveRates({
+            USD: 1.0,
+            ILS: Number(data.fx.USD_ILS) || 3.7,
+            EUR: Number(data.fx.USD_EUR) || 0.92,
+          });
+        }
+      })
+      .catch(() => {
+        // Keep deterministic fallback rates
+      });
   }, []);
 
   const setCurrency = (code: CurrencyCode) => {
@@ -82,13 +104,17 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const currencyConfig = CURRENCIES[currency] || CURRENCIES.USD;
+  const baseConfig = CURRENCIES[currency] || CURRENCIES.USD;
+  const currencyConfig: CurrencyConfig = {
+    ...baseConfig,
+    rateAgainstUSD: liveRates[currency] || baseConfig.rateAgainstUSD,
+  };
 
   // Convert USD amount to target currency (defaults to currently selected)
   const convert = (amountInUsd: number | null | undefined, targetCode?: CurrencyCode): number => {
     if (amountInUsd === null || amountInUsd === undefined || isNaN(amountInUsd)) return 0;
-    const target = targetCode ? CURRENCIES[targetCode] : currencyConfig;
-    const rate = target ? target.rateAgainstUSD : 1.0;
+    const code = targetCode || currency;
+    const rate = liveRates[code] || CURRENCIES[code]?.rateAgainstUSD || 1.0;
     return Math.round(amountInUsd * rate);
   };
 

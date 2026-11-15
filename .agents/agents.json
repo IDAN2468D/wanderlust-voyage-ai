@@ -87,6 +87,94 @@
       "skills": [
         "budget-currency-optimizer"
       ]
+    },
+    {
+      "name": "transit-navigator",
+      "description": "Recommends city transit passes, airport transfers, and walkability scores.",
+      "tool_module": "backend.app.tools.transit_tools"
+    },
+    {
+      "name": "culinary-kosher-specialist",
+      "description": "Curates glatt kosher restaurants, Chabad centers, gourmet dining, and nightlife.",
+      "tool_module": "backend.app.tools.culinary_tools"
+    },
+    {
+      "name": "shopping-taxfree-specialist",
+      "description": "Computes VAT refunds, airport digital customs kiosks, and outlet guides.",
+      "tool_module": "backend.app.tools.shopping_tools"
+    },
+    {
+      "name": "calendar-workspace-syncer",
+      "description": "Builds RFC 5545 iCalendar files and Google Calendar / Docs / Gmail briefings.",
+      "tool_module": "backend.app.tools.calendar_tools",
+      "skills": [
+        "google-flow-travel-mcp"
+      ]
+    },
+    {
+      "name": "ground-sentinel",
+      "description": "Monitors transport strike risks, local scam alerts, and embassy hotlines.",
+      "tool_module": "backend.app.tools.sentinel_tools"
+    },
+    {
+      "name": "whatsapp-concierge-butler",
+      "description": "Generates day-by-day WhatsApp-ready briefings with 1-click share links.",
+      "tool_module": "backend.app.tools.briefing_tools"
+    },
+    {
+      "name": "knowledge-rag-specialist",
+      "description": "Retrieves bilingual destination guides and Israeli traveler handbook rules from VectorStore.",
+      "tool_module": "backend.app.rag.retriever"
+    },
+    {
+      "name": "reasoning-audit-specialist",
+      "description": "Executes 4-stage Chain-of-Thought reasoning over dates, budget, RAG, and pacing.",
+      "agent_module": "backend.app.agents.reasoning"
+    },
+    {
+      "name": "trip-disruption-replan-specialist",
+      "description": "Performs stateful day/slot replanning with live budget and calendar diffing.",
+      "tool_module": "backend.app.tools.replan_tools"
+    },
+    {
+      "name": "trip-critic-meta-agent",
+      "description": "Pre-completion verification and auto-repair gate for flight, hotel, Shabbat, geo, and FX invariants.",
+      "agent_module": "backend.app.agents.critic"
+    },
+    {
+      "name": "travel-memory-specialist",
+      "description": "Persists traveler preferences, passport expiry checks, and user-scoped Personal RAG documents.",
+      "tool_module": "backend.app.tools.memory_tools"
+    },
+    {
+      "name": "shabbat-halacha-specialist",
+      "description": "Computes candle-lighting, Havdalah, Friday 14:00 cutoff, mechanical key & Chabad proximity.",
+      "tool_module": "backend.app.tools.shabbat_halacha_tools"
+    },
+    {
+      "name": "group-split-specialist",
+      "description": "Models multi-traveler cost splitting, child/adult fares, collaborative voting, and Bit settlement.",
+      "tool_module": "backend.app.tools.group_split_tools"
+    },
+    {
+      "name": "connectivity-mobility-specialist",
+      "description": "Compares eSIM vs Israeli roaming and audits IDP, ZTL/LEZ, vignettes, and CDW rental traps.",
+      "tool_module": "backend.app.tools.connectivity_mobility_tools"
+    },
+    {
+      "name": "protection-rerouting-specialist",
+      "description": "Audits travel insurance riders, MCT layover Plan B, and Israeli Aviation Law / EU261 claims.",
+      "tool_module": "backend.app.tools.protection_rerouting_tools"
+    },
+    {
+      "name": "loyalty-vault-specialist",
+      "description": "Optimizes Matmid/Fly Card/Flying Blue miles vs cash, TLV lounges, and pre-flight readiness.",
+      "tool_module": "backend.app.tools.loyalty_vault_tools"
+    },
+    {
+      "name": "post-booking-concierge-watchdog",
+      "description": "Builds T-30d/T-7d/T-24h readiness timelines, proactive disruption scans, and persistent HITL.",
+      "tool_module": "backend.app.tools.concierge_tools"
     }
   ]
 }

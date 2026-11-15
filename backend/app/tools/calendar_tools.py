@@ -77,7 +77,7 @@ def generate_trip_calendar_pack(
         "BEGIN:VALARM",
         "TRIGGER:-PT3H",
         "ACTION:DISPLAY",
-        "DESCRIPTION:תזכורת: יציאה לשדה התעופה לטיסה ל{dest}",
+        f"DESCRIPTION:תזכורת: יציאה לשדה התעופה לטיסה ל{dest}",
         "END:VALARM",
         "END:VEVENT",
     ])

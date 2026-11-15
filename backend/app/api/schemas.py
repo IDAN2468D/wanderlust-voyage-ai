@@ -22,6 +22,10 @@ class TripPlanRequest(BaseModel):
     )
     travel_style: str = Field(default="balanced", description="Travel style: 'budget', 'balanced', or 'luxury'")
     session_id: Optional[str] = Field(default=None, description="Optional existing session ID for conversation memory")
+    shabbat_safe_mode: bool = Field(default=False, description="Enforce Friday 14:00 cutoff and walking-only Shabbat pacing")
+    kosher_only: bool = Field(default=False, description="Prioritize kosher dining and Chabad proximity")
+    accessibility_mode: bool = Field(default=False, description="Prioritize step-free / family-friendly pacing")
+    planner_mode: str = Field(default="all_in_one", description="Planner tab mode: 'all_in_one', 'flights', or 'hotels'")
 
     def get_effective_start_date(self) -> str:
         default_date = (date.today() + timedelta(days=30)).strftime("%Y-%m-%d")
@@ -66,6 +70,13 @@ class TripPlanResponse(BaseModel):
     whatsapp_briefings: Optional[Dict[str, Any]] = None
     rag_knowledge: Optional[List[Dict[str, Any]]] = None
     reasoning_trace: Optional[Dict[str, Any]] = None
+    shabbat_halacha: Optional[Dict[str, Any]] = None
+    connectivity_mobility: Optional[Dict[str, Any]] = None
+    protection_rerouting: Optional[Dict[str, Any]] = None
+    loyalty_vault: Optional[Dict[str, Any]] = None
+    group_breakdown: Optional[Dict[str, Any]] = None
+    traveler_memory: Optional[Dict[str, Any]] = None
+    critic_audit: Optional[Dict[str, Any]] = None
     budget_overrun_flagged: Optional[bool] = False
     guardrail_warnings: Optional[List[str]] = None
 
@@ -491,4 +502,68 @@ class KnowledgeStatsResponse(BaseModel):
     storage_backend: str
     store_file: str
     destinations_covered: List[str]
+
+
+# ==============================================================================
+# Sprint 8 & 9: Replan, Group Split/Voting, Memory, Readiness & Ops Schemas
+# ==============================================================================
+
+class TripReplanRequest(BaseModel):
+    trigger_type: str = Field(default="custom_edit", description="weather | strike | flight_delay | budget_cut | kosher | custom_edit")
+    affected_day: int = Field(default=1, ge=1, le=30)
+    slot: str = Field(default="morning", description="morning | afternoon | evening")
+    constraint_note: Optional[str] = Field(default="")
+
+
+class ItineraryDiffItem(BaseModel):
+    day_number: int
+    slot: str
+    before: str
+    after: str
+    cost_delta_usd: float = 0.0
+    reason: str = ""
+
+
+class TripReplanResponse(BaseModel):
+    session_id: str
+    trigger_type: str
+    diffs: List[ItineraryDiffItem]
+    updated_plan: Dict[str, Any]
+
+
+class TravelerProfileItem(BaseModel):
+    name: str = "נוסע"
+    age_group: str = "adult"  # adult | child | infant
+
+
+class GroupSplitRequest(BaseModel):
+    travelers: int = Field(default=2, ge=1, le=20)
+    traveler_profiles: Optional[List[TravelerProfileItem]] = None
+
+
+class TripVoteRequest(BaseModel):
+    voter_name: str = Field(..., min_length=1)
+    item_type: str = Field(default="hotel", description="flight | hotel | activity")
+    item_id: str = Field(..., min_length=1)
+    vote: int = Field(default=1, ge=-1, le=1)
+    comment: Optional[str] = None
+
+
+class TravelerPreferencesPayload(BaseModel):
+    kosher_level: Optional[str] = None
+    shabbat_observant: Optional[bool] = None
+    accessibility_mode: Optional[bool] = None
+    passport_expiry: Optional[str] = None
+    home_airport: Optional[str] = None
+    preferred_currency: Optional[str] = None
+    preferred_pace: Optional[str] = None
+    loyalty_programs: Optional[List[str]] = None
+    preferences: Optional[Dict[str, Any]] = None
+
+
+class PersonalKnowledgeIngestRequest(BaseModel):
+    title: str = Field(..., min_length=2)
+    content: str = Field(..., min_length=5)
+    destination: str = Field(default="Global")
+    doc_type: str = Field(default="personal_note")
 

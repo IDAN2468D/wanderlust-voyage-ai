@@ -38,6 +38,9 @@ export interface TripFormData {
   checkedBagNeeded?: boolean;
   kosherOnly?: boolean;
   shoppingPriority?: boolean;
+  shabbatSafeMode?: boolean;
+  accessibilityMode?: boolean;
+  plannerMode?: "all_in_one" | "flights" | "hotels";
 }
 
 interface TripFormProps {
@@ -79,6 +82,8 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
   const [checkedBagNeeded, setCheckedBagNeeded] = useState(true);
   const [kosherOnly, setKosherOnly] = useState(false);
   const [shoppingPriority, setShoppingPriority] = useState(false);
+  const [shabbatSafeMode, setShabbatSafeMode] = useState(false);
+  const [accessibilityMode, setAccessibilityMode] = useState(false);
 
   // Passenger count
   const [travelers, setTravelers] = useState<number>(2);
@@ -200,6 +205,9 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
       checkedBagNeeded,
       kosherOnly,
       shoppingPriority,
+      shabbatSafeMode,
+      accessibilityMode,
+      plannerMode: activeTab,
     });
   };
 
@@ -214,7 +222,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
             </h3>
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-500/15 border border-mint-400/30 text-mint-300 text-[11px] sm:text-xs font-semibold shrink-0 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-pulse" />
-              <span>15 סוכני AI פעילים</span>
+              <span>25 סוכני AI פעילים</span>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
@@ -609,13 +617,13 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                  <span className="text-xs font-bold">15 הסוכנים מתכננים עבורך...</span>
+                  <span className="text-xs font-bold">25 הסוכנים מתכננים עבורך...</span>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-slate-950 fill-current animate-pulse" />
-                    <span className="text-sm font-black">הפעל 15 סוכנים ותכנן מסע</span>
+                    <span className="text-sm font-black">הפעל 25 סוכנים ותכנן מסע</span>
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </div>
                   <div className="text-[11px] opacity-85 font-medium bg-slate-950/15 px-2.5 py-0.5 rounded-full max-w-full truncate">
@@ -627,7 +635,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
           </div>
         </div>
 
-        {/* BOTTOM ROW: 4 Practical Specialist Agent Toggles + Interests Accordion */}
+        {/* BOTTOM ROW: Practical Specialist Agent Toggles + Interests Accordion */}
         <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="text-[11px] font-bold text-slate-300 tracking-wide flex items-center gap-1.5">
@@ -647,7 +655,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
             <button
               type="button"
               onClick={() => setKosherOnly(!kosherOnly)}
@@ -659,8 +667,40 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
             >
               <span className="text-base shrink-0">✡️</span>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate">כשרות ושבת</span>
-                <span className="text-[9.5px] opacity-75 truncate">גלאט, חב&quot;ד והליכה</span>
+                <span className="text-xs font-bold truncate">כשרות וגלאט</span>
+                <span className="text-[9.5px] opacity-75 truncate">מסעדות וחב&quot;ד</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShabbatSafeMode(!shabbatSafeMode)}
+              className={`min-h-[54px] p-2.5 rounded-xl border text-right transition flex items-center gap-2 ${
+                shabbatSafeMode
+                  ? "bg-indigo-500/20 border-indigo-400 text-indigo-200 font-semibold shadow-inner"
+                  : "bg-black/30 border-white/10 text-slate-300 hover:text-white"
+              }`}
+            >
+              <span className="text-base shrink-0">🕯️</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">מצב שומר שבת</span>
+                <span className="text-[9.5px] opacity-75 truncate">הדלקת נרות ורדיוס הליכה</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAccessibilityMode(!accessibilityMode)}
+              className={`min-h-[54px] p-2.5 rounded-xl border text-right transition flex items-center gap-2 ${
+                accessibilityMode
+                  ? "bg-teal-500/20 border-teal-400 text-teal-200 font-semibold shadow-inner"
+                  : "bg-black/30 border-white/10 text-slate-300 hover:text-white"
+              }`}
+            >
+              <span className="text-base shrink-0">♿</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">נגישות / עגלות</span>
+                <span className="text-[9.5px] opacity-75 truncate">מסלול Step-Free למשפחות</span>
               </div>
             </button>
 
