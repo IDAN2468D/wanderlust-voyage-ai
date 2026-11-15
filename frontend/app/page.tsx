@@ -858,7 +858,7 @@ export default function Home() {
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.16]">
               מסעות שנבנים במיוחד עבורך <br className="hidden sm:inline" />
               <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
-                ע״י 15 סוכני AI אוטונומיים
+                ע״י 25 סוכני AI אוטונומיים
               </span>
             </h1>
 
@@ -1013,7 +1013,7 @@ export default function Home() {
               חדר המבצעים האוטונומי
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-              תהליך התכנון והסינתזה של 15 סוכני ה-AI האוטונומיים
+              תהליך התכנון והסינתזה של 25 סוכני ה-AI האוטונומיים
             </h2>
             <p className="text-xs text-slate-400">
               מעקב חי אחר קריאות לכלים, אחזור וקטורי מ-RAG VectorStore, בקרת Reasoning, לוחות זמנים מנתב״ג וסנכרון יומנים.
@@ -1197,7 +1197,7 @@ export default function Home() {
             <span>הארכיטקטורה הרב-סוכנית</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white">
-            מערך של 15 סוכני בינה מלאכותית אוטונומיים
+            מערך של 25 סוכני בינה מלאכותית אוטונומיים
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
             במקום מודל גנרי בודד, Wanderlust מפעילה צוות סוכנים מומחים עם מנוע RAG ו-Reasoning הפועלים בסינרגיה מתמדת ומונעים טעויות בתכנון, בטיסות ובתקציב.
