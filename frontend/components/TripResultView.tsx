@@ -507,7 +507,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-[11px] px-3 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-400/30 font-bold tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-mint-400" />
-                תוכנית אוטונומית סונתזה על ידי 15 סוכנים
+                תוכנית אוטונומית סונתזה על ידי 25 סוכנים
               </span>
               {budgetStatus && (
                 <span

@@ -662,7 +662,7 @@ def render_newsletter_html(
         <tr>
             <td align="center">
                 <a href="{frontend_url.rstrip('/')}/#planner-form" target="_blank" style="background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%); color: #022c22; font-weight: 800; font-size: 14px; padding: 14px 32px; border-radius: 14px; display: inline-block; box-shadow: 0 10px 25px rgba(45, 212, 191, 0.3); text-decoration: none;">
-                    תכנן את החופשה הבאה עם 13 סוכני AI ←
+                    תכנן את החופשה הבאה עם 25 סוכני AI ←
                 </a>
             </td>
         </tr>

@@ -590,7 +590,7 @@ function ProfileContent() {
                 </div>
                 <h4 className="text-lg font-bold text-white">עדיין אין לך הזמנות פעילות</h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  מתכננים חופשה? תנו ל-15 סוכני ה-AI לבנות עבורכם את המסלול המושלם עם טיסות מאומתות ומלונות מובילים.
+                  מתכננים חופשה? תנו ל-25 סוכני ה-AI לבנות עבורכם את המסלול המושלם עם טיסות מאומתות ומלונות מובילים.
                 </p>
                 <button
                   type="button"
