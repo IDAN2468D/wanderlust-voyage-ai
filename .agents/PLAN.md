@@ -39,3 +39,13 @@
 - [x] Integrate `ReasoningTools` + `run_reasoning_audit` + SSE `[STAGE: KNOWLEDGE_RAG]` / `[STAGE: REASONING]` + UI tab in `TripResultView.tsx`
 - [x] Add `search_travel_knowledge` tool to `travel_mcp_server.py` and full pytest + build + E2E verification
 
+## Sprint 8: Swarm Hardening, Parallel Orchestrator & Core Meta-Agents
+- [x] Harden `auth.py`, `calendar_tools.py`, `flight_tools.py` (TLV carriers), `render.yaml`, and unify Frankfurter FX rates
+- [x] Parallelize `stream_multi_agent_execution` in `orchestrator.py` and wire `travelers` / `return_date`
+- [x] Add `TravelerProfileModel`, `PendingActionModel`, `TripVoteModel`, and `owner_user_id` RAG scoping
+- [x] Implement `trip_disruption_replan_agent`, `trip_critic_agent`, `travel_memory_agent`, and `post_booking_concierge_agent`
+
+## Sprint 9: Domain Specialists, BiDi Locale, Interactive Day-Canvas & Offline Vault
+- [x] Implement `shabbat_halacha_agent`, `group_split_agent`, `connectivity_mobility_agent`, `protection_rerouting_agent`, and `loyalty_vault_agent`
+- [x] Add `LocaleContext` (`HE` RTL ↔ `EN` LTR), Live Ops & FX Ticker, Day Re-Planner Co-Pilot Drawer, Geo-Route Map, Group Split/Voting, and IndexedDB Offline Travel Vault
+- [x] Full pytest + flake8 + `verify_agent_suite.py` + `tsc --noEmit` + `next build` verification

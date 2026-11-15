@@ -54,6 +54,10 @@ jobs:
           cd ${{ steps.locate-backend.outputs.dir }}
           pytest -v tests/
 
+      - name: Verify Agent Suite (25 Agents)
+        run: |
+          python3 .agents/scripts/verify_agent_suite.py
+
       - name: Verify Backend Docker Build
         run: |
           docker build -t travel-backend:ci ${{ steps.locate-backend.outputs.dir }}

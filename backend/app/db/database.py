@@ -148,6 +148,18 @@ def init_db(target_url: Optional[str] = None, force: bool = False) -> None:
 
     engine = _configure_engine(target_url=target_url)
     Base.metadata.create_all(bind=engine)
+    try:
+        with engine.connect() as conn:
+            if engine.dialect.name == "sqlite":
+                cols = [row[1] for row in conn.execute(text("PRAGMA table_info(knowledge_chunks)")).fetchall()]
+                if "owner_user_id" not in cols:
+                    conn.execute(text("ALTER TABLE knowledge_chunks ADD COLUMN owner_user_id VARCHAR(64)"))
+                    conn.commit()
+            else:
+                conn.execute(text("ALTER TABLE knowledge_chunks ADD COLUMN IF NOT EXISTS owner_user_id VARCHAR(64)"))
+                conn.commit()
+    except Exception as exc:
+        logger.debug(f"Schema migration check skipped: {exc}")
     assert _SessionLocal is not None
     with _SessionLocal() as db:
         _seed_initial_users(db)

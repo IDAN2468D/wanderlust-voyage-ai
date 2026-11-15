@@ -54,6 +54,7 @@ class KnowledgeBaseService:
         destination: Optional[str] = None,
         category: Optional[str] = None,
         top_k: int = 4,
+        owner_user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Run the Retrieval Phase: embed query and return top-k matching chunks from VectorStore."""
         self.ensure_indexed()
@@ -64,7 +65,36 @@ class KnowledgeBaseService:
             top_k=top_k,
             destination=destination,
             category=category,
+            owner_user_id=owner_user_id,
         )
+
+    def ingest_personal_document(
+        self,
+        user_id: str,
+        title: str,
+        content: str,
+        destination: str = "Global",
+        doc_type: str = "personal_note",
+    ) -> Dict[str, Any]:
+        """Chunk, embed, and store a user-scoped personal travel document."""
+        import uuid
+        from app.rag.loader import KnowledgeDocument
+
+        self.ensure_indexed()
+        doc_id = f"personal_{user_id}_{uuid.uuid4().hex[:8]}"
+        doc = KnowledgeDocument(
+            doc_id=doc_id,
+            destination=destination or "Global",
+            category=doc_type or "personal_note",
+            title=title,
+            content=content,
+            source=f"user:{user_id}",
+            tags=["personal", doc_type, destination.lower()],
+            aliases=[destination.lower()],
+        )
+        chunks = self.splitter.split_documents([doc])
+        added = self.vector_store.append_chunks(chunks, self.embedder, owner_user_id=user_id, sync_sql=True)
+        return {"doc_id": doc_id, "chunks_added": added, "owner_user_id": user_id}
 
     def get_stats(self) -> Dict[str, Any]:
         docs_count = self._doc_count or len(self.loader.load_all())

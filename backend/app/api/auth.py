@@ -414,36 +414,27 @@ async def google_login(payload: GoogleAuthRequest, db: Session = Depends(get_db)
                     picture = google_info.get("picture") or payload.picture or ""
                 else:
                     logger.warning(f"Google tokeninfo validation returned status {res.status_code}")
-                    if payload.email:
-                        email = str(payload.email).lower().strip()
-                        full_name = payload.name or email.split("@")[0].title()
-                        picture = payload.picture or ""
-                    else:
-                        raise HTTPException(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="טוקן Google אינו תקין או שפג תוקפו",
-                        )
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="טוקן Google אינו תקין או שפג תוקפו",
+                    )
         except HTTPException:
             raise
         except Exception as exc:
             logger.error(f"Error validating Google ID token: {exc}")
-            if payload.email:
-                email = str(payload.email).lower().strip()
-                full_name = payload.name or email.split("@")[0].title()
-                picture = payload.picture or ""
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="שגיאה בתקשורת מול שרתי Google",
-                )
-    elif payload.email:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="שגיאה בתקשורת מול שרתי Google",
+            )
+    elif payload.email and settings.APP_ENV != "production" and not settings.GOOGLE_CLIENT_ID:
+        # Allowed only in local dev/test when Google OAuth Client ID is not configured
         email = str(payload.email).lower().strip()
         full_name = payload.name or email.split("@")[0].title()
         picture = payload.picture or ""
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="נדרש קוד הרשאה, טוקן אימות או כתובת אימייל מגוגל",
+            detail="נדרש קוד הרשאה או טוקן אימות תקף מ-Google",
         )
 
     if not email:

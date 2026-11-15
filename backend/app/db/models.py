@@ -103,11 +103,53 @@ class KnowledgeChunkModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     chunk_id = Column(String(128), unique=True, index=True, nullable=False)
     doc_id = Column(String(128), index=True, nullable=False)
+    owner_user_id = Column(String(64), index=True, nullable=True)
     destination = Column(String(128), index=True, nullable=False)
     category = Column(String(64), index=True, nullable=False)
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     tags_json = Column(Text, default="[]", nullable=False)
     embedding_json = Column(Text, default="[]", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class TravelerProfileModel(Base):
+    __tablename__ = "traveler_profiles"
+
+    user_id = Column(String(64), primary_key=True, index=True)
+    kosher_level = Column(String(32), default="none", nullable=False)
+    shabbat_observant = Column(Boolean, default=False, nullable=False)
+    accessibility_mode = Column(Boolean, default=False, nullable=False)
+    passport_expiry = Column(String(32), nullable=True)
+    home_airport = Column(String(16), default="TLV", nullable=False)
+    preferred_currency = Column(String(10), default="ILS", nullable=False)
+    preferred_pace = Column(String(32), default="balanced", nullable=False)
+    loyalty_programs_json = Column(Text, default="[]", nullable=False)
+    preferences_json = Column(Text, default="{}", nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False)
+
+
+class PendingActionModel(Base):
+    __tablename__ = "pending_actions"
+
+    action_id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), index=True, nullable=False)
+    action_type = Column(String(64), nullable=False)
+    payload_json = Column(Text, default="{}", nullable=False)
+    status = Column(String(32), default="pending_approval", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class TripVoteModel(Base):
+    __tablename__ = "trip_votes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(128), index=True, nullable=False)
+    voter_name = Column(String(128), nullable=False)
+    item_type = Column(String(32), nullable=False)  # flight | hotel | activity
+    item_id = Column(String(128), nullable=False)
+    vote = Column(Integer, default=1, nullable=False)  # 1 or -1
+    comment = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
 

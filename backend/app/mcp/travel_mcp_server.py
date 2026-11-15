@@ -90,5 +90,47 @@ def search_travel_knowledge(
     )
 
 
+@mcp.tool()
+def replan_trip_day(
+    destination: str,
+    day_number: int = 1,
+    slot: str = "morning",
+    trigger_type: str = "weather",
+    constraint_note: str = "",
+) -> str:
+    """Re-plan a specific trip day/slot due to weather, strike, or budget constraints."""
+    import json
+    from app.tools.replan_tools import apply_itinerary_swap
+
+    seed_plan = {
+        "destination": destination,
+        "duration_days": max(1, day_number),
+        "total_budget": 2400.0,
+        "flight_cost": 550.0,
+        "hotel_cost": 700.0,
+        "activities_cost": 120.0,
+        "structured_days": [{"day_number": day_number, "morning": {"activity": f"סיור בוקר ב{destination}"}}],
+    }
+    return json.dumps(apply_itinerary_swap(seed_plan, day_number, slot, trigger_type, constraint_note), ensure_ascii=False)
+
+
+@mcp.tool()
+def get_booking_readiness_timeline(
+    booking_ref: str,
+    destination: str,
+    start_date: str = "2026-10-15",
+    duration_days: int = 7,
+) -> str:
+    """Build T-30d/T-7d/T-24h pre-departure readiness milestones for a confirmed booking."""
+    import json
+    from app.tools.concierge_tools import build_pre_departure_timeline
+
+    return json.dumps(
+        build_pre_departure_timeline(booking_ref=booking_ref, destination=destination, start_date=start_date, duration_days=duration_days),
+        ensure_ascii=False,
+    )
+
+
 if __name__ == "__main__":
     mcp.run()
+

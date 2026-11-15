@@ -24,14 +24,15 @@ By uniting an intelligent FastAPI multi-agent backend with a Next.js 15 Liquid G
 
 ## 5. User Personas
 1. **The Fast Vacationer:** Needs an instant 5-day holiday in Bali or Santorini with verified flights, boutique lodging, and top culinary spots.
-2. **The Budget Backpacker:** Demands strict daily budget allocation (0/day), affordable hostels, and free cultural walking tours.
+2. **The Budget Backpacker:** Demands strict daily budget allocation ($50+/day), affordable hostels, and free cultural walking tours.
 3. **The Executive Explorer:** Seeks luxury flights, 5-star resorts, private transfers, and calendar schedule integration.
+4. **The Observant & Family Group Traveler:** Requires Shabbat/Halacha scheduling, multi-payer group splitting, eSIM/car-rental compliance, and offline travel vault access.
 
 ## 6. Success Metrics
 | Metric | Target |
 |---|---|
-| Itinerary Generation Latency | < 30s |
+| Itinerary Generation Latency | < 30s (parallelized specialist tools) |
 | Stream First-Byte (TTFB) | < 1.2s |
-| Itinerary Accuracy & Budget Compliance | 100% within requested budget ceiling |
+| Itinerary Accuracy & Budget Compliance | 100% within requested budget ceiling + Trip Critic audit |
 | Deployment Health | 0 build crashes (exit code 0 on Render & Vercel) |
-| Workspace Export Success | >= 99% via Google Flow MCP |
+| Workspace Export Success | >= 99% via Google Flow MCP & persistent HITL |
