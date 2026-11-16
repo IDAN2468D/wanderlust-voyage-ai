@@ -13,20 +13,60 @@ from app.tools.briefing_tools import generate_whatsapp_daily_briefings
 
 _INDOOR_ALTERNATIVES: Dict[str, List[Dict[str, Any]]] = {
     "rome": [
-        {"title": "מוזיאוני הקפיטולין והפנתאון (מקורה)", "cost_usd": 22.0, "area": "Centro Storico"},
-        {"title": "גלריית בורגזה או שוק האוכל Mercato Centrale", "cost_usd": 24.0, "area": "Termini / Pinciano"},
+        {
+            "title": "מוזיאוני הקפיטולין והפנתאון (מקורה)",
+            "description": "שילוב מרתק של האוסף הציבורי העתיק בעולם בגבעת הקפיטולין לצד הכיפה האייקונית המקורה של הפנתאון.",
+            "cost_usd": 22.0,
+            "area": "Centro Storico",
+        },
+        {
+            "title": "גלריית בורגזה או שוק האוכל Mercato Centrale",
+            "description": "יצירות המופת של ברניני וקאראווג'ו במתחם מקורה מפואר, או טעימות קולינריות משוק האוכל המרכזי.",
+            "cost_usd": 24.0,
+            "area": "Termini / Pinciano",
+        },
     ],
     "paris": [
-        {"title": "מוזיאון אורסיי והאורנז'רי (מקורה)", "cost_usd": 20.0, "area": "Left Bank"},
-        {"title": "גלרי לפאייט ופאסאז'ים מקורים (Galeries Vivienne)", "cost_usd": 0.0, "area": "Opéra"},
+        {
+            "title": "מוזיאון אורסיי והאורנז'רי (מקורה)",
+            "description": "תחנת רכבת היסטורית מרשימה שהפכה לבית האימפרסיוניזם, ובה יצירות מונה, ואן גוך ודגה במתחם סגור ונעים.",
+            "cost_usd": 20.0,
+            "area": "Left Bank",
+        },
+        {
+            "title": "גלרי לפאייט ופאסאז'ים מקורים (Galeries Vivienne)",
+            "description": "שיטוט יבש וחמים בפאסאז'ים הזכוכיתיים מהמאה ה-19 וכיפת הארט-נובו המפורסמת של גלרי לפאייט.",
+            "cost_usd": 0.0,
+            "area": "Opéra",
+        },
     ],
     "london": [
-        {"title": "המוזיאון הבריטי וגלריית טייט מודרן (מקורה)", "cost_usd": 0.0, "area": "Bloomsbury / Bankside"},
-        {"title": "שוק Borough המקורה ומוזיאון ויקטוריה ואלברט", "cost_usd": 15.0, "area": "Southwark / Kensington"},
+        {
+            "title": "המוזיאון הבריטי וגלריית טייט מודרן (מקורה)",
+            "description": "כניסה חופשית לאוצרות תרבות עולמיים תחת תקרת הזכוכית של פוסטר ולאמנות עכשווית על גדת התמזה.",
+            "cost_usd": 0.0,
+            "area": "Bloomsbury / Bankside",
+        },
+        {
+            "title": "שוק Borough המקורה ומוזיאון ויקטוריה ואלברט",
+            "description": "טעימות משוק האוכל המקורה הוותיק בלונדון והצצה לאוספי אופנה, עיצוב ואדריכלות מהיפים בעולם.",
+            "cost_usd": 15.0,
+            "area": "Southwark / Kensington",
+        },
     ],
     "tokyo": [
-        {"title": "מוזיאון האמנות הדיגיטלית teamLab Borderless (מקורה)", "cost_usd": 28.0, "area": "Azabudai Hills"},
-        {"title": "קניון Shibuya Sky המקורה ואקווריום סומידה", "cost_usd": 20.0, "area": "Shibuya / Sumida"},
+        {
+            "title": "מוזיאון האמנות הדיגיטלית teamLab Borderless (מקורה)",
+            "description": "מתחם תצוגות אינטראקטיביות עצום ללא גבולות, מקרני אור ומראות מרהיבים המתאימים לכל מזג אוויר.",
+            "cost_usd": 28.0,
+            "area": "Azabudai Hills",
+        },
+        {
+            "title": "מתחם התצפית המקורה ואקווריום סומידה",
+            "description": "חוויית בילוי מקורה המשלבת מרכזי עיצוב יפניים ואקווריום מודרני.",
+            "cost_usd": 20.0,
+            "area": "Shibuya / Sumida",
+        },
     ],
 }
 
@@ -83,24 +123,28 @@ def _pick_replacement_activity(destination: str, trigger_type: str, constraint_n
     if trigger_type == "budget_cut":
         return {
             "title": f"סיור הליכה עצמאי ברובע ההיסטורי והשווקים של {destination} (חינמי)",
+            "description": f"חוויה מקומית אותנטית ללא עלות כניסה: הליכה רגלית בין הסמטאות, הכיכרות והשווקים התוססים של {destination}.",
             "cost_usd": 0.0,
             "area": "City Center",
         }
     if trigger_type == "kosher":
         return {
             "title": f"סיור קולינרי כשר וביקור בבית חב\"ד המרכזי ב{destination}",
+            "description": f"מסלול מותאם לשומרי כשרות ב{destination} הכולל היכרות עם המרכז היהודי, מאפיות כשרות ואווירה חמה.",
             "cost_usd": 18.0,
             "area": "Jewish Quarter / Center",
         }
     if trigger_type == "weather":
         return {
             "title": f"ביקור במוזיאון הלאומי ובמתחם הגלריות המקורה של {destination}",
+            "description": f"חלופה מקורה ונעימה ליום גשום או חם במיוחד ב{destination}, עם אוספי אמנות והיסטוריה מקומית.",
             "cost_usd": 16.0,
             "area": "Museum District",
         }
     note_suffix = f" ({constraint_note[:40]})" if constraint_note else ""
     return {
         "title": f"חלופה מותאמת אישית ב{destination}{note_suffix}",
+        "description": f"פעילות חלופית מעודכנת ב{destination} המותאמת במיוחד לבקשה שלך ({constraint_note or trigger_type}).",
         "cost_usd": 15.0,
         "area": "Central District",
     }
@@ -146,13 +190,25 @@ def apply_itinerary_swap(
     before_text = str(slot_obj.get("activity") or "פעילות מתוכננת")
     replacement = _pick_replacement_activity(destination, trigger_type, constraint_note)
     after_text = replacement["title"]
+    after_desc = replacement.get("description") or after_text
 
     slot_obj["activity"] = after_text
+    if slot_key == "afternoon":
+        slot_obj["activity_description"] = after_desc
+        slot_obj["activity_highlight"] = after_desc
+        slot_obj["activity_cost_usd"] = replacement.get("cost_usd", 0.0)
+        slot_obj["activity_what_to_see"] = []
+    else:
+        slot_obj["description"] = after_desc
+        slot_obj["highlight"] = after_desc
+        if slot_key == "morning":
+            slot_obj["cost_usd"] = replacement.get("cost_usd", 0.0)
+            slot_obj["what_to_see"] = []
     slot_obj["replan_reason"] = trigger_type
     if constraint_note:
         slot_obj["constraint_note"] = constraint_note
     day_obj[slot_key] = slot_obj
-    day_obj["local_tip"] = f"עודכן ע״י Re-Planner ({trigger_type}): {after_text}"
+    day_obj["local_tip"] = f"עודכן ע״י Co-Pilot ({trigger_type}): {after_text}"
     days[target_idx] = day_obj
     updated["structured_days"] = days
 

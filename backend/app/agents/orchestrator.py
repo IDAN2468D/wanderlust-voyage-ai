@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import asyncio
+import urllib.parse
 from typing import AsyncGenerator, Dict, Any, Optional, List
 from datetime import datetime, timedelta
 
@@ -188,9 +189,26 @@ def synthesize_deterministic_plan(
     )
     budget_report = json.loads(budget_raw)
 
+    # Pull Transit, Culinary/Kosher & Shopping context so each day has varied, detailed dining & evening plans
+    transit_raw = get_transit_guide(dest_clean, days)
+    transit_data = json.loads(transit_raw)
+
+    culinary_raw = get_culinary_guide(dest_clean, interests)
+    culinary_data = json.loads(culinary_raw)
+
+    shopping_raw = get_shopping_and_tax_free(dest_clean, estimated_shopping_budget_usd=350.0)
+    shopping_data = json.loads(shopping_raw)
+
     # 7. Construct Day-by-Day Itinerary Schedule
     structured_days: List[Dict[str, Any]] = []
     israeli_start_date = format_israeli_date(start_date)
+
+    nightlife_pool = culinary_data.get("nightlife_spots") or []
+    gourmet_pool = culinary_data.get("gourmet_dining") or []
+    kosher_pool = culinary_data.get("kosher_options") or []
+    secret_gems_pool = (events_data.get("culture_and_events") or {}).get("secret_gems") or []
+    sunset_pool = (events_data.get("culture_and_events") or {}).get("sunset_nightlife_spots") or []
+    neighborhood_areas = neighborhood_data.get("neighborhood_breakdown") or []
 
     for day_num in range(1, days + 1):
         idx1 = ((day_num - 1) * 2) % max(1, len(attractions_list))
@@ -199,22 +217,85 @@ def synthesize_deterministic_plan(
 
         att1 = attractions_list[idx1] if attractions_list else {
             "name": f"סיור אתרי מורשת ב{dest_clean}",
+            "category": "היסטוריה ותרבות",
+            "description": f"סיור היכרות מעמיק ברובע ההיסטורי של {dest_clean}, בין כיכרות מרשימות, שווקים צבעוניים ומבנים היסטוריים שמורים.",
             "highlight": "חקירת הסמטאות העתיקות והמבנים השמורים",
+            "what_to_see": [f"הכיכר המרכזית של {dest_clean}", "מבני האדריכלות ההיסטוריים", "דוכני אמנות וקפה מקומי"],
+            "visitor_tips": "התחילו את ההליכה בסביבות 09:00 לפני שהרחובות המרכזיים מתמלאים.",
+            "recommended_hours": 2.5,
+            "best_time": "בוקר (09:00–12:00)",
             "entry_fee_usd": 0.0,
+            "rating": 4.7,
             "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={dest_clean}",
         }
         att2 = attractions_list[idx2] if len(attractions_list) > 1 else {
             "name": f"תצפית שקיעה פנורמית ב{dest_clean}",
+            "category": "נוף ואווירה",
+            "description": f"הליכה נינוחה אל נקודת התצפית הגבוהה והמרשימה של {dest_clean} עם מבט של 360 מעלות על קו הרקיע והסביבה.",
             "highlight": "מראה עוצר נשימה על קו הרקיע",
+            "what_to_see": ["מרפסת התצפית המרכזית", "שדרת הפארק הסמוכה", "בתי הקפה מול הנוף"],
+            "visitor_tips": "הצטיידו במים ונעליים נוחות והגיעו כשעה לפני השקיעה לתאורה מושלמת.",
+            "recommended_hours": 2.0,
+            "best_time": "אחר הצהריים (15:00–17:30)",
             "entry_fee_usd": 5.0,
+            "rating": 4.8,
             "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={dest_clean}",
         }
         dining = restaurants_list[rest_idx] if restaurants_list else {
             "name": f"מסעדת ביסטרו מקומית ב{dest_clean}",
+            "cuisine_style": "מטבח מקומי",
+            "description": f"מסעדה מומלצת בלב {dest_clean} המגישה מנות טריות מהמטבח האזורי באווירה חמימה.",
             "signature_dish": "מנת השף המסורתית",
+            "atmosphere": "חמים ומזמין",
+            "booking_tip": "מומלץ להגיע סביב 12:30–13:00 או לשריין שולחן ערב קודם.",
+            "kosher_note": "ישנן מנות צמחוניות ודגים; מומלץ לוודא מרכיבים במקום.",
+            "price_tier": "$$",
+            "avg_cost_person_usd": 32.0,
+            "rating": 4.7,
             "neighborhood": "מרכז העיר",
             "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={dest_clean}",
         }
+
+        # Pick varied evening experience & dinner recommendation per day
+        area_info = neighborhood_areas[(day_num - 1) % len(neighborhood_areas)] if neighborhood_areas else {
+            "area": f"מרכז {dest_clean}",
+            "best_for": "מסעדות, סמטאות תוססות ובילויי ערב",
+        }
+        evening_dinner_pool = kosher_pool if kosher_only and kosher_pool else (gourmet_pool or restaurants_list)
+        evening_dinner = evening_dinner_pool[(day_num - 1) % len(evening_dinner_pool)] if evening_dinner_pool else dining
+        dinner_maps = evening_dinner.get("maps_url") or evening_dinner.get("google_maps_url")
+        dinner_dish = evening_dinner.get("specialty") or evening_dinner.get("signature_dish") or "מנת הדגל של השף"
+        dinner_desc = evening_dinner.get("description") or f"מוסד קולינרי אהוב ב{evening_dinner.get('neighborhood', area_info.get('area', dest_clean))}."
+
+        if day_num % 2 == 1 and nightlife_pool:
+            bar_spot = nightlife_pool[((day_num - 1) // 2) % len(nightlife_pool)]
+            evening_activity = f"בילוי ערב ושיטוט ב-{bar_spot['name']} ({bar_spot.get('neighborhood', area_info.get('area', dest_clean))})"
+            evening_highlight = bar_spot.get("vibe", "אווירת ערב תוססת וקוקטיילים מיוחדים")
+            evening_desc = bar_spot.get("description") or (
+                f"מתחילים בארוחת ערב מומלצת וממשיכים לערב באווירה מקומית ב-{bar_spot['name']} — {bar_spot.get('type', 'בר קוקטיילים')}."
+            )
+            evening_maps = bar_spot.get("maps_url")
+            evening_tip = bar_spot.get("entry_tip") or bar_spot.get("signature_drink") or "מומלץ להזמין שולחן מראש לשעות הערב."
+        elif secret_gems_pool:
+            gem = secret_gems_pool[(day_num - 1) % len(secret_gems_pool)]
+            evening_activity = f"שיטוט שקיעה ב{gem['name']} וארוחת ערב ב{area_info.get('area', dest_clean)}"
+            evening_highlight = gem.get("why_special", "נקודת שקיעה פנורמית ופינה שקטה הרחק מהמונים")
+            evening_desc = f"יציאה רגועה לקראת הדמדומים אל {gem['name']} ({gem.get('location', dest_clean)}) לספיגת האווירה והאורות, ולאחר מכן ארוחת ערב משובחת באזור {area_info.get('area', dest_clean)}."
+            evening_maps = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(str(gem.get('maps_query') or gem['name']))}"
+            evening_tip = f"האזור מצוין במיוחד עבור: {area_info.get('best_for', 'אווירת ערב קסומה')}."
+        elif sunset_pool:
+            s_spot = sunset_pool[(day_num - 1) % len(sunset_pool)]
+            evening_activity = f"שקיעה ואווירת לילה ב-{s_spot['name']} ({s_spot.get('neighborhood', dest_clean)})"
+            evening_highlight = s_spot.get("type", "צפייה בשקיעה ואפריטיבו מקומי")
+            evening_desc = f"סיום היום ב-{s_spot['name']} שבשכונת {s_spot.get('neighborhood', dest_clean)}, בשילוב נוף מרהיב וארוחת ערב רגועה."
+            evening_maps = dinner_maps
+            evening_tip = "הגיעו כ-40 דקות לפני השקיעה לתפיסת מקומות טובים."
+        else:
+            evening_activity = f"סיור ערב ברובע {area_info.get('area', dest_clean)}"
+            evening_highlight = f"הליכה בין רחובות מוארים המתאימים ל{area_info.get('best_for', 'בילויי ערב וקולינריה')}"
+            evening_desc = f"ערב רגוע ב{area_info.get('area', dest_clean)}: מתחילים בהליכה בין הרחובות והכיכרות המוארות ומסיימים בארוחת ערב עשירה וקינוח מקומי."
+            evening_maps = dinner_maps
+            evening_tip = culinary_data.get("reservation_tip", "מומלץ לשריין שולחן מראש למסעדות הערב.")
 
         # Calculate calendar date for this day
         try:
@@ -225,31 +306,75 @@ def synthesize_deterministic_plan(
 
         day_tip = neighborhood_data.get("local_tips", ["הקפידו לשתות מים מרובים"])[(day_num - 1) % max(1, len(neighborhood_data.get("local_tips", [1])))]
 
+        total_hours_day = round(float(att1.get("recommended_hours", 2.5)) + float(att2.get("recommended_hours", 2.0)), 1)
+        day_summary = (
+            f"יום שמוקדש לשילוב של {att1.get('category', 'תרבות')} וטעמים מקומיים: "
+            f"בבוקר נחקור לעומק את {att1['name']}, בצהריים נעצור לארוחה מומלצת ב-{dining['name']} ({dining.get('neighborhood', 'מרכז העיר')}), "
+            f"נמשיך אחר הצהריים ל-{att2['name']}, ונחתום את היום ב{area_info.get('area', dest_clean)}."
+        )
+        pacing_note = (
+            f"קצב מומלץ: כ-{total_hours_day} שעות סיור נטו | התניידות: "
+            f"{transit_data.get('pass_name', neighborhood_data.get('recommended_transit', 'תחבורה ציבורית והליכה רגלית'))}"
+        )
+
         structured_days.append({
             "day_number": day_num,
             "date_formatted": current_day_formatted,
             "title": f"יום {day_num}: {att1.get('category', 'תרבות וסיורים')} וקולינריה מקומית",
+            "summary": day_summary,
+            "pacing_note": pacing_note,
             "morning": {
                 "time": "09:00 - 12:30",
                 "activity": att1["name"],
+                "category": att1.get("category", "אתר תרבות וסיור"),
+                "description": att1.get("description") or att1.get("highlight", ""),
                 "highlight": att1.get("highlight", att1.get("description", "")),
+                "what_to_see": att1.get("what_to_see", []),
+                "visitor_tips": att1.get("visitor_tips", ""),
+                "recommended_hours": att1.get("recommended_hours", 2.5),
+                "best_time": att1.get("best_time", "שעות הבוקר"),
                 "cost_usd": att1.get("entry_fee_usd", 0.0),
                 "maps_url": att1.get("google_maps_url"),
                 "rating": att1.get("rating", 4.7),
             },
             "afternoon": {
-                "time": "13:00 - 16:30",
+                "time": "13:00 - 17:30",
                 "dining": dining["name"],
+                "dining_description": dining.get("description", ""),
+                "dining_cuisine": dining.get("cuisine_style", "מטבח מקומי"),
+                "dining_atmosphere": dining.get("atmosphere", ""),
+                "dining_price_tier": dining.get("price_tier", "$$"),
+                "dining_avg_cost_usd": dining.get("avg_cost_person_usd", 32.0),
+                "dining_rating": dining.get("rating", 4.7),
+                "dining_booking_tip": dining.get("booking_tip", ""),
+                "dining_kosher_note": dining.get("kosher_note", ""),
                 "signature_dish": dining.get("signature_dish", "מנות אותנטיות מומלצות"),
                 "neighborhood": dining.get("neighborhood", "מרכז העיר"),
                 "dining_maps_url": dining.get("google_maps_url"),
                 "activity": att2["name"],
+                "activity_category": att2.get("category", "אטרקציה ונוף"),
+                "activity_description": att2.get("description") or att2.get("highlight", ""),
+                "activity_highlight": att2.get("highlight", att2.get("description", "")),
+                "activity_what_to_see": att2.get("what_to_see", []),
+                "activity_visitor_tips": att2.get("visitor_tips", ""),
+                "activity_recommended_hours": att2.get("recommended_hours", 2.0),
+                "activity_best_time": att2.get("best_time", "שעות אחר הצהריים"),
+                "activity_cost_usd": att2.get("entry_fee_usd", 0.0),
+                "activity_rating": att2.get("rating", 4.7),
                 "activity_maps_url": att2.get("google_maps_url"),
             },
             "evening": {
-                "time": "18:00 - 21:30",
-                "activity": f"סיור ערב רגוע ושקיעה ב{dest_clean}",
-                "highlight": "שקיעה מרהיבה, קוקטייל או קינוח מקומי, וספיגת אווירת הלילה",
+                "time": "18:30 - 22:00",
+                "activity": evening_activity,
+                "description": evening_desc,
+                "highlight": evening_highlight,
+                "neighborhood": area_info.get("area", dest_clean),
+                "maps_url": evening_maps,
+                "dining_name": evening_dinner.get("name"),
+                "dining_description": dinner_desc,
+                "dining_dish": dinner_dish,
+                "dining_maps_url": dinner_maps,
+                "evening_tip": evening_tip,
             },
             "local_tip": day_tip,
         })
@@ -284,12 +409,35 @@ def synthesize_deterministic_plan(
     ]
 
     for day in structured_days:
+        m = day["morning"]
+        a = day["afternoon"]
+        e = day["evening"]
         md_lines.extend([
             f"### 📍 {day['title']} ({day['date_formatted']})",
-            f"- **🌅 בוקר ({day['morning']['time']})**: ביקור ב[{day['morning']['activity']}]({day['morning']['maps_url']}) (דמי כניסה: ${day['morning']['cost_usd']:.2f}, דירוג: {day['morning']['rating']}/5).",
-            f"  - *דגש מרכזי*: {day['morning']['highlight']}",
-            f"- **☀️ צהריים ({day['afternoon']['time']})**: ארוחת צהריים במסעדת [{day['afternoon']['dining']}]({day['afternoon']['dining_maps_url']}) ({day['afternoon']['neighborhood']}) - *מנת הדגל: {day['afternoon']['signature_dish']}*. המשך סיור ב[{day['afternoon']['activity']}]({day['afternoon']['activity_maps_url']}).",
-            f"- **🌙 ערב ({day['evening']['time']})**: {day['evening']['activity']} — {day['evening']['highlight']}.",
+            f"*{day['summary']}* ({day['pacing_note']})",
+            f"- **🌅 בוקר ({m['time']})**: ביקור ב[{m['activity']}]({m['maps_url']}) ({m.get('category', '')}, כ-{m.get('recommended_hours', 2.5)} שעות, דמי כניסה: ${m['cost_usd']:.2f}, דירוג: {m['rating']}/5).",
+            f"  - *הסבר מפורט*: {m.get('description') or m['highlight']}",
+            f"  - *דגש מרכזי*: {m['highlight']}",
+        ])
+        if m.get("what_to_see"):
+            md_lines.append(f"  - *מה לא לפספס*: {', '.join(m['what_to_see'])}")
+        if m.get("visitor_tips"):
+            md_lines.append(f"  - *טיפ למבקרים*: {m['visitor_tips']}")
+        md_lines.extend([
+            f"- **🍽️ ארוחת צהריים**: [{a['dining']}]({a['dining_maps_url']}) ({a['neighborhood']} • {a.get('dining_cuisine', '')}, רמת מחיר {a.get('dining_price_tier', '$$')}).",
+            f"  - *על המסעדה*: {a.get('dining_description', '')} | *מנת דגל*: {a['signature_dish']}.",
+        ])
+        if a.get("dining_booking_tip"):
+            md_lines.append(f"  - *טיפ הזמנה*: {a['dining_booking_tip']}")
+        md_lines.extend([
+            f"- **🏛️ אחר הצהריים ({a['time']})**: המשך סיור ב[{a['activity']}]({a['activity_maps_url']}) ({a.get('activity_category', '')}, דמי כניסה: ${a.get('activity_cost_usd', 0.0):.2f}).",
+            f"  - *הסבר מפורט*: {a.get('activity_description') or a.get('activity_highlight', '')}",
+        ])
+        if a.get("activity_what_to_see"):
+            md_lines.append(f"  - *נקודות מרכזיות*: {', '.join(a['activity_what_to_see'])}")
+        md_lines.extend([
+            f"- **🌙 ערב ({e['time']})**: {e['activity']} — {e.get('description') or e['highlight']}",
+            f"  - *המלצת ערב / מסעדה*: {e.get('dining_name', '')} ({e.get('dining_dish', '')}). {e.get('evening_tip', '')}",
             f"- **💡 טיפ מקומי**: {day['local_tip']}\n",
         ])
 
@@ -338,15 +486,7 @@ def synthesize_deterministic_plan(
     for rec in budget_report.get("recommendations", []):
         md_lines.append(f"- {rec}")
 
-    # 8. Specialized Agents: Transit, Culinary/Kosher, Shopping/Tax-Free, Calendar, Sentinel, Briefings
-    transit_raw = get_transit_guide(dest_clean, days)
-    transit_data = json.loads(transit_raw)
-
-    culinary_raw = get_culinary_guide(dest_clean, interests)
-    culinary_data = json.loads(culinary_raw)
-
-    shopping_raw = get_shopping_and_tax_free(dest_clean, estimated_shopping_budget_usd=350.0)
-    shopping_data = json.loads(shopping_raw)
+    # 8. Specialized Calendar, Sentinel & Briefings Agents (using enriched structured_days)
 
     calendar_data = generate_trip_calendar_pack(
         dest_clean,
