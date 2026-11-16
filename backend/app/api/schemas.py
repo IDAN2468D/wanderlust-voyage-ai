@@ -670,3 +670,30 @@ class PulseActionExecuteRequest(BaseModel):
     context: Optional[Dict[str, Any]] = None
 
 
+# ==============================================================================
+# Sprint 11 (V11.0): Elasticsearch 8 Hybrid Search Schemas
+# ==============================================================================
+
+class GeoFilterQuery(BaseModel):
+    anchor_id: Optional[str] = Field(default=None, description="Named landmark anchor e.g. paris_eiffel, santorini_oia")
+    lat: Optional[float] = Field(default=None, ge=-90.0, le=90.0)
+    lon: Optional[float] = Field(default=None, ge=-180.0, le=180.0)
+    radius_km: float = Field(default=25.0, gt=0.1, le=2000.0)
+
+
+class ElasticVacationSearchRequest(BaseModel):
+    query: str = Field(default="", max_length=300)
+    vibe_tags: Optional[List[str]] = None
+    min_price_ils: Optional[float] = Field(default=None, ge=0, le=200000)
+    max_price_ils: Optional[float] = Field(default=None, ge=100, le=200000)
+    min_stars: Optional[int] = Field(default=None, ge=1, le=5)
+    shabbat_only: bool = Field(default=False)
+    weather_badge: Optional[str] = Field(default=None)
+    geo_filter: Optional[GeoFilterQuery] = None
+    limit: int = Field(default=8, ge=1, le=24)
+    use_hybrid_rrf: bool = Field(default=True)
+    sort_by: str = Field(default="rrf", description="rrf | price_asc | distance")
+
+
+class ElasticReindexRequest(BaseModel):
+    force_reindex: bool = Field(default=False)

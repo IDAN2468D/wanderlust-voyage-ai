@@ -216,7 +216,7 @@ def test_pulse_negotiator_ops_metrics_plan_and_mcp():
 
     metrics = client.get("/api/v1/ops/metrics")
     assert metrics.status_code == 200
-    assert metrics.json()["agents_registered"] == 31
+    assert metrics.json()["agents_registered"] == 32
 
     future_date = (date.today() + timedelta(days=25)).isoformat()
     plan_resp = client.post(

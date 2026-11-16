@@ -58,3 +58,9 @@
 - [x] Build Zod validator suite (`frontend/lib/validators/trackHSchemas.ts`), Next.js proxy (`frontend/app/api/track-h/route.ts`), modular `<= 200 LOC` Liquid Glass RTL components, and `/discover` hub
 - [x] Write comprehensive pytest unit + API + MCP tests and verify `pytest`, `verify_agent_suite.py`, `npx tsc --noEmit`, `npm run build`, and `<= 200 LOC` guardrails
 
+## Sprint 11 (V11.0): Elasticsearch 8 Hybrid Vacation Search & Agent #32 (`ElasticVacationSearchAgent`)
+- [x] Update Spec-First 5-Layer docs (`PRD.md`, `SPEC.md`, `PLAN.md`, `agents.json`, `Skills/elastic-vacation-search/SKILL.md`)
+- [x] Implement `elasticsearch_catalog.py` (768d embedder + `wanderlust_vacations_v1` mapping + geo coordinates) & `elasticsearch_vacation_tools.py` (`AsyncElasticsearch` + In-Memory BM25/kNN RRF fallback)
+- [x] Expose FastAPI `/api/v1/search/vacations*`, MCP tool `search_vacations_elasticsearch`, & Docker Compose ES 8.15 service
+- [x] Build Zod schemas (`searchSchemas.ts`), Next.js proxy (`/api/elastic-search`), and `ElasticVacationSearchModal.tsx` (`<= 200 LOC`)
+- [x] Verify full pytest suite, `verify_agent_suite.py` (32 agents), `tsc --noEmit`, `next build`, and CI pipeline

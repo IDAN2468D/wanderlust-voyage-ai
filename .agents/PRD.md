@@ -66,3 +66,17 @@ Sprint 10 brings the four leading 2026 Agentic Commerce breakthroughs into Wande
 - **Modular UI Cap**: Every new React/Next.js Track H component and route file is strictly `<= 200 LOC`.
 - **BiDi & Israeli Locale**: Full RTL (`dir="rtl"`) and LTR (`dir="ltr"`) support, `DD/MM/YYYY` dates, and `ILS (₪)` / `USD ($)` / `EUR (€)` parity.
 
+---
+
+## 8. Sprint 11 (V11.0): Elasticsearch 8 Hybrid Vacation Search Engine & 32-Agent Swarm
+
+- **Release Target:** `V11.0 (Sprint 11 — 32-Agent Travel Swarm)`
+- **Document ID:** `PRD-2026-V11-ELASTICSEARCH-HYBRID`
+- **Design System:** `Liquid Glass 4.0 Pro RTL` (`<= 200 LOC` modular UI components)
+
+### 8.1 Capabilities & Product Requirements
+1. **Hybrid BM25 + 768d kNN Vector Search (`POST /api/v1/search/vacations`)**: Combines lexical keyword & typo-tolerant (`fuzziness: AUTO`) BM25 scoring with 768-dimensional semantic vectors (`gemini-embedding-001` / bilingual 768d projection) via **Reciprocal Rank Fusion (RRF)**.
+2. **Sub-15ms Edge N-Gram Instant Autocomplete (`GET /api/v1/search/vacations/autocomplete`)**: Prefix + fuzzy autocomplete across Hebrew/English destinations, airports (`TLV`, `CDG`, `JTR`, `FCO`, `HND`), and trip titles.
+3. **Real-Time Faceted Aggregations**: Live counts (`vibe_tags`, `price_ils` ranges, `star_rating`, `weather_badge`, price `stats`).
+4. **Geo-Point Proximity & Radius Filtering (`geo_point`)**: Filter & rank results within `radius_km` of iconic landmarks (`Paris Eiffel`, `Rome Colosseum`, `Tokyo Shibuya`, `Santorini Oia`, `Jerusalem Kotel`) or custom `(lat, lon)`.
+5. **Agent #32 (`ElasticVacationSearchAgent`) + MCP Tool + Zero-Downtime Fallback**: Seamless `AsyncElasticsearch` execution against Elasticsearch 8.15 with deterministic **In-Memory Hybrid Fallback** when Elasticsearch container is offline.

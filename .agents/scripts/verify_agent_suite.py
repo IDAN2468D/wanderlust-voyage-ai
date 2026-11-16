@@ -19,6 +19,7 @@ required = [
     'Skills/proactive-interests-scout/SKILL.md',
     'Skills/vision-trip-lookbook/SKILL.md',
     'Skills/price-protection-guard/SKILL.md',
+    'Skills/elastic-vacation-search/SKILL.md',
     'state/task.md', 'state/SPRINTS.md', 'state/ARCHITECTURE_STATE.md'
 ]
 base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,8 +30,8 @@ if missing:
 with open(os.path.join(base, 'agents.json'), 'r', encoding='utf-8') as fp:
     data = json.load(fp)
 agents = data.get('agents', [])
-if len(agents) < 31:
-    print(f"Expected >= 31 agents, found {len(agents)}")
+if len(agents) < 32:
+    print(f"Expected >= 32 agents, found {len(agents)}")
     exit(1)
 print(f"All agent suite files verified ({len(agents)} agents registered).")
 

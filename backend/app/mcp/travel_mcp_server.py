@@ -216,5 +216,29 @@ def scan_booking_price_drops(
     )
 
 
+@mcp.tool()
+async def search_vacations_elasticsearch(
+    query: str,
+    max_price_ils: float = 10000.0,
+    vibe_tags: Optional[str] = None,
+    shabbat_only: bool = False,
+    limit: int = 6,
+) -> str:
+    """Hybrid BM25 + 768d kNN Elasticsearch 8 vacation search with RRF ranking, facets, and geo distance."""
+    import json
+    from app.tools.elasticsearch_vacation_tools import get_elastic_search_engine
+
+    parsed_vibes = [v.strip().upper() for v in vibe_tags.split(",") if v.strip()] if vibe_tags else None
+    engine = get_elastic_search_engine()
+    res = await engine.hybrid_search(
+        query=query,
+        vibe_tags=parsed_vibes,
+        max_price_ils=max_price_ils,
+        shabbat_only=shabbat_only,
+        limit=limit,
+    )
+    return json.dumps(res, ensure_ascii=False)
+
+
 if __name__ == "__main__":
     mcp.run()

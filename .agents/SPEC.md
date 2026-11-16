@@ -159,3 +159,28 @@
 - `decompose_travel_screenshot(scene_type, travelers, budget_ceiling_ils, image_source_url)`
 - `scan_booking_price_drops(user_id, booking_ref, paid_amount_ils, destination, vip_tier)`
 
+---
+
+## 9. Sprint 11 (V11.0) Technical Spec: Elasticsearch 8 Hybrid Search (`wanderlust_vacations_v1`)
+
+### 9.1 Index Mapping (`wanderlust_vacations_v1`)
+- `package_id` (`keyword`) — Unique package SKU identifier (e.g. `PKG-PARIS-EIFFEL-LUX`)
+- `destination_he` / `destination_en` (`text` + `search_as_you_type` + `completion`) — Hebrew & English destination names
+- `vibe_tags` (`keyword`) — `ROMANTIC`, `CULINARY`, `SNOW_ALPINE`, `BEACH_LUXURY`, `KOSHER_FRIENDLY`, `FAMILY`, `WELLNESS_SPA`, `URBAN_CULTURE`
+- `price_ils` (`scaled_float`, `scaling_factor: 100`) — Package price in ILS (`₪`)
+- `coordinates` (`geo_point`) — Latitude / longitude for `geo_distance` radius & proximity scoring
+- `embedding` (`dense_vector`, `dims: 768`, `index: true`, `similarity: "cosine"`) — 768d semantic vector
+- `star_rating` (`integer`), `weather_badge` (`keyword`), `shabbat_friendly` (`boolean`), `iata_code` (`keyword`)
+
+### 9.2 FastAPI Endpoints (`backend/app/api/track_h_routes.py`)
+- `POST /api/v1/search/vacations` — Hybrid BM25 + 768d kNN search fused via RRF (`k=60`), real-time facet aggregations, and `geo_point` radius filter/sort
+- `GET /api/v1/search/vacations/autocomplete?q=...&limit=8` — Instant Edge N-Gram & prefix autocomplete with latency metric (`took_ms`)
+- `GET /api/v1/search/vacations/status` — Cluster/engine status (`elasticsearch_8` vs `in_memory_hybrid_768d`), indexed docs count, and `embedding_dims: 768`
+- `POST /api/v1/search/vacations/reindex` — Idempotent index creation (`wanderlust_vacations_v1`) & bulk seed indexing
+
+### 9.3 Frontend Modular Files (`<= 200 LOC` per File) + MCP
+- `frontend/lib/validators/searchSchemas.ts` — Zod validation contracts
+- `frontend/app/api/elastic-search/route.ts` — Next.js App Router proxy + offline hybrid fallback
+- `frontend/components/track-h/elasticSearchTypes.ts` — Types, geo-point landmark anchors & client fallback
+- `frontend/components/track-h/ElasticVacationSearchModal.tsx` (`<= 195 LOC`) — Liquid Glass 4.0 Pro RTL Hybrid Search & Facets UI
+- MCP Tool (`backend/app/mcp/travel_mcp_server.py`): `search_vacations_elasticsearch(query, max_price_ils, vibe_tags, shabbat_only, limit)`
