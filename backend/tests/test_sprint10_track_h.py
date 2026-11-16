@@ -295,3 +295,119 @@ def test_screenshot_decompose_dynamic_paris_url_overrides_preset():
     assert uploaded["destination"] == "London"
     assert uploaded["is_dynamic_detection"] is True
     assert uploaded["image_url"].startswith("data:image/png;base64,")
+
+
+def _build_minimal_jpeg_with_gps(lat_deg: int, lat_min: int, lon_deg: int, lon_min: int) -> bytes:
+    import struct
+
+    # Build a minimal little-endian TIFF header + IFD0 (tag 0x8825 -> GPS IFD) + GPS IFD (Rome by default)
+    ifd0_offset = 8
+    gps_ifd_offset = ifd0_offset + 2 + 12 + 4
+    gps_data_offset = gps_ifd_offset + 2 + 4 * 12 + 4
+    # 3 rationals (24 bytes) for lat + 3 rationals (24 bytes) for lon
+    lat_data_off = gps_data_offset
+    lon_data_off = gps_data_offset + 24
+
+    tiff = bytearray()
+    tiff += b"II" + struct.pack("<HI", 42, ifd0_offset)
+    # IFD0: 1 entry -> tag 0x8825 (LONG, count 1, offset gps_ifd_offset)
+    tiff += struct.pack("<H", 1)
+    tiff += struct.pack("<HHII", 0x8825, 4, 1, gps_ifd_offset)
+    tiff += struct.pack("<I", 0)
+    # GPS IFD: 4 entries (LatRef, Lat, LonRef, Lon)
+    tiff += struct.pack("<H", 4)
+    tiff += struct.pack("<HHII", 1, 2, 2, int.from_bytes(b"N\x00\x00\x00", "little"))
+    tiff += struct.pack("<HHII", 2, 5, 3, lat_data_off)
+    tiff += struct.pack("<HHII", 3, 2, 2, int.from_bytes(b"E\x00\x00\x00", "little"))
+    tiff += struct.pack("<HHII", 4, 5, 3, lon_data_off)
+    tiff += struct.pack("<I", 0)
+    # Lat rationals & Lon rationals
+    tiff += struct.pack("<IIIIII", lat_deg, 1, lat_min, 1, 0, 1)
+    tiff += struct.pack("<IIIIII", lon_deg, 1, lon_min, 1, 0, 1)
+
+    exif_payload = b"Exif\x00\x00" + bytes(tiff)
+    app1 = b"\xff\xe1" + struct.pack(">H", len(exif_payload) + 2) + exif_payload
+    return b"\xff\xd8" + app1 + b"\xff\xd9"
+
+
+def test_vision_unidentified_upload_exif_gps_and_url_pixel_fetch(monkeypatch):
+    import base64
+    from types import SimpleNamespace
+    from app.tools import vision_image_utils, vision_trip_tools
+
+    # 1. Generic pasted screenshot without Gemini key must ask for hint instead of faking Paris
+    monkeypatch.setattr(vision_trip_tools.settings, "GEMINI_API_KEY", "")
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    tiny_png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+    unid_resp = client.post(
+        "/api/v1/vision-trip/decompose-screenshot",
+        json={"scene_type": "SANTORINI_CLIFFSIDE", "image_base64": tiny_png, "file_name": "pasted-screenshot.png"},
+    )
+    assert unid_resp.status_code == 200
+    unid = unid_resp.json()
+    assert unid["needs_visual_hint"] is True
+    assert unid["detection_source"] == "unidentified_upload"
+    assert "pasted" not in unid["destination"].lower()
+
+    # 2. JPEG photo with Rome GPS EXIF coordinates detects Rome automatically even offline
+    rome_jpeg = _build_minimal_jpeg_with_gps(41, 54, 12, 29)
+    rome_b64 = "data:image/jpeg;base64," + base64.b64encode(rome_jpeg).decode()
+    gps_resp = client.post(
+        "/api/v1/vision-trip/decompose-screenshot",
+        json={"scene_type": "SANTORINI_CLIFFSIDE", "image_base64": rome_b64, "file_name": "IMG_4022.jpg"},
+    )
+    assert gps_resp.status_code == 200
+    gps_data = gps_resp.json()
+    assert gps_data["destination"] == "Rome"
+    assert gps_data["detection_source"] == "exif_gps"
+    assert gps_data["needs_visual_hint"] is False
+
+    # 3. Opaque external URL without city keywords fetches image bytes & sends them to Gemini Vision
+    captured_parts = {}
+
+    class _FakeModels:
+        def generate_content(self, *, model, contents, config=None):
+            captured_parts["contents"] = contents
+            return SimpleNamespace(
+                text=json.dumps({
+                    "recognized": True,
+                    "confidence": 0.96,
+                    "destination": "Amsterdam",
+                    "destination_label_he": "אמסטרדם — תעלות יורדאן",
+                    "landmark_detected_he": "תעלות אמסטרדם ובתים היסטוריים צרים",
+                    "country": "הולנד",
+                    "iata_code": "AMS",
+                    "vibe_title": "אמסטרדם הקלאסית מול התעלות",
+                })
+            )
+
+    class _FakeClient:
+        def __init__(self, api_key=None):
+            self.models = _FakeModels()
+
+    monkeypatch.setenv("ALLOW_PYTEST_GEMINI_VISION", "1")
+    monkeypatch.setenv("ALLOW_PYTEST_IMAGE_FETCH", "1")
+    monkeypatch.setattr(vision_trip_tools.settings, "GEMINI_API_KEY", "test-gemini-key")
+    monkeypatch.setattr(
+        vision_trip_tools,
+        "fetch_image_from_url",
+        lambda url: (b"\x89PNG\r\n\x1a\n" + b"0" * 64, "image/png", None),
+    )
+    import google.genai as real_genai
+    monkeypatch.setattr(real_genai, "Client", _FakeClient)
+    vision_trip_tools._VISION_CACHE.clear()
+
+    opaque_url = "https://cdn.example.com/uploads/img_9948271.png"
+    ai_resp = client.post(
+        "/api/v1/vision-trip/decompose-screenshot",
+        json={"scene_type": "SANTORINI_CLIFFSIDE", "image_source_url": opaque_url},
+    )
+    assert ai_resp.status_code == 200
+    ai_data = ai_resp.json()
+    assert ai_data["destination"] == "Amsterdam"
+    assert ai_data["detection_source"] == "gemini_vision"
+    assert ai_data["landmark_detected_he"] == "תעלות אמסטרדם ובתים היסטוריים צרים"
+    assert ai_data["iata_code"] == "AMS"
+    assert len(captured_parts["contents"]) >= 2
+    assert vision_image_utils.clean_upload_filename_hint("WhatsApp Image 2026-11-16 at 10.12.00.jpeg") is None
