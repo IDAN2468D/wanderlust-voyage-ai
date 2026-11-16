@@ -1,5 +1,5 @@
 {
-  "version": "10.0.0",
+  "version": "11.0.0",
   "project": "wanderlust-voyage-ai",
   "agents": [
     {
@@ -217,6 +217,14 @@
       "name": "bundle-deal-negotiator-specialist",
       "description": "Negotiates multi-SKU Flight + Hotel + eSIM/Transfer bundle discounts within budget and margin guardrails.",
       "tool_module": "backend.app.tools.pulse_negotiator_tools"
+    },
+    {
+      "name": "elastic-vacation-search-specialist",
+      "description": "Executes Elasticsearch 8 Hybrid BM25 + 768d kNN RRF search, sub-15ms Edge N-Gram autocomplete, real-time faceted aggregations, and geo_point proximity ranking with automatic in-memory fallback.",
+      "tool_module": "backend.app.tools.elasticsearch_vacation_tools",
+      "skills": [
+        "elastic-vacation-search"
+      ]
     }
   ]
 }

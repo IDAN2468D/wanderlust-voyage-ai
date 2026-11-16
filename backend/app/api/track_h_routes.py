@@ -11,6 +11,8 @@ from app.api.schemas import (
     AcpTokenDelegateRequest,
     BundleNegotiateRequest,
     CreateInterestWatcherRequest,
+    ElasticReindexRequest,
+    ElasticVacationSearchRequest,
     FitAssessmentRequest,
     PriceProtectionRegisterRequest,
     PriceProtectionScanRequest,
@@ -23,6 +25,7 @@ from app.tools.acp_gateway_tools import (
     issue_delegated_spend_token,
     list_acp_sessions,
 )
+from app.tools.elasticsearch_vacation_tools import get_elastic_search_engine
 from app.tools.interests_scout_tools import (
     create_interest_watcher,
     delete_interest_watcher,
@@ -214,6 +217,43 @@ async def negotiate_bundle_endpoint(payload: BundleNegotiateRequest):
         components=payload.components,
         loyalty_tier=payload.loyalty_tier,
         target_discount_pct=payload.target_discount_pct,
+    )
+
+
+# 6. Sprint 11 (V11.0): Elasticsearch 8 Hybrid Search (BM25 + 768d kNN + RRF + Geo + Facets)
+@track_h_core_router.get("/search/vacations/status", status_code=200)
+async def elasticsearch_status_endpoint():
+    return await get_elastic_search_engine().get_status()
+
+
+@track_h_core_router.post("/search/vacations/reindex", status_code=200)
+async def elasticsearch_reindex_endpoint(payload: ElasticReindexRequest):
+    return await get_elastic_search_engine().ensure_index_and_seed(force_reindex=payload.force_reindex)
+
+
+@track_h_core_router.get("/search/vacations/autocomplete", status_code=200)
+async def elasticsearch_autocomplete_endpoint(
+    q: str = Query(default="", max_length=120),
+    limit: int = Query(default=8, ge=1, le=20),
+):
+    return await get_elastic_search_engine().autocomplete(q=q, limit=limit)
+
+
+@track_h_core_router.post("/search/vacations", status_code=200)
+async def elasticsearch_hybrid_search_endpoint(payload: ElasticVacationSearchRequest):
+    geo_dict = payload.geo_filter.model_dump() if payload.geo_filter else None
+    return await get_elastic_search_engine().hybrid_search(
+        query=payload.query,
+        vibe_tags=payload.vibe_tags,
+        min_price_ils=payload.min_price_ils,
+        max_price_ils=payload.max_price_ils,
+        min_stars=payload.min_stars,
+        shabbat_only=payload.shabbat_only,
+        weather_badge=payload.weather_badge,
+        geo_filter=geo_dict,
+        limit=payload.limit,
+        use_hybrid_rrf=payload.use_hybrid_rrf,
+        sort_by=payload.sort_by,
     )
 
 

@@ -13,3 +13,6 @@
 
 ## Sprint 10: V10.0 Track H — Autonomous Agentic Travel Commerce & 31-Agent Swarm (Completed)
 - ACP/UCP Delegated Checkout Gateway, Proactive Interests Radar, Screenshot-to-Trip Vision Match, Post-Booking Price Drop Guard, Sidekick Pulse & Bundle Negotiator.
+
+## Sprint 11: V11.0 — Elasticsearch 8 Hybrid Vacation Search & 32-Agent Swarm (Completed)
+- Elasticsearch 8.15 `wanderlust_vacations_v1` index (`BM25 + 768d dense_vector kNN + RRF`), `<15ms` Edge N-Gram autocomplete, live faceted aggregations, `geo_point` radius ranking, Agent #32 (`ElasticVacationSearchAgent`), MCP tool, and Next.js 15 Liquid Glass modal.

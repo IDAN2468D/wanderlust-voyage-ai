@@ -31,6 +31,17 @@ class Settings(BaseSettings):
         description="Use Gemini text-embedding-004 for live RAG vectors when GEMINI_API_KEY is active",
     )
 
+    # Elasticsearch 8 Hybrid Search (V11.0 - Agent #32)
+    ELASTICSEARCH_URL: str = Field(
+        default="",
+        description="Elasticsearch 8.x endpoint URL (optional; falls back to in-memory 768d hybrid engine)",
+    )
+    ELASTICSEARCH_INDEX: str = Field(
+        default="wanderlust_vacations_v1",
+        description="Elasticsearch vacation hybrid index name",
+    )
+    ELASTICSEARCH_API_KEY: str = Field(default="", description="Optional Elasticsearch API Key")
+
     # JWT Authentication
     JWT_SECRET_KEY: str = Field(
         default="travel-planner-super-secret-jwt-key-minimum-32-chars-xyz123",

@@ -13,3 +13,4 @@
 - [x] Implement backend Track H ORM models, 5 tool modules, FastAPI routes, orchestrator SSE stage & MCP tools
 - [x] Implement frontend Zod schemas, `/api/track-h` proxy, `/discover` hub & modular `<= 200 LOC` Liquid Glass RTL components
 - [x] Pass full backend pytest suite, `verify_agent_suite.py`, `tsc --noEmit`, and `next build`
+- [x] Sprint 11 (V11.0): Add Elasticsearch 8 Hybrid BM25 + 768d kNN search engine, `ElasticVacationSearchAgent` (#32), MCP tool, Next.js UI modal, & full tests

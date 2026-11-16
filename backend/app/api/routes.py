@@ -1397,7 +1397,7 @@ async def ops_metrics_endpoint(db: Session = Depends(get_db)):
 
     return {
         "db_backend": get_active_db_backend(),
-        "agents_registered": 31,
+        "agents_registered": 32,
         "cached_sessions": len(_SESSION_PLANS),
         "saved_trips_count": db.query(SavedTripModel).count(),
         "bookings_count": db.query(BookingModel).count(),
