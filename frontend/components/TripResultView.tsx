@@ -61,10 +61,18 @@ interface DaySchedule {
   day_number: number;
   date_formatted: string;
   title: string;
+  summary?: string;
+  pacing_note?: string;
   morning: {
     time: string;
     activity: string;
+    category?: string;
+    description?: string;
     highlight: string;
+    what_to_see?: string[];
+    visitor_tips?: string;
+    recommended_hours?: number;
+    best_time?: string;
     cost_usd: number;
     maps_url?: string;
     rating?: number;
@@ -72,16 +80,41 @@ interface DaySchedule {
   afternoon: {
     time: string;
     dining: string;
+    dining_description?: string;
+    dining_cuisine?: string;
+    dining_atmosphere?: string;
+    dining_price_tier?: string;
+    dining_avg_cost_usd?: number;
+    dining_rating?: number;
+    dining_booking_tip?: string;
+    dining_kosher_note?: string;
     signature_dish: string;
     neighborhood: string;
     dining_maps_url?: string;
     activity: string;
+    activity_category?: string;
+    activity_description?: string;
+    activity_highlight?: string;
+    activity_what_to_see?: string[];
+    activity_visitor_tips?: string;
+    activity_recommended_hours?: number;
+    activity_best_time?: string;
+    activity_cost_usd?: number;
+    activity_rating?: number;
     activity_maps_url?: string;
   };
   evening: {
     time: string;
     activity: string;
+    description?: string;
     highlight: string;
+    neighborhood?: string;
+    maps_url?: string;
+    dining_name?: string;
+    dining_description?: string;
+    dining_dish?: string;
+    dining_maps_url?: string;
+    evening_tip?: string;
   };
   local_tip: string;
 }
@@ -1111,10 +1144,37 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                       {/* Day Details */}
                       {isOpen && (
                         <div className="p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 border-t border-white/5 text-xs">
-                          {/* Morning */}
-                          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
+                          {/* Day Overview & Pacing Banner */}
+                          {(day.summary || day.pacing_note) && (
+                            <div className="p-3.5 rounded-xl bg-gradient-to-r from-mint-500/10 via-sky-500/5 to-transparent border border-mint-400/20 space-y-1.5">
+                              {day.summary && (
+                                <p className="text-slate-100 leading-relaxed font-medium">{day.summary}</p>
+                              )}
+                              {day.pacing_note && (
+                                <div className="text-[11px] text-mint-300/90 flex items-center gap-1.5">
+                                  <Compass className="w-3.5 h-3.5 shrink-0" />
+                                  <span>{day.pacing_note}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Morning Attraction */}
+                          <div className="p-4 rounded-xl bg-white/[0.025] border border-white/10 space-y-2.5">
                             <div className="flex flex-wrap items-center justify-between gap-2 text-mint-300 font-bold">
-                              <span>🌅 בוקר ({day.morning.time})</span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>🌅 בוקר ({day.morning.time})</span>
+                                {day.morning.category && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-mint-500/15 text-mint-200 border border-mint-400/25 font-medium">
+                                    {day.morning.category}
+                                  </span>
+                                )}
+                                {day.morning.recommended_hours && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10 font-medium">
+                                    ⏱️ כ-{day.morning.recommended_hours} שעות
+                                  </span>
+                                )}
+                              </div>
                               {day.morning.maps_url && (
                                 <a
                                   href={day.morning.maps_url}
@@ -1127,42 +1187,270 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                                 </a>
                               )}
                             </div>
-                            <div className="font-semibold text-white text-sm">{day.morning.activity}</div>
-                            <p className="text-slate-300 leading-relaxed">{day.morning.highlight}</p>
-                            <div className="text-[10px] text-slate-400">
-                              עלות כניסה: ${day.morning.cost_usd} USD {day.morning.rating && `| דירוג מטיילים: ★ ${day.morning.rating}/5.0`}
+
+                            <div className="font-bold text-white text-sm">{day.morning.activity}</div>
+
+                            {day.morning.description && day.morning.description !== day.morning.highlight ? (
+                              <p className="text-slate-200 leading-relaxed">{day.morning.description}</p>
+                            ) : null}
+
+                            <div className="p-2.5 rounded-lg bg-mint-500/10 border border-mint-400/20 text-mint-100 leading-relaxed">
+                              <span className="font-bold text-mint-300">✨ גולת הכותרת: </span>
+                              {day.morning.highlight}
+                            </div>
+
+                            {day.morning.what_to_see && day.morning.what_to_see.length > 0 && (
+                              <div className="space-y-1 pt-0.5">
+                                <div className="text-[11px] font-bold text-slate-300">מה לא לפספס במקום:</div>
+                                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-300">
+                                  {day.morning.what_to_see.map((spot, idx) => (
+                                    <li key={idx} className="flex items-start gap-1.5">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-mint-400 shrink-0 mt-0.5" />
+                                      <span>{spot}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {day.morning.visitor_tips && (
+                              <div className="p-2.5 rounded-lg bg-black/40 border border-white/10 text-[11px] text-slate-300 flex items-start gap-2">
+                                <Info className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
+                                <span><strong className="text-sky-300">טיפ למבקרים:</strong> {day.morning.visitor_tips}</span>
+                              </div>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 border-t border-white/5">
+                              <span>
+                                עלות כניסה: {day.morning.cost_usd > 0 ? `$${day.morning.cost_usd} USD` : "כניסה חינם"}
+                              </span>
+                              {day.morning.rating && <span>• דירוג מטיילים: ★ {day.morning.rating}/5.0</span>}
+                              {day.morning.best_time && <span>• שעה מומלצת: {day.morning.best_time}</span>}
                             </div>
                           </div>
 
-                          {/* Afternoon */}
-                          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-amber-300 font-bold">
-                              <span>☀️ צהריים ({day.afternoon.time})</span>
-                              {day.afternoon.dining_maps_url && (
+                          {/* Afternoon: Split Lunch Dining + Afternoon Attraction */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            {/* Lunch Restaurant Card */}
+                            <div className="p-4 rounded-xl bg-amber-500/[0.04] border border-amber-400/20 space-y-2.5 flex flex-col justify-between">
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-amber-300 font-bold">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <Utensils className="w-3.5 h-3.5" />
+                                    <span>ארוחת צהריים</span>
+                                    {day.afternoon.dining_price_tier && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-400/25">
+                                        {day.afternoon.dining_price_tier}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {day.afternoon.dining_maps_url && (
+                                    <a
+                                      href={day.afternoon.dining_maps_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] text-amber-400 hover:underline flex items-center gap-1"
+                                    >
+                                      <MapPin className="w-3 h-3" />
+                                      <span>למסעדה במפה</span>
+                                    </a>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <div className="font-bold text-white text-sm">{day.afternoon.dining}</div>
+                                  <div className="text-[11px] text-amber-200/80">
+                                    {day.afternoon.neighborhood}
+                                    {day.afternoon.dining_cuisine && ` • ${day.afternoon.dining_cuisine}`}
+                                  </div>
+                                </div>
+
+                                {day.afternoon.dining_description && (
+                                  <p className="text-slate-200 leading-relaxed">{day.afternoon.dining_description}</p>
+                                )}
+
+                                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-400/20 text-amber-100 leading-relaxed">
+                                  <span className="font-bold text-amber-300">🍝 מנת הדגל: </span>
+                                  {day.afternoon.signature_dish}
+                                </div>
+
+                                {day.afternoon.dining_atmosphere && (
+                                  <div className="text-[11px] text-slate-300">
+                                    <strong className="text-slate-200">אווירה:</strong> {day.afternoon.dining_atmosphere}
+                                  </div>
+                                )}
+
+                                {day.afternoon.dining_booking_tip && (
+                                  <div className="p-2 rounded-lg bg-black/40 border border-white/10 text-[11px] text-slate-300">
+                                    <strong className="text-amber-300">📋 הזמנת שולחן:</strong> {day.afternoon.dining_booking_tip}
+                                  </div>
+                                )}
+
+                                {day.afternoon.dining_kosher_note && (
+                                  <div className="text-[11px] text-blue-200/90">
+                                    <strong>🥗 כשרות / תזונה:</strong> {day.afternoon.dining_kosher_note}
+                                  </div>
+                                )}
+                              </div>
+
+                              {(day.afternoon.dining_rating || day.afternoon.dining_avg_cost_usd) && (
+                                <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1.5 border-t border-white/5">
+                                  {day.afternoon.dining_rating && <span>דירוג: ★ {day.afternoon.dining_rating}/5.0</span>}
+                                  {day.afternoon.dining_avg_cost_usd && (
+                                    <span>• ממוצע לסועד: ~${day.afternoon.dining_avg_cost_usd} USD</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Afternoon Attraction Card */}
+                            <div className="p-4 rounded-xl bg-white/[0.025] border border-white/10 space-y-2.5 flex flex-col justify-between">
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-cyan-300 font-bold">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span>🏛️ אחר הצהריים ({day.afternoon.time})</span>
+                                    {day.afternoon.activity_category && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-200 border border-cyan-400/25 font-medium">
+                                        {day.afternoon.activity_category}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {day.afternoon.activity_maps_url && (
+                                    <a
+                                      href={day.afternoon.activity_maps_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1"
+                                    >
+                                      <MapPin className="w-3 h-3" />
+                                      <span>נווט ב-Google Maps</span>
+                                    </a>
+                                  )}
+                                </div>
+
+                                <div className="font-bold text-white text-sm">{day.afternoon.activity}</div>
+
+                                {day.afternoon.activity_description ? (
+                                  <p className="text-slate-200 leading-relaxed">{day.afternoon.activity_description}</p>
+                                ) : (
+                                  <p className="text-slate-300 leading-relaxed">
+                                    המשך סיור וחוויה ב-{day.afternoon.activity}.
+                                  </p>
+                                )}
+
+                                {day.afternoon.activity_highlight &&
+                                  day.afternoon.activity_highlight !== day.afternoon.activity_description && (
+                                    <div className="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-100 leading-relaxed">
+                                      <span className="font-bold text-cyan-300">✨ דגש מרכזי: </span>
+                                      {day.afternoon.activity_highlight}
+                                    </div>
+                                  )}
+
+                                {day.afternoon.activity_what_to_see && day.afternoon.activity_what_to_see.length > 0 && (
+                                  <ul className="space-y-1 text-[11px] text-slate-300 pt-0.5">
+                                    {day.afternoon.activity_what_to_see.map((spot, idx) => (
+                                      <li key={idx} className="flex items-start gap-1.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                                        <span>{spot}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+
+                                {day.afternoon.activity_visitor_tips && (
+                                  <div className="p-2 rounded-lg bg-black/40 border border-white/10 text-[11px] text-slate-300">
+                                    <strong className="text-cyan-300">💡 טיפ ביקור:</strong> {day.afternoon.activity_visitor_tips}
+                                  </div>
+                                )}
+                              </div>
+
+                              {(day.afternoon.activity_cost_usd !== undefined || day.afternoon.activity_rating) && (
+                                <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1.5 border-t border-white/5">
+                                  {day.afternoon.activity_cost_usd !== undefined && (
+                                    <span>
+                                      עלות כניסה: {day.afternoon.activity_cost_usd > 0 ? `$${day.afternoon.activity_cost_usd} USD` : "כניסה חינם"}
+                                    </span>
+                                  )}
+                                  {day.afternoon.activity_rating && <span>• דירוג: ★ {day.afternoon.activity_rating}/5.0</span>}
+                                  {day.afternoon.activity_recommended_hours && <span>• כ-{day.afternoon.activity_recommended_hours} שעות</span>}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Evening & Dinner Recommendation */}
+                          <div className="p-4 rounded-xl bg-indigo-500/[0.04] border border-indigo-400/20 space-y-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-indigo-300 font-bold">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>🌙 ערב ({day.evening.time})</span>
+                                {day.evening.neighborhood && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-200 border border-indigo-400/25 font-medium">
+                                    {day.evening.neighborhood}
+                                  </span>
+                                )}
+                              </div>
+                              {day.evening.maps_url && (
                                 <a
-                                  href={day.afternoon.dining_maps_url}
+                                  href={day.evening.maps_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[11px] text-amber-400 hover:underline flex items-center gap-1"
+                                  className="text-[11px] text-indigo-300 hover:underline flex items-center gap-1"
                                 >
                                   <MapPin className="w-3 h-3" />
-                                  <span>מסעדת {day.afternoon.dining} במפה</span>
+                                  <span>מיקום ערב במפה</span>
                                 </a>
                               )}
                             </div>
-                            <div className="font-semibold text-white text-sm">
-                              ארוחת צהריים ב-{day.afternoon.dining} ({day.afternoon.neighborhood})
-                            </div>
-                            <p className="text-slate-300 leading-relaxed">
-                              מנת הדגל המומלצת: <em>{day.afternoon.signature_dish}</em>. לאחר מכן המשך ביקור ב-{day.afternoon.activity}.
-                            </p>
-                          </div>
 
-                          {/* Evening */}
-                          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-                            <div className="text-indigo-300 font-bold">🌙 ערב ({day.evening.time})</div>
-                            <div className="font-semibold text-white text-sm">{day.evening.activity}</div>
-                            <p className="text-slate-300 leading-relaxed">{day.evening.highlight}</p>
+                            <div className="font-bold text-white text-sm">{day.evening.activity}</div>
+
+                            {day.evening.description ? (
+                              <p className="text-slate-200 leading-relaxed">{day.evening.description}</p>
+                            ) : (
+                              <p className="text-slate-300 leading-relaxed">{day.evening.highlight}</p>
+                            )}
+
+                            {day.evening.description && day.evening.highlight && (
+                              <div className="text-[11px] text-indigo-200/90">
+                                <strong>✨ אווירה ודגש:</strong> {day.evening.highlight}
+                              </div>
+                            )}
+
+                            {day.evening.dining_name && (
+                              <div className="p-3 rounded-lg bg-black/40 border border-white/10 space-y-1">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                                    <Utensils className="w-3.5 h-3.5" />
+                                    <span>המלצה לארוחת ערב: {day.evening.dining_name}</span>
+                                  </span>
+                                  {day.evening.dining_maps_url && (
+                                    <a
+                                      href={day.evening.dining_maps_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] text-amber-400 hover:underline flex items-center gap-1"
+                                    >
+                                      <MapPin className="w-3 h-3" />
+                                      <span>במפה</span>
+                                    </a>
+                                  )}
+                                </div>
+                                {day.evening.dining_description && (
+                                  <p className="text-[11px] text-slate-300 leading-relaxed">{day.evening.dining_description}</p>
+                                )}
+                                {day.evening.dining_dish && (
+                                  <div className="text-[11px] text-slate-200">
+                                    <strong>מנה מומלצת:</strong> {day.evening.dining_dish}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {day.evening.evening_tip && (
+                              <div className="text-[11px] text-slate-400">
+                                💡 <strong>טיפ לערב:</strong> {day.evening.evening_tip}
+                              </div>
+                            )}
                           </div>
 
                           {/* Local Tip */}
@@ -1170,7 +1458,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                             <div className="p-3 rounded-xl bg-mint-950/25 border border-mint-500/25 text-mint-200 flex items-start gap-2">
                               <span className="text-base shrink-0">💡</span>
                               <div>
-                                <span className="font-bold block mb-0.5">טיפ סודי של סוכן המסלולים:</span>
+                                <span className="font-bold block mb-0.5">טיפ מקומי מומלץ ליום זה:</span>
                                 <span>{day.local_tip}</span>
                               </div>
                             </div>
@@ -1561,21 +1849,38 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {culinaryGuide.kosher_options?.map((k: any, idx: number) => (
-                      <div key={idx} className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between">
+                      <div key={idx} className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2.5 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
                             <span className="font-bold text-white text-xs">{k.name}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">{k.type}</span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {k.price_tier && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-amber-300 font-semibold">
+                                  {k.price_tier}
+                                </span>
+                              )}
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">{k.type}</span>
+                            </div>
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-1">{k.address}</div>
-                          <p className="text-xs text-slate-300 mt-1">{k.specialty}</p>
+                          <div className="text-[11px] text-slate-400">
+                            📍 {k.address} {k.rating && <span className="text-amber-400 mr-1.5">• ★ {k.rating}</span>}
+                          </div>
+                          {k.description && (
+                            <p className="text-xs text-slate-200 leading-relaxed">{k.description}</p>
+                          )}
+                          <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-400/20 text-[11px] text-blue-100">
+                            <strong className="text-blue-300">מנה מומלצת:</strong> {k.specialty}
+                          </div>
+                          {k.hours_note && (
+                            <div className="text-[11px] text-slate-400">🕒 {k.hours_note}</div>
+                          )}
                         </div>
                         {k.maps_url && (
                           <a
                             href={k.maps_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[11px] text-mint-400 hover:underline flex items-center gap-1 mt-2"
+                            className="text-[11px] text-mint-400 hover:underline flex items-center gap-1 mt-1"
                           >
                             <MapPin className="w-3 h-3" />
                             <span>מיקום וניווט במפות</span>
@@ -1593,14 +1898,45 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                       <Utensils className="w-4 h-4 text-emerald-400" />
                       <span>מסעדות גורמה וביסטרו נבחרות</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {culinaryGuide.gourmet_dining?.map((g: any, idx: number) => (
-                        <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                          <div>
-                            <div className="text-xs font-bold text-white">{g.name}</div>
-                            <div className="text-[10px] text-slate-400">{g.neighborhood} • {g.type}</div>
+                        <div key={idx} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-xs font-bold text-white flex flex-wrap items-center gap-1.5">
+                                <span>{g.name}</span>
+                                {g.price_tier && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-amber-300">
+                                    {g.price_tier}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-emerald-300/90 mt-0.5">{g.neighborhood} • {g.type}</div>
+                            </div>
+                            <span className="text-xs text-amber-400 font-bold shrink-0">★ {g.rating}</span>
                           </div>
-                          <span className="text-xs text-amber-400 font-bold">★ {g.rating}</span>
+                          {g.description && (
+                            <p className="text-xs text-slate-200 leading-relaxed">{g.description}</p>
+                          )}
+                          {g.signature_dish && (
+                            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-400/20 text-[11px] text-emerald-100">
+                              <strong className="text-emerald-300">🍽️ מנת הדגל:</strong> {g.signature_dish}
+                            </div>
+                          )}
+                          {g.booking_tip && (
+                            <div className="text-[11px] text-slate-400">📋 <strong>טיפ הזמנה:</strong> {g.booking_tip}</div>
+                          )}
+                          {g.maps_url && (
+                            <a
+                              href={g.maps_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-mint-400 hover:underline inline-flex items-center gap-1"
+                            >
+                              <MapPin className="w-3 h-3" />
+                              <span>מיקום במפות</span>
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1611,12 +1947,40 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                       <Sparkles className="w-4 h-4 text-purple-400" />
                       <span>חיי לילה וברים מחתרתיים (Nightlife & Speakeasy)</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {culinaryGuide.nightlife_spots?.map((bar: any, idx: number) => (
-                        <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                          <div className="text-xs font-bold text-white">{bar.name}</div>
-                          <div className="text-[11px] text-purple-300">{bar.type}</div>
-                          <p className="text-[11px] text-slate-400">{bar.vibe}</p>
+                        <div key={idx} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-xs font-bold text-white">{bar.name}</div>
+                              <div className="text-[11px] text-purple-300 mt-0.5">
+                                {bar.type}{bar.neighborhood ? ` • ${bar.neighborhood}` : ""}
+                              </div>
+                            </div>
+                            {bar.maps_url && (
+                              <a
+                                href={bar.maps_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-mint-400 hover:underline flex items-center gap-1 shrink-0"
+                              >
+                                <MapPin className="w-3 h-3" />
+                                <span>במפה</span>
+                              </a>
+                            )}
+                          </div>
+                          {bar.description && (
+                            <p className="text-xs text-slate-200 leading-relaxed">{bar.description}</p>
+                          )}
+                          <p className="text-[11px] text-slate-300">✨ <strong>אווירה:</strong> {bar.vibe}</p>
+                          {bar.signature_drink && (
+                            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-400/20 text-[11px] text-purple-100">
+                              <strong className="text-purple-300">🍸 משקה מומלץ:</strong> {bar.signature_drink}
+                            </div>
+                          )}
+                          {bar.entry_tip && (
+                            <div className="text-[11px] text-slate-400">🎟️ <strong>כניסה:</strong> {bar.entry_tip}</div>
+                          )}
                         </div>
                       ))}
                     </div>

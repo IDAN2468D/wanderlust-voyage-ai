@@ -50,7 +50,7 @@ def test_search_accommodations_calculates_nights_and_totals():
 
 
 def test_search_attractions_matches_categories():
-    """Verify attraction tool returns landmark details, durations, and entry costs."""
+    """Verify attraction tool returns landmark details, descriptions, tips, durations, and entry costs."""
     result_raw = search_attractions(destination="Paris", interests=["Art", "History"], max_results=4)
     data = json.loads(result_raw)
 
@@ -61,13 +61,21 @@ def test_search_attractions_matches_categories():
         assert "entry_fee_usd" in att
         assert "recommended_hours" in att
         assert att["recommended_hours"] > 0
+        assert len(att["description"]) >= 40
+        assert len(att["what_to_see"]) >= 2
+        assert len(att["visitor_tips"]) >= 15
 
 
 def test_search_restaurants_and_neighborhood():
-    """Verify dining and neighborhood guides provide cultural and safety recommendations."""
+    """Verify dining and neighborhood guides provide detailed explanations, cuisine style, tips, and safety recommendations."""
     rest_data = json.loads(search_restaurants(destination="Rome"))
     assert len(rest_data["recommendations"]) > 0
-    assert rest_data["recommendations"][0]["avg_cost_person_usd"] > 0
+    first_rest = rest_data["recommendations"][0]
+    assert first_rest["avg_cost_person_usd"] > 0
+    assert len(first_rest["description"]) >= 40
+    assert first_rest["cuisine_style"]
+    assert first_rest["booking_tip"]
+    assert first_rest["kosher_note"]
 
     guide_data = json.loads(get_neighborhood_guide(destination="Tokyo"))
     assert "walkability_rating" in guide_data
@@ -163,7 +171,7 @@ def test_culture_and_events_tools():
 
 
 def test_orchestrator_7_agents_synthesis():
-    """Verify orchestrator synthesizes a complete plan combining all 7 specialists."""
+    """Verify orchestrator synthesizes a complete plan with rich daily, attraction, restaurant, and evening explanations."""
     from datetime import date, timedelta
     from app.agents.orchestrator import synthesize_deterministic_plan
 
@@ -188,5 +196,20 @@ def test_orchestrator_7_agents_synthesis():
     assert plan["recommended_flight"]["booking_url"].startswith("http")
     assert plan["selected_hotel"]["google_maps_url"].startswith("http")
     assert plan["start_date_formatted"] == future_dt.strftime("%d/%m/%Y")  # Israeli format DD/MM/YYYY
+
+    # Verify rich daily, attraction, restaurant, and evening details
+    first_day = plan["structured_days"][0]
+    assert len(first_day["summary"]) >= 30
+    assert first_day["pacing_note"]
+    assert len(first_day["morning"]["description"]) >= 30
+    assert len(first_day["morning"]["what_to_see"]) >= 2
+    assert first_day["morning"]["visitor_tips"]
+    assert len(first_day["afternoon"]["dining_description"]) >= 30
+    assert first_day["afternoon"]["dining_booking_tip"]
+    assert len(first_day["afternoon"]["activity_description"]) >= 30
+    assert first_day["evening"]["dining_name"]
+    assert len(first_day["evening"]["description"]) >= 25
+    # Days should have varied evening plans across the itinerary
+    assert plan["structured_days"][0]["evening"]["activity"] != plan["structured_days"][1]["evening"]["activity"]
 
 
