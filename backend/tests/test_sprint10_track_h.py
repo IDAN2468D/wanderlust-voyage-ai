@@ -237,3 +237,61 @@ def test_pulse_negotiator_ops_metrics_plan_and_mcp():
     assert json.loads(create_travel_interest_watcher("usr_mcp", "סנטוריני ירח דבש", "PACKAGES", 5000.0))["interest_id"].startswith("int_")
     assert json.loads(decompose_travel_screenshot("TOKYO_NEON_FOOD", 2, 9500.0))["bundle_discount_pct"] == 10
     assert json.loads(scan_booking_price_drops("usr_mcp", "WL-MCP-1", 4000.0, "Rome"))["price_drop_detected"] is True
+
+
+def test_screenshot_decompose_dynamic_paris_url_overrides_preset():
+    paris_url = "https://www.skideal.co.il/app/uploads/2020/06/PARIS-e1591107821840.jpg"
+    dec_resp = client.post(
+        "/api/v1/vision-trip/decompose-screenshot",
+        json={
+            "scene_type": "SANTORINI_CLIFFSIDE",
+            "scene_key": "SANTORINI_CLIFFSIDE",
+            "image_source_url": paris_url,
+            "travelers": 2,
+            "budget_ceiling_ils": 8500.0,
+        },
+    )
+    assert dec_resp.status_code == 200
+    dec = dec_resp.json()
+    assert dec["destination"] == "Paris"
+    assert dec["is_dynamic_detection"] is True
+    assert dec["image_url"] == paris_url
+    assert dec["iata_code"] == "CDG"
+    sku_codes = {hs["sku_code"] for hs in dec["hotspots"]}
+    assert "FLT-TLV-CDG" in sku_codes
+    assert "HTL-PAR-EIFFEL" in sku_codes
+    assert "EXP-PAR-SEINE" in sku_codes
+    assert "FLT-TLV-JTR" not in sku_codes
+    assert dec["bundle_total_ils"] == round(dec["subtotal_ils"] * 0.90, 2)
+
+    fit_resp = client.post(
+        "/api/v1/vision-trip/fit-assessment",
+        json={
+            "scene_type": "SANTORINI_CLIFFSIDE",
+            "image_source_url": paris_url,
+            "travelers": 2,
+            "budget_ceiling_ils": 8500.0,
+            "shabbat_observant": True,
+            "max_flight_hours": 6.0,
+        },
+    )
+    assert fit_resp.status_code == 200
+    fit = fit_resp.json()
+    assert fit["destination"] == "Paris"
+    assert 45 <= fit["fit_accuracy_pct"] <= 99
+
+    upload_resp = client.post(
+        "/api/v1/vision-trip/decompose-screenshot",
+        json={
+            "scene_type": "SANTORINI_CLIFFSIDE",
+            "image_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+            "file_name": "london-bigben-weekend.png",
+            "travelers": 2,
+            "budget_ceiling_ils": 9000.0,
+        },
+    )
+    assert upload_resp.status_code == 200
+    uploaded = upload_resp.json()
+    assert uploaded["destination"] == "London"
+    assert uploaded["is_dynamic_detection"] is True
+    assert uploaded["image_url"].startswith("data:image/png;base64,")

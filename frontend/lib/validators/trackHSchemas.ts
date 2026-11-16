@@ -36,16 +36,13 @@ export const CreateInterestWatcherSchema = z.object({
 });
 
 export const ScreenshotDecomposeRequestSchema = z.object({
-  scene_type: z
-    .enum([
-      "SANTORINI_CLIFFSIDE",
-      "TOKYO_NEON_FOOD",
-      "SWISS_ALPINE_CHALET",
-      "AMALFI_COAST_LUXURY",
-      "BALI_JUNGLE_VILLA",
-    ])
-    .default("SANTORINI_CLIFFSIDE"),
-  image_source_url: z.string().url().optional(),
+  scene_type: z.string().min(2).max(80).optional().default("SANTORINI_CLIFFSIDE"),
+  scene_key: z.string().min(2).max(80).optional(),
+  image_source_url: z.string().min(4).optional(),
+  image_url: z.string().min(4).optional(),
+  image_base64: z.string().min(10).optional(),
+  file_name: z.string().max(180).optional(),
+  custom_hint: z.string().max(180).optional(),
   travelers: z.number().int().min(1).max(12).default(2),
   budget_ceiling_ils: z.number().min(500).max(100000).default(8500),
 });

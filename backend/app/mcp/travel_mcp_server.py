@@ -170,6 +170,9 @@ def decompose_travel_screenshot(
     travelers: int = 2,
     budget_ceiling_ils: float = 8500.0,
     image_source_url: Optional[str] = None,
+    image_base64: Optional[str] = None,
+    file_name: Optional[str] = None,
+    custom_hint: Optional[str] = None,
 ) -> str:
     """Decompose a travel inspiration screenshot into bounding-box hotspots and a -10% bundle."""
     import json
@@ -179,6 +182,9 @@ def decompose_travel_screenshot(
         _decompose(
             scene_type=scene_type,
             image_source_url=image_source_url,
+            image_base64=image_base64,
+            file_name=file_name,
+            custom_hint=custom_hint,
             travelers=travelers,
             budget_ceiling_ils=budget_ceiling_ils,
         ),
@@ -212,4 +218,3 @@ def scan_booking_price_drops(
 
 if __name__ == "__main__":
     mcp.run()
-
