@@ -102,21 +102,16 @@ export const AcpAgentBridgeCard: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-white text-sm sm:text-base">
-              {t("שער ACP / UCP לסוכני AI חיצוניים + מו\"מ באנדלים", "ACP / UCP External AI Travel Gateway & Deal Negotiator")}
+              {t("שמירת מחיר, תקרת תקציב והטבת חבילה -12%", "Trip Budget Cap, Instant Hold & 12% Bundle Deal")}
             </h3>
             <p className="text-xs text-slate-400">
-              {t("הנפקת DelegatedSpendToken (₪) ו-Checkout אטומי ל-OpenAI / Perplexity / Google UCP", "Issue bounded DelegatedSpendToken (₪) & 1-call atomic AI checkout")}
+              {t("הגדירו תקציב מקסימלי בשקלים, נעלו מחיר מובטח וקבלו הנחת חבילה מלאה", "Set your max ₪ trip budget, lock your rate, and apply an instant bundle discount")}
             </p>
           </div>
         </div>
-        <a
-          href="/.well-known/agent-commerce.json"
-          target="_blank"
-          rel="noreferrer"
-          className="text-[11px] px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-200 border border-indigo-400/30 hover:bg-indigo-500/25"
-        >
-          Manifest JSON
-        </a>
+        <span className="text-[11px] px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-200 border border-indigo-400/30">
+          {t("התחייבות תקציב", "Budget Guard")}
+        </span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -125,18 +120,18 @@ export const AcpAgentBridgeCard: React.FC = () => {
           onChange={(e) => setProvider(e.target.value)}
           className="px-3 py-2 rounded-xl bg-slate-900 border border-white/15 text-xs text-white"
         >
-          <option value="OPENAI_ACP">OpenAI ACP</option>
-          <option value="PERPLEXITY_PRO">Perplexity Buy with Pro</option>
-          <option value="GOOGLE_UCP">Google UCP</option>
-          <option value="AMAZON_BUY_FOR_ME">Amazon Buy For Me</option>
-          <option value="CLAUDE_MCP">Claude MCP</option>
+          <option value="OPENAI_ACP">{t("טיסה + מלון בוטיק", "Flight + Boutique Hotel")}</option>
+          <option value="PERPLEXITY_PRO">{t("חופשת משפחות VIP", "Family VIP Package")}</option>
+          <option value="GOOGLE_UCP">{t("סופ\"ש זוגי מהיר", "Weekend Getaway")}</option>
+          <option value="AMAZON_BUY_FOR_ME">{t("כשר ושומר שבת", "Kosher & Shabbat Friendly")}</option>
+          <option value="CLAUDE_MCP">{t("מסלול גמיש מלא", "Flexible Full Trip")}</option>
         </select>
         <input
           type="text"
           value={destination}
           onChange={(e) => setDestination(e.target.value)}
           className="px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-xs text-white"
-          placeholder="Destination"
+          placeholder={t("יעד החופשה", "Destination")}
         />
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-xs">
           <span className="text-slate-400 shrink-0">תקרה ₪</span>
@@ -151,19 +146,19 @@ export const AcpAgentBridgeCard: React.FC = () => {
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={issueToken} disabled={busy} className="px-4 py-2 rounded-xl bg-indigo-500/25 hover:bg-indigo-500/35 border border-indigo-400/40 text-xs font-bold text-indigo-100 flex items-center gap-1.5">
-          <KeyRound className="w-3.5 h-3.5" /> {t("הנפק אסימון תקציב", "Mint Spend Token")}
+          <KeyRound className="w-3.5 h-3.5" /> {t("נעל תקרת תקציב", "Lock Budget Cap")}
         </button>
         <button type="button" onClick={runAtomicCheckout} disabled={busy} className="btn-mint px-4 py-2 rounded-xl text-xs font-extrabold text-slate-950 flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5" /> {t("הזמנת ACP אטומית", "Atomic ACP Checkout")}
+          <CheckCircle2 className="w-3.5 h-3.5" /> {t("שריין חבילה עכשיו", "Reserve Package Now")}
         </button>
         <button type="button" onClick={runNegotiate} disabled={busy} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-white flex items-center gap-1.5">
-          <Handshake className="w-3.5 h-3.5 text-mint-300" /> {t("נהל מו\"מ -12%", "Negotiate Bundle")}
+          <Handshake className="w-3.5 h-3.5 text-mint-300" /> {t("בקש הנחת חבילה -12%", "Apply -12% Bundle Deal")}
         </button>
       </div>
 
       {tokenInfo && (
-        <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-400/30 text-[11px] font-mono text-indigo-200 break-all">
-          Token: {tokenInfo.delegated_token}
+        <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-400/30 text-[11px] text-indigo-200 flex items-center justify-between gap-2">
+          <span>{t("תקרת התקציב אושרה ונשמרה:", "Budget authorization locked:")} <b className="font-mono">{tokenInfo.delegated_token}</b></span>
         </div>
       )}
 

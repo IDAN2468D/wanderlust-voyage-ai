@@ -170,8 +170,8 @@ const AGENTS_TEAM = [
   {
     id: "orchestrator",
     name: "Travel Orchestrator",
-    role: "סוכן מתאם ראשי",
-    desc: "מנתח את העדפות המטייל, מסנכרן את כל 6 הסוכנים האחרים ומחבר ל-Google Workspace.",
+    role: "מתאם ראשי",
+    desc: "מנתח את העדפות המטייל, מסנכרן את כל 32 מומחי הטיולים ומחבר ליומן ולמסמכים.",
     icon: Compass,
     color: "from-amber-400 to-amber-600",
     badgeColor: "bg-amber-400/10 text-amber-300 border-amber-400/20",
@@ -259,7 +259,7 @@ const AGENTS_TEAM = [
   },
   {
     id: "shopping",
-    name: "Smart Shopper & Tax-Free Auditor",
+    name: "Shopping & VAT Refund Guide",
     role: "סוכן שופינג ו-Tax-Free",
     desc: "מחשב פטור ממע\"מ (VAT Refund), ספי מינימום לחשבונית, אאוטלטים ושדרות יוקרה.",
     icon: ShoppingBag,
@@ -616,8 +616,8 @@ export default function Home() {
                   type: "done",
                   agent: "travel_orchestrator",
                   stage: "COMPLETE",
-                  title: "התוכנית הושלמה בהצלחה ע\"י 25 סוכני ה-AI האוטונומיים",
-                  message: `כל משימות 25 הסוכנים, אחזור ה-RAG וביקורת ה-Critic סוכמו במלואן. סטטוס תקציב: ${
+                  title: "התוכנית הושלמה בהצלחה ע\"י צוות 32 מומחי הנסיעות",
+                  message: `הטיסות, המלונות, הכשרות, מזג האוויר והתקציב נבדקו וסוכמו. סטטוס תקציב: ${
                     data.budget_status === "APPROVED" ? "מאושר (כולל 10% בלת\"ם)" : "חריגה"
                   }`,
                   timestamp: nowTime,
@@ -785,7 +785,7 @@ export default function Home() {
             <span className="text-white/20 shrink-0">|</span>
             <span className="text-amber-400 flex items-center gap-1 shrink-0">
               <Zap className="w-3 h-3" />
-              <span>{livePulse?.agents_registered ?? 25} סוכני AI פעילים כעת במקביל</span>
+              <span>{livePulse?.agents_registered ?? 32} מומחי נסיעות פעילים כעת במקביל</span>
             </span>
           </div>
         </div>
@@ -793,7 +793,7 @@ export default function Home() {
         {isLivePulseOpen && (
           <div className="max-w-3xl mx-auto mt-2 p-3.5 rounded-2xl wanderlust-glass border border-mint-400/30 bg-[#08101c]/95 shadow-2xl text-right space-y-2 z-50">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="font-bold text-xs text-mint-300">Live Ops &amp; FX Telemetry — מערכת מופעלת נתב&quot;ג</span>
+              <span className="font-bold text-xs text-mint-300">נתונים חיים לטיסות נתב&quot;ג ושערי מט&quot;ח</span>
               <button
                 type="button"
                 onClick={() => setIsLivePulseOpen(false)}
@@ -816,8 +816,8 @@ export default function Home() {
                 <div className="font-bold text-cyan-300">{livePulse?.tlv_status?.terminal_3_load || "רגיל"}</div>
               </div>
               <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10">
-                <div className="text-slate-400">סוכנים רשומים</div>
-                <div className="font-mono font-bold text-mint-300">{livePulse?.agents_registered ?? 25} / 25</div>
+                <div className="text-slate-400">מומחי תכנון זמינים</div>
+                <div className="font-mono font-bold text-mint-300">{livePulse?.agents_registered ?? 32} / 32</div>
               </div>
             </div>
           </div>
@@ -850,7 +850,7 @@ export default function Home() {
             {/* Top Luxury Eyebrow */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-mint-300 text-[11px] sm:text-xs font-bold tracking-wide shadow-lg max-w-full">
               <Sparkles className="w-3.5 h-3.5 text-mint-400 animate-pulse shrink-0" />
-              <span className="truncate">פלטפורמת תכנון מסעות אוטונומית מהדור הבא</span>
+              <span className="truncate">תכנון חופשות חכם ומותאם אישית מהרגע הראשון</span>
               <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping shrink-0" />
             </div>
 
@@ -858,13 +858,13 @@ export default function Home() {
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.16]">
               מסעות שנבנים במיוחד עבורך <br className="hidden sm:inline" />
               <span className="italic font-normal bg-gradient-to-r from-mint-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent">
-                ע״י 25 סוכני AI אוטונומיים
+                ע״י 32 מומחי חופשות אישיים
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-slate-300 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed px-1">
-              מערכת תזמור מתקדמת הסורקת טיסות חיות מנתב״ג, מאתרת מלונות בוטיק יוקרתיים, מחשבת החזרי Tax-Free ושופינג, מנגישה כשרות וסעודות שבת, ומסנכרנת את תיק המסע המלא ישירות ל-Google Calendar.
+              השוואת טיסות מנתב&quot;ג, איתור מלונות בוטיק, חישובי החזרי מע&quot;מ (Tax-Free), פתרונות כשרות ושבת, והעברת כל תוכנית הטיול ישר ליומן האישי.
             </p>
 
             {/* Quick Inspiration Pills & Action Buttons */}
@@ -1010,13 +1010,13 @@ export default function Home() {
         <section ref={agentSectionRef} className="max-w-7xl mx-auto px-3.5 sm:px-10 lg:px-16 py-10 sm:py-14 space-y-8 sm:space-y-10 relative z-20">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs px-3 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-500/30 font-bold uppercase tracking-wider">
-              חדר המבצעים האוטונומי
+              תכנון המסע בזמן אמת
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-              תהליך התכנון והסינתזה של 25 סוכני ה-AI האוטונומיים
+              צוות 32 מומחי הנסיעות מרכיב את החופשה שלך
             </h2>
             <p className="text-xs text-slate-400">
-              מעקב חי אחר קריאות לכלים, אחזור וקטורי מ-RAG VectorStore, בקרת Reasoning, לוחות זמנים מנתב״ג וסנכרון יומנים.
+              בדיקת טיסות מנתב״ג, בחירת מלונות מומלצים, חישובי תקציב ומט״ח, התאמות כשרות והכנת לו״ז יומי מלא.
             </p>
           </div>
 
@@ -1194,13 +1194,13 @@ export default function Home() {
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold">
             <Cpu className="w-3.5 h-3.5" />
-            <span>הארכיטקטורה הרב-סוכנית</span>
+            <span>מומחים לכל שלב בטיול</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white">
-            מערך של 25 סוכני בינה מלאכותית אוטונומיים
+            צוות של 32 מומחי טיולים לשירותך
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            במקום מודל גנרי בודד, Wanderlust מפעילה צוות סוכנים מומחים עם מנוע RAG ו-Reasoning הפועלים בסינרגיה מתמדת ומונעים טעויות בתכנון, בטיסות ובתקציב.
+            במקום המלצה כללית אחת, כל היבט של החופשה נבדק ע&quot;י מומחה ייעודי — טיסות, לינה, כשרות, מזג אוויר ותקציב — כדי למנוע הפתעות בדרך.
           </p>
         </div>
 
@@ -1239,9 +1239,9 @@ export default function Home() {
                 <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400">
                   <span className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    מופעל אוטונומית
+                    מוכן לשירותך
                   </span>
-                  <span className="font-mono text-slate-400">SSE Live Telemetry</span>
+                  <span className="text-slate-400">מעודכן בזמן אמת</span>
                 </div>
               </div>
             );

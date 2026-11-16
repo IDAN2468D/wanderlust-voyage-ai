@@ -88,7 +88,7 @@ export const PriceGuardShieldCard: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-white text-sm sm:text-base">
-              {t("מוגן בערבות מחיר ל-30 יום (Price Drop Guard)", "30-Day Post-Booking Price Drop Guard")}
+              {t("הגנת ירידת מחיר ל-30 יום", "30-Day Post-Booking Price Drop Guard")}
             </h3>
             <p className="text-xs text-slate-400">
               {t("זיכוי הפרשי מחיר אוטומטי ישירות לארנק הנסיעות בשקלים (₪)", "Auto-credits flight & hotel fare drops directly to your ₪ Travel Wallet")}

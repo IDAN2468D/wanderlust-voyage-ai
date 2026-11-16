@@ -101,7 +101,7 @@ export const ProactiveInterestsCard: React.FC = () => {
               {t("מכ\"ם תחומי עניין וטיסות פרואקטיבי", "Proactive Travel Interests Radar")}
             </h3>
             <p className="text-xs text-slate-400">
-              {t("ניטור בשפה טבעית מול VectorStore ודילים מנתב\"ג + שריון VIP ל-15 דק'", "Natural-language fare & villa radar with 15-min VIP auto-hold")}
+              {t("ניטור אוטומטי של טיסות ומלונות מתאימים מנתב\"ג + שמירת הצעת מחיר VIP ל-15 דק'", "Natural-language fare & villa radar with 15-min VIP auto-hold")}
             </p>
           </div>
         </div>

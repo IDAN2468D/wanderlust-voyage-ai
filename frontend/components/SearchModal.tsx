@@ -85,7 +85,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           >
             <span className="flex items-center gap-2">
               <Database className="w-4 h-4 text-cyan-300" />
-              פתח מנוע חיפוש היברידי Elasticsearch 8 (BM25 + 768d + Geo + פאסטים)
+              חיפוש חופשות מתקדם לפי תקציב, קרבה לאטרקציות וכשרות
             </span>
             <ArrowLeft className="w-4 h-4" />
           </button>

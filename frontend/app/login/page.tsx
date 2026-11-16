@@ -925,7 +925,7 @@ function LoginForm() {
       <div className="mt-4 sm:mt-5 relative z-10 text-center text-[10px] text-slate-400/80 flex flex-wrap items-center justify-center gap-2 select-none px-4">
         <span className="flex items-center gap-1">
           <Compass className="w-3 h-3 text-teal-400/80" />
-          <span>מונע בטכנולוגיית Google Flow & Multi-Agent AI</span>
+          <span>תכנון חופשות ומסעות מותאם אישית — מנתב&quot;ג לכל העולם</span>
         </span>
         <span>•</span>
         <span>Wanderlust Voyage AI © 2026</span>

@@ -810,7 +810,7 @@ export const BookingPaymentModal: React.FC<BookingPaymentModalProps> = ({
                   <div className="flex items-center justify-between text-slate-300">
                     <span className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      דמי טיפול וסנכרון 25 סוכנים:
+                      דמי תיאום והזמנה (32 מומחים):
                     </span>
                     <span className="font-bold text-white font-mono">{formatRaw(feesInSelected)}</span>
                   </div>

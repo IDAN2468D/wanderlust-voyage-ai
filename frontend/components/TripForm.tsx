@@ -222,11 +222,11 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
             </h3>
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-500/15 border border-mint-400/30 text-mint-300 text-[11px] sm:text-xs font-semibold shrink-0 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-pulse" />
-              <span>25 סוכני AI פעילים</span>
+              <span>32 מומחי חופשות זמינים</span>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
-            תכנון חופשה אוטונומי, השוואת טיסות מנתב&quot;ג, מלונות בוטיק, ניווט, כשרות, שופינג ללא מע&quot;מ וסנכרון יומן
+            תכנון חופשה אישי, השוואת טיסות מנתב&quot;ג, מלונות בוטיק, ניווט, כשרות, שופינג ללא מע&quot;מ וסנכרון ליומן
           </p>
         </div>
 
@@ -623,7 +623,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
                 <>
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-slate-950 fill-current animate-pulse" />
-                    <span className="text-sm font-black">הפעל 25 סוכנים ותכנן מסע</span>
+                    <span className="text-sm font-black">הפעל 32 מומחים ותכנן חופשה</span>
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   </div>
                   <div className="text-[11px] opacity-85 font-medium bg-slate-950/15 px-2.5 py-0.5 rounded-full max-w-full truncate">
@@ -640,7 +640,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onSubmit, isLoading, selecte
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="text-[11px] font-bold text-slate-300 tracking-wide flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-mint-400 shrink-0" />
-              <span>פילטרים מהירים לסוכנים החכמים:</span>
+              <span>העדפות מהירות לתכנון המסע:</span>
             </div>
 
             {/* Interests Toggle Button */}
