@@ -1,19 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Heebo, Frank_Ruhl_Libre } from "next/font/google";
+import "@fontsource-variable/heebo";
+import "@fontsource-variable/frank-ruhl-libre";
 import "./globals.css";
-
-const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const frankRuhl = Frank_Ruhl_Libre({
-  subsets: ["hebrew", "latin"],
-  variable: "--font-serif",
-  display: "swap",
-  weight: ["400", "500", "700", "900"],
-});
 
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -39,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`dark ${heebo.variable} ${frankRuhl.variable} scroll-smooth`}>
+    <html lang="he" dir="rtl" className="dark scroll-smooth">
       <body className="antialiased bg-[#050811] text-slate-100 font-sans selection:bg-teal-500/30 selection:text-teal-200 min-h-[100dvh] text-right">
         <AuthProvider>
           <LocaleProvider>
