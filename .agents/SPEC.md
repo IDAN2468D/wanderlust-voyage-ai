@@ -102,3 +102,60 @@
   9. `post_booking_concierge_agent` & `watchdog_agent` (`backend/app/tools/concierge_tools.py`): T-30d/T-7d/T-24h readiness timeline (`GET /api/v1/bookings/{booking_ref}/readiness`, `/readiness/stream`), DB-persisted `PendingActionModel` HITL, and `GET /api/v1/ops/live-pulse` + `/api/v1/ops/metrics`.
 - **BiDi & Offline UX:**
   - `LocaleContext` (`he` RTL ↔ `en` LTR) in `Navbar.tsx`, Interactive Day-Canvas + Geo-Route Map in `TripResultView.tsx`, and IndexedDB Offline Travel Vault.
+
+---
+
+## 8. Sprint 10 (V10.0 — Track H Adaptation): 6 New Autonomous Agents, APIs, DB Models & Zod Contracts
+
+### 8.1 Swarm Expansion (25 → 31 Autonomous Travel Agents)
+| # | Agent ID | Module | Coupled API Route | DB / Persistence |
+|---|---|---|---|---|
+| `26` | `external_agent_handshake_agent` | `app/tools/acp_gateway_tools.py` | `/api/v1/acp/**` & `/.well-known/agent-commerce.json` | `AgentCommerceSessionModel` |
+| `27` | `interests_watchdog_agent` | `app/tools/interests_scout_tools.py` | `/api/v1/interests/**` | `InterestWatcherModel` |
+| `28` | `vision_lookbook_agent` | `app/tools/vision_trip_tools.py` | `/api/v1/vision-trip/**` | `VectorStore` + Lookbook Presets |
+| `29` | `post_booking_price_guard_agent` | `app/tools/price_guard_tools.py` | `/api/v1/price-guard/**` | `PriceProtectionPolicyModel`, `TravelWalletEntryModel` |
+| `30` | `travel_pulse_autopilot_agent` | `app/tools/pulse_negotiator_tools.py` | `/api/v1/pulse/**` | `PulseActionExecutionModel` |
+| `31` | `bundle_deal_negotiator_agent` | `app/tools/pulse_negotiator_tools.py` | `/api/v1/trips/negotiate-bundle` | Session & Offer Telemetry |
+
+### 8.2 Backend REST API Contracts (`/api/v1/*` + `/api/*` Compat)
+1. **ACP / UCP External Agent Travel Gateway**:
+   - `GET /.well-known/agent-commerce.json` & `GET /api/v1/acp/manifest` — Signed capability manifest, supported currencies (`ILS`, `USD`, `EUR`), OAuth/delegation rules, and cryptographic merchant signature.
+   - `POST /api/v1/acp/tokens/delegate` — Issues HMAC-SHA256 `DelegatedSpendToken` with `max_authorized_ils`, `allowed_categories`, `expires_at`.
+   - `POST /api/v1/acp/checkout` — Validates spend token, enforces TLV/Shabbat carrier audit, creates `BookingModel` + `AgentCommerceSessionModel`, and auto-registers Price Protection.
+   - `GET /api/v1/acp/sessions` — Lists recent delegated agent commerce sessions.
+2. **Proactive Travel Interests Scout**:
+   - `GET /api/v1/interests?user_id={user_id}` — Lists active natural-language travel watchers & semantic match alerts.
+   - `POST /api/v1/interests` — Creates watcher (`raw_prompt_hebrew`, `target_category`, `max_price_ils`, `auto_reserve_vip`), extracts keywords, and performs immediate vector/catalog scoring.
+   - `POST /api/v1/interests/{interest_id}/evaluate` — Re-evaluates live catalog/TLV fares and triggers VIP 15-min hold if `match_score >= 0.80`.
+   - `DELETE /api/v1/interests/{interest_id}` — Deletes or archives an interest watcher.
+3. **Screenshot-to-Trip & Virtual Fit Assessment**:
+   - `GET /api/v1/vision-trip/presets` — Curated shoppable travel lookbooks (`SANTORINI_CLIFFSIDE`, `TOKYO_NEON_FOOD`, `SWISS_ALPINE_CHALET`, `AMALFI_COAST_LUXURY`, `BALI_JUNGLE_VILLA`).
+   - `POST /api/v1/vision-trip/decompose-screenshot` — Decomposes screenshot URL/base64 or scene preset into 2–5 `(x, y, w, h)` bounding-box hotspots mapped to bookable travel components with `-10%` Complete-the-Trip bundle pricing in `ILS`/`USD`.
+   - `POST /api/v1/vision-trip/fit-assessment` — Computes `fit_accuracy_pct` (0–100%), Shabbat/family/flight-duration compatibility, and return/cancellation-risk reduction score.
+4. **Post-Booking Price Drop Guard & Travel Wallet**:
+   - `GET /api/v1/price-guard?user_id={user_id}` — Returns active 14/30-day policies, wallet balance (`₪`), and ledger credits.
+   - `POST /api/v1/price-guard/register` — Registers a booking reference for 14-day (`STANDARD`) or 30-day (`GOLD`/`PLATINUM`) protection.
+   - `POST /api/v1/price-guard/scan-drops` — Scans live fares/rates; when `current_price_ils < paid_amount_ils`, issues automatic wallet credit (`TravelWalletEntryModel`).
+5. **Sidekick Pulse & Bundle Deal Negotiator**:
+   - `GET /api/v1/pulse/actions` — Returns proactive TravelOps / FX / Price-Guard / Booking Pulse Action Cards.
+   - `POST /api/v1/pulse/actions/{action_id}/execute` — Executes 1-click pulse automation and persists execution telemetry.
+   - `POST /api/v1/trips/negotiate-bundle` — Negotiates multi-SKU Flight + Hotel + Transfer/eSIM bundle discount with counter-offer reasoning.
+
+### 8.3 Next.js 15 Frontend Modular Architecture (`<= 200 LOC` per File) + Zod
+| File Path (`frontend/...`) | Max LOC | Responsibility |
+|---|---|---|
+| `lib/validators/trackHSchemas.ts` | `< 120` | Shared Zod schemas (`AcpDelegatedCheckoutSchema`, `CreateInterestWatcherSchema`, `ScreenshotDecomposeRequestSchema`, `PriceProtectionScanSchema`, `BundleNegotiateSchema`) |
+| `app/api/track-h/route.ts` | `< 180` | Next.js App Router proxy to FastAPI V10.0 endpoints with Zod validation & graceful fallback |
+| `components/track-h/ScreenshotLookbookModal.tsx` | `< 195` | Interactive Screenshot-to-Trip hotspot overlay (`transform-gpu`), Web Audio spatial ping, `-10%` bundle trigger |
+| `components/track-h/ProactiveInterestsCard.tsx` | `< 195` | Natural-language travel interests radar + VIP 15-min Auto-Reserve + live match alerts |
+| `components/track-h/PriceGuardShieldCard.tsx` | `< 190` | Post-booking 14/30-day Price Drop Shield + instant drop scan + `₪` Wallet ledger |
+| `components/track-h/SidekickPulseStrip.tsx` | `< 175` | Proactive Sidekick Pulse action cards with 1-click execution |
+| `components/track-h/AcpAgentBridgeModal.tsx` | `< 190` | ACP/UCP Delegated Spend Token (`₪`) + Atomic AI Checkout + Bundle Deal Negotiator |
+| `app/discover/page.tsx` | `< 195` | Unified Track H / V10.0 Discovery Hub (`/discover`) in Liquid Glass 4.0 Pro RTL |
+
+### 8.4 MCP Server Extensions (`backend/app/mcp/travel_mcp_server.py`)
+- `get_acp_commerce_manifest()`
+- `create_travel_interest_watcher(user_id, raw_prompt_hebrew, target_category, max_price_ils, auto_reserve_vip)`
+- `decompose_travel_screenshot(scene_type, travelers, budget_ceiling_ils, image_source_url)`
+- `scan_booking_price_drops(user_id, booking_ref, paid_amount_ils, destination, vip_tier)`
+

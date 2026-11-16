@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "10.0.0",
   "project": "wanderlust-voyage-ai",
   "agents": [
     {
@@ -175,6 +175,48 @@
       "name": "post-booking-concierge-watchdog",
       "description": "Builds T-30d/T-7d/T-24h readiness timelines, proactive disruption scans, and persistent HITL.",
       "tool_module": "backend.app.tools.concierge_tools"
+    },
+    {
+      "name": "external-agent-handshake-specialist",
+      "description": "Implements ACP/UCP discovery manifests, bounded DelegatedSpendToken (₪) issuance, and atomic AI travel checkouts.",
+      "tool_module": "backend.app.tools.acp_gateway_tools",
+      "skills": [
+        "acp-travel-commerce"
+      ]
+    },
+    {
+      "name": "interests-watchdog-specialist",
+      "description": "Monitors Hebrew/English natural-language travel wish prompts against VectorStore & live TLV fares with VIP auto-reserve.",
+      "tool_module": "backend.app.tools.interests_scout_tools",
+      "skills": [
+        "proactive-interests-scout"
+      ]
+    },
+    {
+      "name": "vision-lookbook-specialist",
+      "description": "Decomposes travel inspiration screenshots into interactive bounding-box hotspots (-10% bundles) and fit accuracy scores.",
+      "tool_module": "backend.app.tools.vision_trip_tools",
+      "skills": [
+        "vision-trip-lookbook"
+      ]
+    },
+    {
+      "name": "post-booking-price-guard-specialist",
+      "description": "Tracks 14/30-day post-booking flight/hotel price drops and issues automatic ₪ wallet credits.",
+      "tool_module": "backend.app.tools.price_guard_tools",
+      "skills": [
+        "price-protection-guard"
+      ]
+    },
+    {
+      "name": "travel-pulse-autopilot-specialist",
+      "description": "Synthesizes real-time TLV, FX, and booking telemetry into 1-click Sidekick Pulse action cards.",
+      "tool_module": "backend.app.tools.pulse_negotiator_tools"
+    },
+    {
+      "name": "bundle-deal-negotiator-specialist",
+      "description": "Negotiates multi-SKU Flight + Hotel + eSIM/Transfer bundle discounts within budget and margin guardrails.",
+      "tool_module": "backend.app.tools.pulse_negotiator_tools"
     }
   ]
 }

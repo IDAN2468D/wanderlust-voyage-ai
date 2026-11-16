@@ -250,6 +250,7 @@ def execute_plan_sync(
         group_breakdown=result.get("group_breakdown"),
         traveler_memory=result.get("traveler_memory"),
         critic_audit=result.get("critic_audit"),
+        track_h_insights=result.get("track_h_insights"),
         budget_overrun_flagged=result.get("budget_overrun_flagged", False),
         guardrail_warnings=result.get("guardrail_warnings", []),
     )
@@ -818,6 +819,20 @@ async def send_booking_confirmation(
                 )
             )
         db.commit()
+        try:
+            from app.tools.price_guard_tools import register_price_protection_policy
+
+            fx_rate = 3.7 if str(payload.currency).upper() == "USD" else (4.0 if str(payload.currency).upper() == "EUR" else 1.0)
+            register_price_protection_policy(
+                user_id=clean_uid or "guest_user",
+                booking_ref=payload.booking_ref,
+                destination=payload.destination,
+                sku_code=f"PKG-TLV-{payload.destination[:3].upper()}",
+                paid_amount_ils=round(float(payload.total_amount) * fx_rate, 2),
+                vip_tier="PLATINUM",
+            )
+        except Exception as pg_exc:
+            logger.debug(f"Price protection auto-registration skipped: {pg_exc}")
     except Exception as exc:
         db.rollback()
         logger.warning(f"Could not persist booking #{payload.booking_ref} to DB: {exc}")
@@ -1382,7 +1397,7 @@ async def ops_metrics_endpoint(db: Session = Depends(get_db)):
 
     return {
         "db_backend": get_active_db_backend(),
-        "agents_registered": 25,
+        "agents_registered": 31,
         "cached_sessions": len(_SESSION_PLANS),
         "saved_trips_count": db.query(SavedTripModel).count(),
         "bookings_count": db.query(BookingModel).count(),

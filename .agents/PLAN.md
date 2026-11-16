@@ -49,3 +49,12 @@
 - [x] Implement `shabbat_halacha_agent`, `group_split_agent`, `connectivity_mobility_agent`, `protection_rerouting_agent`, and `loyalty_vault_agent`
 - [x] Add `LocaleContext` (`HE` RTL ↔ `EN` LTR), Live Ops & FX Ticker, Day Re-Planner Co-Pilot Drawer, Geo-Route Map, Group Split/Voting, and IndexedDB Offline Travel Vault
 - [x] Full pytest + flake8 + `verify_agent_suite.py` + `tsc --noEmit` + `next build` verification
+
+## Sprint 10 (V10.0 — Track H): Autonomous Agentic Travel Commerce & Proactive AI Discovery (31 Agents)
+- [x] Update 5-Layer Stack docs (`PRD.md`, `SPEC.md`, `PLAN.md`, `PROMPT_COPYABLE.md`, `agents.json`, 4 new Skills)
+- [x] Add SQLAlchemy ORM models (`AgentCommerceSessionModel`, `InterestWatcherModel`, `PriceProtectionPolicyModel`, `TravelWalletEntryModel`, `PulseActionExecutionModel`)
+- [x] Implement 6 new specialist tools & agents (#26–#31): `acp_gateway_tools.py`, `interests_scout_tools.py`, `vision_trip_tools.py`, `price_guard_tools.py`, `pulse_negotiator_tools.py`
+- [x] Expose FastAPI `/api/v1/{acp,interests,vision-trip,price-guard,pulse}/*`, `/.well-known/agent-commerce.json`, `/api/v1/trips/negotiate-bundle` + wire into `orchestrator.py` & `travel_mcp_server.py`
+- [x] Build Zod validator suite (`frontend/lib/validators/trackHSchemas.ts`), Next.js proxy (`frontend/app/api/track-h/route.ts`), modular `<= 200 LOC` Liquid Glass RTL components, and `/discover` hub
+- [x] Write comprehensive pytest unit + API + MCP tests and verify `pytest`, `verify_agent_suite.py`, `npx tsc --noEmit`, `npm run build`, and `<= 200 LOC` guardrails
+

@@ -131,6 +131,85 @@ def get_booking_readiness_timeline(
     )
 
 
+@mcp.tool()
+def get_acp_commerce_manifest() -> str:
+    """Return signed ACP/UCP travel commerce protocol capability manifest."""
+    import json
+    from app.tools.acp_gateway_tools import get_acp_manifest
+
+    return json.dumps(get_acp_manifest(), ensure_ascii=False)
+
+
+@mcp.tool()
+def create_travel_interest_watcher(
+    user_id: str,
+    raw_prompt_hebrew: str,
+    target_category: str = "ALL",
+    max_price_ils: float = 4500.0,
+    auto_reserve_vip: bool = False,
+) -> str:
+    """Create a proactive natural-language travel interest watcher with semantic scoring."""
+    import json
+    from app.tools.interests_scout_tools import create_interest_watcher
+
+    return json.dumps(
+        create_interest_watcher(
+            user_id=user_id,
+            raw_prompt_hebrew=raw_prompt_hebrew,
+            target_category=target_category,
+            max_price_ils=max_price_ils,
+            auto_reserve_vip=auto_reserve_vip,
+        ),
+        ensure_ascii=False,
+    )
+
+
+@mcp.tool()
+def decompose_travel_screenshot(
+    scene_type: str = "SANTORINI_CLIFFSIDE",
+    travelers: int = 2,
+    budget_ceiling_ils: float = 8500.0,
+    image_source_url: Optional[str] = None,
+) -> str:
+    """Decompose a travel inspiration screenshot into bounding-box hotspots and a -10% bundle."""
+    import json
+    from app.tools.vision_trip_tools import decompose_travel_screenshot as _decompose
+
+    return json.dumps(
+        _decompose(
+            scene_type=scene_type,
+            image_source_url=image_source_url,
+            travelers=travelers,
+            budget_ceiling_ils=budget_ceiling_ils,
+        ),
+        ensure_ascii=False,
+    )
+
+
+@mcp.tool()
+def scan_booking_price_drops(
+    user_id: str,
+    booking_ref: str,
+    paid_amount_ils: float,
+    destination: str = "Rome",
+    vip_tier: str = "PLATINUM",
+) -> str:
+    """Scan live fare drops for a confirmed booking and issue automatic ILS wallet credits."""
+    import json
+    from app.tools.price_guard_tools import scan_price_drops_and_credit_wallet
+
+    return json.dumps(
+        scan_price_drops_and_credit_wallet(
+            user_id=user_id,
+            booking_ref=booking_ref,
+            destination=destination,
+            paid_amount_ils=paid_amount_ils,
+            vip_tier=vip_tier,
+        ),
+        ensure_ascii=False,
+    )
+
+
 if __name__ == "__main__":
     mcp.run()
 

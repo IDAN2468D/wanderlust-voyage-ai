@@ -231,6 +231,14 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
       color: "text-emerald-400",
       activeBg: "from-emerald-600/30 to-teal-600/20 border-emerald-500",
     },
+    {
+      id: "bundle_deal_negotiator_agent",
+      name: "סוכן מו\"מ, ACP ו-Price Guard",
+      role: "הנחות -10%, אסימון ₪ והגנת מחיר",
+      icon: Sparkles,
+      color: "text-amber-300",
+      activeBg: "from-amber-500/30 to-orange-600/20 border-amber-400",
+    },
   ];
 
   // Derive current execution stage
@@ -252,7 +260,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-serif text-base sm:text-lg font-bold text-white tracking-tight">
-                מוניטור חשיבה, RAG וסנכרון של 25 סוכני ה-AI האוטונומיים
+                מוניטור חשיבה, RAG וסנכרון של 31 סוכני ה-AI האוטונומיים
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10 shrink-0">
                 STAGE: {currentStage}

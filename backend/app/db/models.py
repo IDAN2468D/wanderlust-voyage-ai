@@ -153,3 +153,77 @@ class TripVoteModel(Base):
     comment = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
+
+class AgentCommerceSessionModel(Base):
+    __tablename__ = "agent_commerce_sessions"
+
+    session_id = Column(String(64), primary_key=True, index=True)
+    external_agent_provider = Column(String(48), nullable=False)
+    user_id = Column(String(64), index=True, nullable=False)
+    delegated_token_hash = Column(String(128), nullable=False)
+    max_authorized_ils = Column(Float, nullable=False)
+    executed_total_ils = Column(Float, default=0.0, nullable=False)
+    destination = Column(String(128), nullable=False)
+    sku_codes_json = Column(Text, default="[]", nullable=False)
+    fulfillment_mode = Column(String(48), default="DIGITAL_VOUCHER", nullable=False)
+    booking_ref = Column(String(64), nullable=True)
+    status = Column(String(48), default="AUTHORIZED", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class InterestWatcherModel(Base):
+    __tablename__ = "proactive_interest_watchers"
+
+    interest_id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), index=True, nullable=False)
+    raw_prompt_hebrew = Column(Text, nullable=False)
+    extracted_keywords_json = Column(Text, default="[]", nullable=False)
+    target_category = Column(String(48), default="ALL", nullable=False)
+    max_price_ils = Column(Float, nullable=False)
+    auto_reserve_vip = Column(Boolean, default=False, nullable=False)
+    matched_alerts_json = Column(Text, default="[]", nullable=False)
+    status = Column(String(32), default="ACTIVE", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    last_evaluated_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class PriceProtectionPolicyModel(Base):
+    __tablename__ = "price_protection_policies"
+
+    policy_id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), index=True, nullable=False)
+    booking_ref = Column(String(64), index=True, nullable=False)
+    destination = Column(String(128), nullable=False)
+    sku_code = Column(String(64), nullable=False)
+    paid_amount_ils = Column(Float, nullable=False)
+    lowest_observed_ils = Column(Float, nullable=False)
+    refunded_total_ils = Column(Float, default=0.0, nullable=False)
+    vip_tier = Column(String(32), default="PLATINUM", nullable=False)
+    coverage_days = Column(Integer, default=30, nullable=False)
+    status = Column(String(32), default="ACTIVE", nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class TravelWalletEntryModel(Base):
+    __tablename__ = "travel_wallet_entries"
+
+    entry_id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), index=True, nullable=False)
+    booking_ref = Column(String(64), index=True, nullable=True)
+    entry_type = Column(String(48), default="PRICE_DROP_REFUND", nullable=False)
+    amount_ils = Column(Float, nullable=False)
+    description_he = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class PulseActionExecutionModel(Base):
+    __tablename__ = "pulse_action_executions"
+
+    execution_id = Column(String(64), primary_key=True, index=True)
+    action_id = Column(String(64), index=True, nullable=False)
+    user_id = Column(String(64), index=True, nullable=False)
+    skill_name = Column(String(64), nullable=False)
+    outcome_summary_he = Column(Text, nullable=False)
+    status = Column(String(32), default="EXECUTED", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)

@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "AgentTravelPlanner | תכנון חופשות ומסעות עם סוכני AI אוטונומיים",
   description:
-    "גלה יעדים עוצרי נשימה ותכנן את הטיול המושלם עם צוות 25 סוכני בינה מלאכותית אוטונומיים.",
+    "גלה יעדים עוצרי נשימה ותכנן את הטיול המושלם עם צוות 31 סוכני בינה מלאכותית אוטונומיים.",
 };
 
 export default function RootLayout({

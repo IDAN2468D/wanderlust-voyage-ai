@@ -36,3 +36,33 @@ By uniting an intelligent FastAPI multi-agent backend with a Next.js 15 Liquid G
 | Itinerary Accuracy & Budget Compliance | 100% within requested budget ceiling + Trip Critic audit |
 | Deployment Health | 0 build crashes (exit code 0 on Render & Vercel) |
 | Workspace Export Success | >= 99% via Google Flow MCP & persistent HITL |
+
+---
+
+## 7. Sprint 10 (V10.0 — Track H Adaptation): Autonomous Agentic Travel Commerce & Proactive AI Discovery
+
+- **Release Target:** `V10.0 (Sprint 10 — 31-Agent Travel Swarm)`
+- **Document ID:** `PRD-2026-V10-WANDERLUST-TRACK-H`
+- **Design System:** `Liquid Glass 4.0 Pro RTL` (`120Hz Zero-Reflow GPU`, Dual-Theme RTL/LTR)
+
+### 7.1 Executive Expansion (25 → 31 Autonomous Travel Agents)
+Sprint 10 brings the four leading 2026 Agentic Commerce breakthroughs into Wanderlust Voyage AI:
+1. **ACP / UCP External AI Travel Handshake (`/api/v1/acp/**`)**: Allows external AI shopping/travel assistants (`OpenAI ACP`, `Perplexity Pro`, `Google UCP`, `Amazon Buy for Me`, `Claude MCP`) to discover signed travel capabilities (`GET /.well-known/agent-commerce.json`, `GET /api/v1/acp/manifest`), mint bounded `DelegatedSpendToken` ceilings in `₪` (`ILS`), and execute single-trip atomic booking checkouts with automatic TLV/Shabbat safety checks.
+2. **Proactive Travel Interests & Fare Radar (`/api/v1/interests/**`)**: Continuous natural-language Hebrew/English interest watchers (e.g., *"טיסות ישירות מנתב"ג לטוקיו באוקטובר מתחת ל-₪3,400 כולל מזוודה"*), parsed into structured constraints + semantic VectorStore embeddings (`Match Score >= 0.80`) with 15-minute **VIP Auto-Reserve** holds.
+3. **Screenshot-to-Trip & Vision Fit Assessment (`/api/v1/vision-trip/**`)**: Decomposes travel inspiration screenshots/lookbooks into 2–5 clickable **Liquid Glass Hotspots** `(x, y, w, h)` mapped to flights, boutique stays, culinary spots, and experiences with a `-10%` Complete-the-Trip bundle discount + personalized `Fit Accuracy Score %`.
+4. **Post-Booking Price Drop Guard & Travel Wallet (`/api/v1/price-guard/**`)**: Automatically registers confirmed bookings for 14-day (Standard) / 30-day (VIP Platinum) fare & hotel drop monitoring; when a live price drops below the paid amount, computes the `Price Delta ILS` and credits the user's **Wanderlust Travel Wallet** in `₪` automatically.
+5. **Sidekick TravelOps Pulse & Bundle Deal Negotiator (`/api/v1/pulse/**`, `/api/v1/trips/negotiate-bundle`)**: Transforms passive FX/route telemetry into 1-click proactive **Pulse Action Cards** + AI-powered multi-component bundle negotiation.
+
+### 7.2 V10.0 Business KPIs
+| Metric | Baseline (Sprint 9) | Target (Sprint 10 V10.0) | Primary Driver |
+|---|---|---|---|
+| **AI-Referred Booking Conversion** | `3.8%` | `6.2% (+63%)` | Single-call ACP/UCP delegated checkout + signed manifest |
+| **Multi-Component Bundle Value** | `₪5,200` | `₪6,900 (+33%)` | Screenshot-to-Trip `-10%` bundle builder & AI negotiator |
+| **90-Day Traveler Retention** | `44%` | `68% (+24%)` | Automatic Price Guard `₪` wallet credits & Interest Radar alerts |
+| **TravelOps Anomaly Reaction** | `4.5 hrs` | `< 60 sec` | Proactive Sidekick Pulse 1-click skill execution |
+
+### 7.3 Strict Engineering Guardrails
+- **Spec-First**: All API schemas adhere to Pydantic v2 (FastAPI) and Zod boundary validation (Next.js App Router).
+- **Modular UI Cap**: Every new React/Next.js Track H component and route file is strictly `<= 200 LOC`.
+- **BiDi & Israeli Locale**: Full RTL (`dir="rtl"`) and LTR (`dir="ltr"`) support, `DD/MM/YYYY` dates, and `ILS (₪)` / `USD ($)` / `EUR (€)` parity.
+

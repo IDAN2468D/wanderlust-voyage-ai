@@ -8,6 +8,8 @@ from app.core.config import settings
 from app.db.database import init_db, get_active_db_backend
 from app.api.auth import router as auth_router
 from app.api.routes import router as trip_router, core_router as trip_compat_router
+from app.api.track_h_routes import track_h_core_router, track_h_v1_router
+from app.tools.acp_gateway_tools import get_acp_manifest
 
 # Configure structured logging
 logging.basicConfig(
@@ -69,10 +71,18 @@ async def health_check():
     }
 
 
+@app.get("/.well-known/agent-commerce.json", tags=["ACP/UCP"])
+async def well_known_agent_commerce():
+    """Standard ACP/UCP external AI shopping agent capability manifest."""
+    return get_acp_manifest()
+
+
 # Register API subrouters (/api/v1/* and unversioned /api/* compatibility)
 app.include_router(auth_router, prefix="/api")
 app.include_router(trip_router, prefix="/api")
 app.include_router(trip_compat_router, prefix="/api")
+app.include_router(track_h_v1_router, prefix="/api")
+app.include_router(track_h_core_router, prefix="/api")
 
 
 if __name__ == "__main__":

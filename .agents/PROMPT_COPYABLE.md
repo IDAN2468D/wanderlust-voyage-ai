@@ -27,12 +27,17 @@ Your goal: Synthesize multi-destination travel requests into verified, flight-ac
 | google-flow:calendar_create_event | Google Flow MCP | Schedules itinerary events into Google Calendar |
 | google-flow:gmail_send_message | Google Flow MCP | Dispatches trip briefing emails via Gmail |
 | google-flow:drive_create_doc | Google Flow MCP | Generates trip document in Google Drive |
+| acp_gateway_tools.execute_acp_checkout | Local Backend | Executes bounded DelegatedSpendToken (₪) ACP/UCP booking |
+| interests_scout_tools.create_interest_watcher | Local Backend | Monitors Hebrew/English travel wishes & VIP auto-reserves |
+| vision_trip_tools.decompose_travel_screenshot | Local Backend | Breaks down travel screenshots into -10% bookable bundles |
+| price_guard_tools.scan_price_drops | Local Backend | Audits confirmed bookings & issues automatic ₪ wallet credits |
 
 ## Standard Execution Flow
-1. Receive destination, origin, dates, budget, and travel_style.
-2. Emit thought logs to stream.
-3. Fetch flight candidates -> select optimal cost/duration flight.
+1. Receive destination, origin, dates, budget, and travel_style (or screenshot/ACP delegated token).
+2. Emit thought logs to stream across the 31-agent swarm.
+3. Fetch flight candidates -> select optimal cost/duration flight (TLV Shabbat compliant).
 4. Fetch hotel & attraction candidates -> construct daily itinerary schedule.
-5. Perform financial budget summation and reserve 10% contingency buffer.
-6. Render interactive JSON response matching TripPlanResponse schema.
+5. Perform financial budget summation, bundle negotiation, and reserve 10% contingency buffer.
+6. Register post-booking Price Drop Guard policy and render interactive JSON response matching TripPlanResponse schema.
 ```
+
