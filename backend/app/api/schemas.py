@@ -77,6 +77,7 @@ class TripPlanResponse(BaseModel):
     group_breakdown: Optional[Dict[str, Any]] = None
     traveler_memory: Optional[Dict[str, Any]] = None
     critic_audit: Optional[Dict[str, Any]] = None
+    track_h_insights: Optional[Dict[str, Any]] = None
     budget_overrun_flagged: Optional[bool] = False
     guardrail_warnings: Optional[List[str]] = None
 
@@ -566,4 +567,95 @@ class PersonalKnowledgeIngestRequest(BaseModel):
     content: str = Field(..., min_length=5)
     destination: str = Field(default="Global")
     doc_type: str = Field(default="personal_note")
+
+
+# ==============================================================================
+# Sprint 10 (V10.0 — Track H): ACP, Interests Scout, Vision-to-Trip, Price Guard & Pulse
+# ==============================================================================
+
+class AcpTokenDelegateRequest(BaseModel):
+    external_agent_provider: str = Field(
+        default="OPENAI_ACP",
+        description="OPENAI_ACP | PERPLEXITY_PRO | GOOGLE_UCP | AMAZON_BUY_FOR_ME | CLAUDE_MCP",
+    )
+    user_id: str = Field(default="usr_demo123", min_length=2, max_length=64)
+    max_authorized_ils: float = Field(..., gt=0, le=100000)
+    allowed_categories: List[str] = Field(default_factory=lambda: ["FLIGHT", "HOTEL", "PACKAGE"])
+    ttl_minutes: int = Field(default=60, ge=5, le=1440)
+
+
+class AcpDelegatedCheckoutRequest(BaseModel):
+    external_agent_provider: str = Field(default="OPENAI_ACP")
+    user_id: str = Field(default="usr_demo123", min_length=2, max_length=64)
+    delegated_token: Optional[str] = Field(default=None)
+    max_authorized_ils: float = Field(..., gt=0, le=100000)
+    destination: str = Field(default="Santorini", min_length=2, max_length=120)
+    origin: str = Field(default="TLV", min_length=2, max_length=16)
+    duration_days: int = Field(default=5, ge=1, le=30)
+    sku_codes: List[str] = Field(default_factory=lambda: ["FLT-TLV-JTR", "HTL-OIA-CLIFF"])
+    fulfillment_mode: str = Field(default="DIGITAL_VOUCHER")
+    shabbat_safe_mode: bool = Field(default=False)
+
+
+class CreateInterestWatcherRequest(BaseModel):
+    user_id: str = Field(default="usr_demo123", min_length=2, max_length=64)
+    raw_prompt_hebrew: str = Field(..., min_length=4, max_length=280)
+    target_category: str = Field(
+        default="ALL",
+        description="ALL | FLIGHTS | HOTELS | PACKAGES | SHABBAT_FRIENDLY | LUXURY",
+    )
+    max_price_ils: float = Field(..., ge=100, le=50000)
+    auto_reserve_vip: bool = Field(default=False)
+
+
+class ScreenshotDecomposeRequest(BaseModel):
+    scene_type: str = Field(
+        default="SANTORINI_CLIFFSIDE",
+        description="SANTORINI_CLIFFSIDE | TOKYO_NEON_FOOD | SWISS_ALPINE_CHALET | AMALFI_COAST_LUXURY | BALI_JUNGLE_VILLA",
+    )
+    image_source_url: Optional[str] = Field(default=None)
+    travelers: int = Field(default=2, ge=1, le=12)
+    budget_ceiling_ils: float = Field(default=8500.0, ge=500, le=100000)
+
+
+class FitAssessmentRequest(BaseModel):
+    scene_type: str = Field(default="SANTORINI_CLIFFSIDE")
+    travelers: int = Field(default=2, ge=1, le=12)
+    budget_ceiling_ils: float = Field(default=8500.0, ge=500, le=100000)
+    shabbat_observant: bool = Field(default=False)
+    max_flight_hours: float = Field(default=8.0, ge=1.0, le=24.0)
+
+
+class PriceProtectionRegisterRequest(BaseModel):
+    user_id: str = Field(default="usr_demo123", min_length=2, max_length=64)
+    booking_ref: str = Field(..., min_length=3, max_length=64)
+    destination: str = Field(default="Rome", min_length=2, max_length=120)
+    sku_code: str = Field(default="PKG-TLV-ROM-5D", min_length=3, max_length=64)
+    paid_amount_ils: float = Field(..., gt=0)
+    vip_tier: str = Field(default="PLATINUM", description="STANDARD | GOLD | PLATINUM")
+
+
+class PriceProtectionScanRequest(BaseModel):
+    user_id: str = Field(default="usr_demo123", min_length=2, max_length=64)
+    booking_ref: str = Field(..., min_length=3, max_length=64)
+    destination: str = Field(default="Rome", min_length=2, max_length=120)
+    paid_amount_ils: float = Field(..., gt=0)
+    sku_code: str = Field(default="PKG-TLV-ROM-5D", min_length=3, max_length=64)
+    vip_tier: str = Field(default="PLATINUM")
+    simulated_market_drop_pct: Optional[float] = Field(default=None, ge=0, le=45)
+
+
+class BundleNegotiateRequest(BaseModel):
+    destination: str = Field(default="Santorini", min_length=2, max_length=120)
+    base_total_ils: float = Field(..., gt=0)
+    travelers: int = Field(default=2, ge=1, le=12)
+    components: List[str] = Field(default_factory=lambda: ["FLIGHT", "BOUTIQUE_HOTEL", "TRANSFER_ESIM"])
+    loyalty_tier: str = Field(default="PLATINUM")
+    target_discount_pct: float = Field(default=12.0, ge=1.0, le=25.0)
+
+
+class PulseActionExecuteRequest(BaseModel):
+    user_id: str = Field(default="usr_demo123", min_length=2, max_length=64)
+    context: Optional[Dict[str, Any]] = None
+
 

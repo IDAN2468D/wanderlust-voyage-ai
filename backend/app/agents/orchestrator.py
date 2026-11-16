@@ -523,6 +523,25 @@ def synthesize_deterministic_plan(
         total_budget=total_budget,
         shabbat_safe_mode=effective_shabbat,
     )
+    try:
+        from app.tools.pulse_negotiator_tools import negotiate_travel_bundle
+
+        est_ils = round(float(plan_data.get("total_estimated", 0.0)) * float(fx_ils_rate or 3.7), 2)
+        negotiation = negotiate_travel_bundle(
+            destination=dest_clean,
+            base_total_ils=max(500.0, est_ils),
+            travelers=travelers,
+            components=["FLIGHT", "BOUTIQUE_HOTEL", "TRANSFER_ESIM"],
+            loyalty_tier="PLATINUM",
+            target_discount_pct=12.0,
+        )
+        plan_data["track_h_insights"] = {
+            "acp_ready": True,
+            "price_guard_days": 30,
+            "bundle_negotiation": negotiation,
+        }
+    except Exception:
+        plan_data["track_h_insights"] = {"acp_ready": True, "price_guard_days": 30}
     return validate_trip_output(plan_data, total_budget)
 
 
@@ -1030,7 +1049,16 @@ async def stream_multi_agent_execution(
         "title": "[STAGE: CRITIC_AUDIT] סוכן ביקורת, אימות ותיקון עצמי",
         "message": f"מאמת תאימות נתב\"ג, שבת, גיאוגרפיה ותקציב (סטטוס: {critic_audit.get('status', 'VERIFIED')})...",
     })
-    await asyncio.sleep(0.15)
+    await asyncio.sleep(0.12)
+
+    yield format_sse("step", {
+        "agent": "bundle_deal_negotiator_agent",
+        "stage": "TRACK_H_COMMERCE",
+        "status": "running",
+        "title": "[STAGE: TRACK_H_COMMERCE] סוכני ACP, Price Guard ומו\"מ באנדל",
+        "message": "מכין חבילת הנחה אוטונומית (-10%/-12%), אסימון ACP והגנת מחיר ל-30 יום בשקלים...",
+    })
+    await asyncio.sleep(0.12)
 
     # Stage 16: Final Synthesis & Markdown Stream
     yield format_sse("step", {
@@ -1085,6 +1113,7 @@ async def stream_multi_agent_execution(
         "group_breakdown": plan_data.get("group_breakdown"),
         "traveler_memory": plan_data.get("traveler_memory"),
         "critic_audit": critic_audit,
+        "track_h_insights": plan_data.get("track_h_insights"),
         "budget_overrun_flagged": plan_data.get("budget_overrun_flagged", False),
         "guardrail_warnings": plan_data.get("guardrail_warnings", []),
     })

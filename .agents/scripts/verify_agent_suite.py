@@ -15,6 +15,10 @@ required = [
     'Skills/liquid-glass-travel-ui/SKILL.md',
     'Skills/google-flow-travel-mcp/SKILL.md',
     'Skills/tlv-holiday-flight-board/SKILL.md',
+    'Skills/acp-travel-commerce/SKILL.md',
+    'Skills/proactive-interests-scout/SKILL.md',
+    'Skills/vision-trip-lookbook/SKILL.md',
+    'Skills/price-protection-guard/SKILL.md',
     'state/task.md', 'state/SPRINTS.md', 'state/ARCHITECTURE_STATE.md'
 ]
 base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,5 +28,9 @@ if missing:
     exit(1)
 with open(os.path.join(base, 'agents.json'), 'r', encoding='utf-8') as fp:
     data = json.load(fp)
-print(f"All agent suite files verified ({len(data.get('agents', []))} agents registered).")
+agents = data.get('agents', [])
+if len(agents) < 31:
+    print(f"Expected >= 31 agents, found {len(agents)}")
+    exit(1)
+print(f"All agent suite files verified ({len(agents)} agents registered).")
 

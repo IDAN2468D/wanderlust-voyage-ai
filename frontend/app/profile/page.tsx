@@ -39,6 +39,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCurrency, CURRENCIES, CurrencyCode } from "@/context/CurrencyContext";
 import { getApiBaseUrl } from "@/utils/apiConfig";
 import { loadOfflineVault, OfflineVaultEntry } from "@/utils/offlineVault";
+import { PriceGuardShieldCard } from "@/components/track-h/PriceGuardShieldCard";
 
 interface BookingRecord {
   booking_ref: string;
@@ -730,6 +731,8 @@ function ProfileContent() {
                 <p className="text-xs text-slate-400">ניתן לשמור כל הזמנה מאושרת לכספת האופליין לצפייה גם ללא חיבור לאינטרנט בטיסה.</p>
               )}
             </div>
+
+            <PriceGuardShieldCard />
           </div>
         )}
 

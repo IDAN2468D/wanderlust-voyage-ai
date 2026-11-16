@@ -285,7 +285,7 @@ def test_api_replan_preferences_readiness_ops_and_mcp():
 
     metrics_resp = client.get("/api/v1/ops/metrics")
     assert metrics_resp.status_code == 200
-    assert metrics_resp.json()["agents_registered"] == 25
+    assert metrics_resp.json()["agents_registered"] >= 25
 
     mcp_replan = json.loads(replan_trip_day(destination="Rome", day_number=1, slot="morning", constraint_note="Art gallery"))
     assert len(mcp_replan["diffs"]) >= 1

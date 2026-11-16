@@ -5,6 +5,8 @@
 :root {
   --background: #050811;
   --foreground: #f8fafc;
+  --font-sans: "Heebo Variable", system-ui, sans-serif;
+  --font-serif: "Frank Ruhl Libre Variable", Georgia, serif;
 }
 
 html,
