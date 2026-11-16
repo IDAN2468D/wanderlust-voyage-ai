@@ -131,7 +131,12 @@ async def vision_presets_endpoint():
 async def vision_decompose_endpoint(payload: ScreenshotDecomposeRequest):
     return decompose_travel_screenshot(
         scene_type=payload.scene_type,
+        scene_key=payload.scene_key,
         image_source_url=payload.image_source_url,
+        image_url=payload.image_url,
+        image_base64=payload.image_base64,
+        file_name=payload.file_name,
+        custom_hint=payload.custom_hint,
         travelers=payload.travelers,
         budget_ceiling_ils=payload.budget_ceiling_ils,
     )
@@ -141,6 +146,12 @@ async def vision_decompose_endpoint(payload: ScreenshotDecomposeRequest):
 async def vision_fit_endpoint(payload: FitAssessmentRequest):
     return assess_trip_vision_fit(
         scene_type=payload.scene_type,
+        scene_key=payload.scene_key,
+        image_source_url=payload.image_source_url,
+        image_url=payload.image_url,
+        image_base64=payload.image_base64,
+        file_name=payload.file_name,
+        custom_hint=payload.custom_hint,
         travelers=payload.travelers,
         budget_ceiling_ils=payload.budget_ceiling_ils,
         shabbat_observant=payload.shabbat_observant,

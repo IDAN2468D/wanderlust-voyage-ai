@@ -609,17 +609,28 @@ class CreateInterestWatcherRequest(BaseModel):
 
 
 class ScreenshotDecomposeRequest(BaseModel):
-    scene_type: str = Field(
+    scene_type: Optional[str] = Field(
         default="SANTORINI_CLIFFSIDE",
         description="SANTORINI_CLIFFSIDE | TOKYO_NEON_FOOD | SWISS_ALPINE_CHALET | AMALFI_COAST_LUXURY | BALI_JUNGLE_VILLA",
     )
+    scene_key: Optional[str] = Field(default=None)
     image_source_url: Optional[str] = Field(default=None)
+    image_url: Optional[str] = Field(default=None)
+    image_base64: Optional[str] = Field(default=None)
+    file_name: Optional[str] = Field(default=None)
+    custom_hint: Optional[str] = Field(default=None)
     travelers: int = Field(default=2, ge=1, le=12)
     budget_ceiling_ils: float = Field(default=8500.0, ge=500, le=100000)
 
 
 class FitAssessmentRequest(BaseModel):
-    scene_type: str = Field(default="SANTORINI_CLIFFSIDE")
+    scene_type: Optional[str] = Field(default="SANTORINI_CLIFFSIDE")
+    scene_key: Optional[str] = Field(default=None)
+    image_source_url: Optional[str] = Field(default=None)
+    image_url: Optional[str] = Field(default=None)
+    image_base64: Optional[str] = Field(default=None)
+    file_name: Optional[str] = Field(default=None)
+    custom_hint: Optional[str] = Field(default=None)
     travelers: int = Field(default=2, ge=1, le=12)
     budget_ceiling_ils: float = Field(default=8500.0, ge=500, le=100000)
     shabbat_observant: bool = Field(default=False)

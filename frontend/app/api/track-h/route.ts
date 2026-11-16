@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerApiBaseUrl } from "@/utils/apiConfig";
+import { buildDynamicVisionFallback } from "@/components/track-h/lookbookPresets";
 import {
   AcpDelegatedCheckoutSchema,
   AcpTokenDelegateSchema,
@@ -97,6 +98,10 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch {
+    if (action === "vision-decompose") {
+      const fb = buildDynamicVisionFallback(validated as Record<string, string>);
+      if (fb) return NextResponse.json(fb, { status: 200 });
+    }
     return NextResponse.json({ detail: "Track H backend proxy failed" }, { status: 503 });
   }
 }
