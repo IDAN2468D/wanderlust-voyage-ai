@@ -167,11 +167,11 @@ export default function TripsPage() {
           </div>
 
           <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
-            מסלולי דוגמה שהורכבו ע&quot;י AI
+            מסלולי דוגמה מומלצים למטיילים
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            קבל השראה מתוכניות חופשה מושלמות שנבנו, תומחרו ואומתו בזמן אמת על ידי צוות 25 סוכני ה-AI שלנו. בלחיצה אחת תוכל להתאים כל מסלול בדיוק לצרכיך.
+            קבלו השראה מתוכניות חופשה מושלמות שנבנו, תומחרו ואומתו בזמן אמת על ידי צוות 32 מומחי הנסיעות שלנו. בלחיצה אחת תוכלו להתאים כל מסלול בדיוק לצרכיכם.
           </p>
         </div>
       </section>

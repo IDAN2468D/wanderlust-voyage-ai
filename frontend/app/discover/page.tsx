@@ -27,15 +27,15 @@ export default function DiscoverTrackHPage() {
           <div className="space-y-2 max-w-2xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-500/15 border border-mint-400/30 text-mint-300 text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5" />
-              V11.0 • 32-Agent Autonomous Swarm + Elasticsearch 8 Hybrid
+              {t("32 מומחי נסיעות אישיים לשירותך", "32 Personal Travel Specialists")}
             </span>
             <h1 className="font-serif text-2xl sm:text-4xl font-black text-white leading-tight">
-              {t("מרכז הגילוי האוטונומי והמסחר הסוכני", "Autonomous Travel Commerce & Proactive AI Discovery")}
+              {t("מרכז הגילוי והמבצעים לחופשה הבאה שלך", "Travel Discovery & Smart Deals Hub")}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               {t(
-                "חיפוש חופשות היברידי ב-Elasticsearch 8 (BM25 + 768d kNN RRF), פרוטוקול ACP/UCP, מכ\"ם תחומי עניין, סורק צילום מסך (-10% באנדל) והגנת מחיר ל-30 יום.",
-                "Elasticsearch 8 Hybrid Vacation Search (BM25 + 768d kNN RRF), ACP/UCP agent checkout, interest radar, Screenshot-to-Trip & 30-day Price Guard."
+                "חיפוש חופשות מתקדם לפי תקציב, קרבה לאטרקציות וכשרות, הזמנת חבילות מותאמות, התראות דילים מנתב\"ג, תכנון חופשה מצילום מסך והגנת ירידת מחיר ל-30 יום.",
+                "Smart vacation search by budget, landmarks & kosher options, instant deal alerts from TLV, photo-to-trip planning & 30-day Price Drop Protection."
               )}
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function DiscoverTrackHPage() {
               className="px-4 py-3 rounded-2xl text-xs sm:text-sm font-extrabold bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 flex items-center justify-center gap-2 transition"
             >
               <Database className="w-4 h-4" />
-              {t("חיפוש היברידי (Elastic 8)", "Hybrid Search (Elastic 8)")}
+              {t("חיפוש חופשות מתקדם", "Smart Vacation Search")}
             </button>
             <button
               type="button"
@@ -54,7 +54,7 @@ export default function DiscoverTrackHPage() {
               className="btn-mint px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold text-slate-950 flex items-center justify-center gap-2 shrink-0 shadow-lg shadow-teal-500/20"
             >
               <ScanSearch className="w-4 h-4" />
-              {t("סורק צילום מסך (Vision Match)", "Screenshot-to-Trip Scanner")}
+              {t("תכנן חופשה מתמונה", "Plan Trip From Photo")}
             </button>
           </div>
         </section>

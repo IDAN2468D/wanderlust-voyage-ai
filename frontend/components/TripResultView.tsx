@@ -507,7 +507,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-[11px] px-3 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-400/30 font-bold tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-mint-400" />
-                תוכנית אוטונומית סונתזה על ידי 25 סוכנים
+                תוכנית מלאה נבנתה ע&quot;י 32 מומחי הנסיעות שלנו
               </span>
               {budgetStatus && (
                 <span
@@ -564,7 +564,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
         </div>
 
         {/* =========================================================================
-            GOOGLE WORKSPACE 1-CLICK SYNC HUB (Google Flow MCP Integration)
+            GOOGLE WORKSPACE 1-CLICK SYNC HUB
         ========================================================================= */}
         <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 via-indigo-500/10 to-transparent border border-mint-400/20 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-right">
@@ -573,8 +573,8 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             </div>
             <div>
               <div className="text-xs font-bold text-white flex flex-wrap items-center gap-1.5">
-                <span>סנכרון חכם ל-Google Workspace</span>
-                <span className="text-[9px] px-2 py-0.5 rounded-full bg-mint-400/20 text-mint-300 font-mono">Google Flow MCP</span>
+                <span>שמירה וסנכרון ל-Google Workspace</span>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-mint-400/20 text-mint-300 font-bold">Calendar • Docs • Gmail</span>
               </div>
               <div className="text-[11px] text-slate-400">
                 ייצאו את לוח הטיסות, המלונות והתדריך ישירות לחשבון הגוגל שלכם בלחיצה אחת.
@@ -807,7 +807,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
             }`}
           >
             <Brain className="w-3.5 h-3.5" />
-            <span>ידע RAG ו-Reasoning ({ragKnowledge?.length || 0})</span>
+            <span>טיפים ובקרת מסלול ({ragKnowledge?.length || 0})</span>
           </button>
 
           <button
@@ -1915,24 +1915,22 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white">
-                        ביקורת חשיבה לוגית (Reasoning Engine • Chain-of-Thought)
+                        בדיקת התאמה ולו&quot;ז המסלול
                       </h4>
                       <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
-                        <span className="font-mono text-fuchsia-300">{reasoningTrace.reasoning_model || "gemini-2.5-flash"}</span>
-                        <span>•</span>
-                        <span>{reasoningTrace.reasoning_mode || "agno_reasoning_tools_plus_cot_audit"}</span>
+                        <span>אימות זמני נסיעה, פתיחת אתרים ותקציב חופשה</span>
                       </div>
                     </div>
                   </div>
 
                   {typeof reasoningTrace.confidence_score === "number" && (
                     <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold self-start sm:self-center">
-                      ביטחון מודל: {Math.round(reasoningTrace.confidence_score * 100)}%
+                      מדד התאמה למסלול: {Math.round(reasoningTrace.confidence_score * 100)}%
                     </span>
                   )}
                 </div>
 
-                {/* Reasoning Steps */}
+                {/* Itinerary Checks */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {(reasoningTrace.steps || []).map((step: any, idx: number) => {
                     const verdict = String(step.verdict || "PASS").toUpperCase();
@@ -1972,7 +1970,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                     <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
                       <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>תנאים ואינוואריאנטים שאומתו</span>
+                        <span>תנאים ופרטים שאומתו עבורך</span>
                       </div>
                       <ul className="space-y-1.5 text-xs text-slate-300">
                         {reasoningTrace.verified_invariants.map((inv: string, i: number) => (
@@ -1989,7 +1987,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                     <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
                       <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
                         <Sparkles className="w-4 h-4" />
-                        <span>המלצות אופטימיזציה ומסקנות</span>
+                        <span>המלצות ומסקנות לחיסכון ונוחות</span>
                       </div>
                       <ul className="space-y-1.5 text-xs text-slate-300">
                         {reasoningTrace.recommendations.map((rec: string, i: number) => (
@@ -2005,11 +2003,11 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
               </div>
             ) : (
               <div className="p-5 rounded-2xl bg-black/30 border border-white/10 text-xs text-slate-400 text-center">
-                נתוני ביקורת החשיבה (Reasoning Trace) זמינים לאחר יצירת תוכנית מלאה.
+                נתוני בקרת האיכות של המסלול זמינים לאחר יצירת תוכנית מלאה.
               </div>
             )}
 
-            {/* RAG VectorStore Knowledge Chunks */}
+            {/* Local Traveler Tips */}
             <div className="p-5 sm:p-6 rounded-2xl bg-black/40 border border-violet-500/25 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -2018,15 +2016,15 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white">
-                      מקטעי ידע שנשלפו ממאגר ה-RAG VectorStore
+                      טיפים ומידע מקומי שנאסף עבור החופשה שלך
                     </h4>
                     <p className="text-[11px] text-slate-400">
-                      מדריכי יעד מובנים + נוהל נתב&quot;ג והמטייל הישראלי (Loader → Splitter → Embedder → VectorStore)
+                      מדריכי יעד מובנים, טיפים מנתב&quot;ג והמלצות שימושיות למטייל הישראלי
                     </p>
                   </div>
                 </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-200 border border-violet-400/30 font-mono self-start sm:self-center">
-                  {ragKnowledge?.length || 0} מקטעים רלוונטיים
+                <span className="text-[11px] px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-200 border border-violet-400/30 font-bold self-start sm:self-center">
+                  {ragKnowledge?.length || 0} טיפים רלוונטיים
                 </span>
               </div>
 
@@ -2235,7 +2233,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
                     <ShieldCheck className="w-4 h-4" />
-                    <span>ביקורת מטה-AI (Trip Critic Agent)</span>
+                    <span>אימות איכות ואיזון המסלול</span>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold font-mono">
                     ציון איכות: {criticAudit.overall_score ?? 92}/100 ({criticAudit.verdict || "PASSED"})
@@ -2465,7 +2463,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
               </div>
               <div>
                 <h3 className="text-lg font-serif font-bold text-white">שליחת תדריך נסיעה למייל</h3>
-                <p className="text-xs text-slate-400">מופעל באמצעות Resend & Google Flow MCP</p>
+                <p className="text-xs text-slate-400">קבל סיכום מסודר של המסלול, הטיסות והמלונות ישירות למייל</p>
               </div>
             </div>
 
@@ -2632,7 +2630,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
                 className="w-full btn-mint py-2.5 rounded-xl font-bold text-slate-950 flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <RefreshCw className={`w-4 h-4 ${replanLoading ? "animate-spin" : ""}`} />
-                <span>{replanLoading ? "מעדכן את היום..." : "בצע החלפה חכמה (SSE)"}</span>
+                <span>{replanLoading ? "מעדכן את היום..." : "עדכן את תוכנית היום"}</span>
               </button>
             </form>
 
@@ -2646,7 +2644,7 @@ export const TripResultView: React.FC<TripResultViewProps> = ({
 
             {replanDiffs.length > 0 && (
               <div className="space-y-2">
-                <div className="text-xs font-bold text-mint-300">תצוגה מקדימה של השינוי (Diff):</div>
+                <div className="text-xs font-bold text-mint-300">תצוגה מקדימה של השינוי במסלול:</div>
                 {replanDiffs.map((diff, idx) => (
                   <div key={idx} className="p-3 rounded-xl bg-mint-500/10 border border-mint-400/30 text-xs space-y-1">
                     <div className="font-bold text-white">יום {diff.day_number} • {diff.slot}</div>

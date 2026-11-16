@@ -7,12 +7,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
   Compass,
-  Cpu,
-  Bot,
   Plane,
   ShieldCheck,
-  Zap,
-  Lock,
   ArrowLeft,
   CalendarCheck,
   CheckCircle2,
@@ -21,36 +17,36 @@ import {
 
 const AGENTS_DETAILS = [
   {
-    role: "Travel Orchestrator Lead",
-    title: "מנהל המשלחת ומתאם המערכת",
+    role: "Head Travel Planner",
+    title: "מנהל המסלול ומתאם החופשה",
     icon: Compass,
     color: "from-blue-500/20 to-indigo-500/20 text-blue-400 border-blue-500/30",
-    desc: "המוח המרכזי של המערכת. מנתח את רצונות המטייל, מפרק את המשימה לתתי-יעדים ומנהל את סנכרון העבודה בין כל יתר הסוכנים עד לקבלת תוכנית מושלמת.",
-    skills: ["ניתוח פרופיל מטייל", "ניהול תלויות ולוחות זמנים", "סינתזת דוח סופי מקיף"],
+    desc: "מנתח את העדפות החופשה שלך, מפרק את המסע לשלבים ומתאם בין כל 32 מומחי הנסיעות שלנו עד לקבלת תוכנית מדויקת.",
+    skills: ["התאמה אישית לפרופיל המטייל", "תזמון ולוחות זמנים נוחים", "בניית תדריך מסע מלא"],
   },
   {
-    role: "Flight & Accommodation Specialist",
+    role: "Flights & Stays Specialist",
     title: "מומחה טיסות ומלונות",
     icon: Plane,
     color: "from-mint-500/20 to-emerald-500/20 text-mint-400 border-mint-500/30",
-    desc: "סורק נתיבי טיסה, מוצא טיסות ישירות ומחברות תעופה אמינות. מאתר מלונות בוטיק וריזורטים במיקומים מרכזיים עם חוות דעת מובילות.",
+    desc: "סורק נתיבי טיסה מנתב\"ג, מאתר טיסות ישירות ומשתלמות ובוחר מלונות בוטיק וריזורטים במיקומים מרכזיים עם ביקורות מובילות.",
     skills: ["איתור טיסות ישירות ומשתלמות", "סינון מלונות לפי ביקורות ומיקום", "בדיקת זמינות וטווח מחירים"],
   },
   {
-    role: "Itinerary Specialist",
+    role: "Itinerary & Culinary Curator",
     title: "אדריכל המסלול והחוויות",
     icon: CalendarCheck,
     color: "from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30",
-    desc: "בונה מסלול יום-אחר-יום עם היגיון גיאוגרפי (Geo-clustering) כדי לחסוך זמני נסיעה מיותרים, ומשלב אטרקציות ייחודיות, מסעדות מקומיות וזמני מנוחה.",
-    skills: ["אופטימיזציה גיאוגרפית של מסלולים", "התאמה לתחומי עניין אישיים", "שילוב מסעדות ואטרקציות מומלצות"],
+    desc: "בונה מסלול יום-אחר-יום עם היגיון גיאוגרפי כדי לחסוך נסיעות מיותרות, ומשלב אטרקציות ייחודיות, מסעדות כשרות וזמני מנוחה.",
+    skills: ["קיצור זמני נסיעה בין אתרים", "התאמה לתחומי עניין אישיים", "שילוב מסעדות, כשרות וחוויות"],
   },
   {
-    role: "Budget Auditor",
-    title: "מבקר התקציב הפיננסי",
+    role: "Budget & Savings Advisor",
+    title: "מבקר התקציב והחיסכון",
     icon: ShieldCheck,
     color: "from-rose-500/20 to-purple-500/20 text-rose-400 border-rose-500/30",
-    desc: "מבצע בקרה מתמטית בלתי מתפשרת של כל סעיף עלות (טיסות, לינה, אוכל, תחבורה ופעילויות) ומוודא עמידה קפדנית במסגרת התקציב שהוגדרה מראש.",
-    skills: ["ביקורת עלויות מתמטית", "מניעת חריגות תקציב", "הקצאת יתרות ביטחון למטייל"],
+    desc: "מבצע בקרה מדויקת של כל סעיף עלות (טיסות, לינה, אוכל, תחבורה ואטרקציות) ומוודא עמידה במסגרת התקציב שהוגדרה מראש.",
+    skills: ["פירוט עלויות שקוף מראש", "מניעת חריגות תקציב", "הקצאת יתרות ביטחון למטייל"],
   },
 ];
 
@@ -76,8 +72,8 @@ export default function AboutPage() {
 
         <div className="relative z-10 max-w-7xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 text-mint-400 text-xs font-bold uppercase tracking-[0.2em] bg-mint-500/10 px-4 py-1.5 rounded-full border border-mint-500/20">
-            <Cpu className="w-4 h-4" />
-            <span>המהפכה של עולם התיירות</span>
+            <Compass className="w-4 h-4" />
+            <span>חופשות מותאמות אישית מנתב&quot;ג</span>
           </div>
 
           <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
@@ -105,7 +101,7 @@ export default function AboutPage() {
               לפני Wanderlust, תכנון חופשה מורכבת דרש ימים של חיפוש טיסות, קריאת מאות ביקורות על מלונות, חישובי תקציב מייגעים באקסל וניסיונות להרכיב לו&quot;ז שלא יתיש אותך בנסיעות.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed">
-              הקמנו את Wanderlust במטרה להעמיד לרשות כל מטייל <strong>חמ&quot;ל תיירותי אוטונומי</strong>. 25 סוכני AI מתמחים, המופעלים על ידי מודלי השפה המתקדמים בעולם, שמשתפים פעולה בזמן אמת כדי להרכיב עבורך מסע מדויק, מרגש ובטוח כלכלית.
+              הקמנו את Wanderlust במטרה להעמיד לרשות כל מטייל <strong>צוות תכנון חופשות אישי</strong>. 32 מומחי נסיעות חכמים — מטיסות נתב&quot;ג ושבת ועד מלונות, קולינריה ותקציב — משתפים פעולה בזמן אמת כדי להרכיב עבורך מסע מדויק, מרגש ובטוח כלכלית.
             </p>
 
             <div className="pt-2 flex flex-wrap gap-2.5 sm:gap-4 text-xs font-semibold text-slate-200">
@@ -132,10 +128,10 @@ export default function AboutPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#050811] via-transparent to-transparent" />
             <div className="absolute bottom-4 right-4 left-4 sm:bottom-6 sm:right-6 sm:left-6 wanderlust-glass p-4 rounded-2xl border border-white/15">
               <div className="text-xs font-bold text-white mb-1">
-                ארכיטקטורה רב-סוכנית אוטונומית (Multi-Agent System)
+                צוות 32 מומחי הנסיעות שלך — בסנכרון מלא
               </div>
               <div className="text-[11px] text-slate-300">
-                כל סוכן פועל בצורה ממוקדת עם פרומפט ייעודי, כלים חיצוניים ופונקציית בקרה עצמאית.
+                כל מומחה מתמקד בהיבט אחד של הטיול — טיסות, לינה, שבת/כשרות, אטרקציות ותקציב — עד ליצירת מסלול מושלם.
               </div>
             </div>
           </div>
@@ -145,13 +141,13 @@ export default function AboutPage() {
         <section className="space-y-8">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-xs px-3 py-1 rounded-full bg-mint-500/10 text-mint-300 border border-mint-500/20 font-bold uppercase tracking-wider">
-              הצוות הדיגיטלי שלך
+              נבחרת המומחים שלך
             </span>
             <h2 className="font-serif text-2xl sm:text-4xl font-bold text-white">
-              הכירו את ליבת סוכני ה-AI שפועלים עבורכם
+              הכירו את ליבת המומחים שמתכננים עבורכם
             </h2>
             <p className="text-xs text-slate-400">
-              כל סוכן מומחה בתחומו ומבצע אינטראקציה הדדית עם יתר הסוכנים כדי להבטיח תוכנית נטולת פשרות.
+              32 מומחים משלימים שדואגים לכל פרט קטן בטיול כדי שתוכלו לטוס בראש שקט.
             </p>
           </div>
 
@@ -205,47 +201,47 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Technology Stack & Architecture */}
+        {/* Traveler Benefits & Promises */}
         <section className="wanderlust-glass rounded-3xl p-5 sm:p-12 border border-white/15 space-y-6 sm:space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-2">
             <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white">
-              הטכנולוגיה שמתחת למכסה המנוע
+              למה מטיילים מישראל בוחרים בנו
             </h3>
             <p className="text-xs text-slate-400">
-              מערכת Enterprise הבנויה בסטנדרטים הגבוהים ביותר של ביצועים ואמינות.
+              כל מה שחשוב לחופשה מושלמת — מתכנון הלו&quot;ז ועד החזרה הביתה.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-right">
             <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-2">
-              <Bot className="w-6 h-6 text-mint-400" />
-              <div className="font-bold text-sm text-white">Agno Multi-Agent</div>
+              <Plane className="w-6 h-6 text-mint-400" />
+              <div className="font-bold text-sm text-white">מותאם לטיסות מנתב&quot;ג</div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                ארכיטקטורת תיאום סוכנים אוטונומיים בעלי תפקידים, כלים וזיכרון משותף.
+                השוואת טיסות ישירות וקונקשנים, תמחור כבודה אמיתי מראש והתחשבות בחגים ושבת.
               </p>
             </div>
 
             <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-2">
-              <Zap className="w-6 h-6 text-mint-400" />
-              <div className="font-bold text-sm text-white">Google Gemini 2.0</div>
+              <ShieldCheck className="w-6 h-6 text-mint-400" />
+              <div className="font-bold text-sm text-white">הגנת ירידת מחיר ל-30 יום</div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                מודלי שפה סופר-מהירים עם הבנת הקשר רחבה ומענה יצירתי ומדויק בעברית.
+                הזמנתם ומחיר הטיסה או המלון ירד? תקבלו זיכוי אוטומטי בשקלים לארנק החופשות.
               </p>
             </div>
 
             <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-2">
-              <Lock className="w-6 h-6 text-mint-400" />
-              <div className="font-bold text-sm text-white">PostgreSQL & Asyncpg</div>
+              <CalendarCheck className="w-6 h-6 text-mint-400" />
+              <div className="font-bold text-sm text-white">מסלול מאוזן וקל לעדכון</div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                מסד נתונים מאובטח לשמירת היסטוריית מסלולים, סשנים וקריאות לכלים.
+                שילוב חכם של אטרקציות, מסעדות כשרות, קרבה לחב&quot;ד ויכולת החלפת ימים בלחיצה.
               </p>
             </div>
 
             <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-2">
-              <Cpu className="w-6 h-6 text-mint-400" />
-              <div className="font-bold text-sm text-white">Next.js 15 & SSE</div>
+              <Compass className="w-6 h-6 text-mint-400" />
+              <div className="font-bold text-sm text-white">גישה מכל מקום וייצוא ליומן</div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                הזרמת תוצאות בזמן אמת באמצעות Server-Sent Events לחוויית משתמש חלקה.
+                כרטיסי עלייה למטוס זמינים גם אופליין, שיתוף לוואטסאפ וסנכרון ליומן גוגל.
               </p>
             </div>
           </div>
@@ -257,7 +253,7 @@ export default function AboutPage() {
             מוכנים לצאת למסע הבא שלכם?
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-            תנו לסוכני ה-AI שלנו לעבוד בשבילכם כבר עכשיו. הזינו את יעד החלומות שלכם וצפו בקסם מתרחש בזמן אמת.
+            תנו ל-32 מומחי הנסיעות שלנו לבנות עבורכם חופשה חלומית — הזינו יעד ותקציב ותוך רגעים תקבלו מסלול מלא.
           </p>
           <button
             type="button"

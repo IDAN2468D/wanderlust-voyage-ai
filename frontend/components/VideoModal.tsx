@@ -49,10 +49,10 @@ export const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onStart
         {/* Header */}
         <div className="flex items-center gap-2 text-mint-400 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2 pl-10">
           <Sparkles className="w-4 h-4 shrink-0" />
-          <span>הדגמת וידאו חיה • נוצר באמצעות Google Flow & Veo</span>
+          <span>סיור מוצר קצר • תכנון חופשה מקצה לקצה</span>
         </div>
         <h3 className="text-xl sm:text-3xl font-serif font-bold text-white mb-2">
-          איך פועלים סוכני ה-AI של Wanderlust?
+          איך מתכננים חופשה עם Wanderlust?
         </h3>
         <p className="text-xs text-slate-300 mb-4 sm:mb-5 max-w-xl">
           צפה בהדגמה ויזואלית חיה: תיאום טיסות, מלונות בוטיק ומסלול אינטראקטיבי באלפים השוויצריים בזמן אמת.
@@ -76,7 +76,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onStart
           {/* Top Badge Overlay */}
           <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 flex items-center gap-1.5 sm:gap-2 bg-slate-900/80 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/15 text-[10px] sm:text-[11px] text-mint-300 font-medium">
             <span className="w-2 h-2 rounded-full bg-mint-400 animate-pulse" />
-            <span>סרטון הדגמה חי • Google Flow</span>
+            <span>הצצה לתכנון חופשה חכם</span>
           </div>
 
           {/* Center Play/Pause Overlay Button when paused */}
@@ -143,7 +143,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, onStart
         <div className="mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center justify-center sm:justify-start gap-2 text-xs text-slate-400">
             <Bot className="w-4 h-4 text-mint-400 shrink-0" />
-            <span>מופעל על ידי Agno + Google Gemini 2.0 & Google Flow</span>
+            <span>32 מומחי חופשות מסונכרנים בטיסה, לינה ותקציב</span>
           </div>
 
           <button

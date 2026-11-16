@@ -16,9 +16,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "AgentTravelPlanner | תכנון חופשות ומסעות עם סוכני AI אוטונומיים",
+  title: "AgentTravelPlanner | תכנון חופשות ומסעות בהתאמה אישית",
   description:
-    "גלה יעדים עוצרי נשימה ותכנן את הטיול המושלם עם צוות 31 סוכני בינה מלאכותית אוטונומיים.",
+    "גלו יעדים עוצרי נשימה ותכננו את החופשה המושלמת בעזרת 32 מומחי טיולים חכמים: טיסות, מלונות, כשרות, תקציב ומסלולים.",
 };
 
 export default function RootLayout({

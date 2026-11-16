@@ -591,7 +591,7 @@ function ProfileContent() {
                 </div>
                 <h4 className="text-lg font-bold text-white">עדיין אין לך הזמנות פעילות</h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  מתכננים חופשה? תנו ל-25 סוכני ה-AI לבנות עבורכם את המסלול המושלם עם טיסות מאומתות ומלונות מובילים.
+                  מתכננים חופשה? תנו ל-32 מומחי הנסיעות שלנו לבנות עבורכם את המסלול המושלם עם טיסות מאומתות ומלונות מובילים.
                 </p>
                 <button
                   type="button"
@@ -1040,10 +1040,10 @@ function ProfileContent() {
             <div className="border-b border-white/10 pb-3">
               <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-mint-400" />
-                <span>מאגר הידע האישי שלך (Personal RAG Vault)</span>
+                <span>פנקס העדפות ואישורי הנסיעה שלך</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                העלה הערות, אישורי מלון או רשימות פרטיות — המידע נשמר במבודד תחת המשתמש שלך ומשמש את הסוכנים בתכנון הבא.
+                העלה הערות, אישורי מלון או רשימות פרטיות — המידע נשמר בפרטיות בחשבון שלך ועוזר לנו להתאים לך את הטיול הבא.
               </p>
             </div>
             <div className="space-y-3 text-xs">
@@ -1070,7 +1070,7 @@ function ProfileContent() {
                   className="btn-mint px-5 py-2.5 rounded-xl font-bold text-slate-950 flex items-center gap-2 disabled:opacity-60"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{ragUploadStatus === "uploading" ? "שומר ל-VectorStore..." : "הוסף לזיכרון ה-RAG האישי"}</span>
+                  <span>{ragUploadStatus === "uploading" ? "שומר את ההעדפות..." : "שמור בפנקס הנסיעות האישי"}</span>
                 </button>
                 {ragUploadStatus === "done" && (
                   <span className="text-emerald-300 font-semibold">✓ המסמך אונדקס בהצלחה למאגר האישי שלך!</span>

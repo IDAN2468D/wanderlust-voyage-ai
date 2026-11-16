@@ -57,24 +57,24 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
   const agents = [
     {
       id: "travel_orchestrator",
-      name: "מוביל התזמור",
-      role: "סוכן ראשי וסינתזה",
+      name: "מנהל התכנון הראשי",
+      role: "תיאום ובניית המסלול",
       icon: Sparkles,
       color: "text-purple-400",
       activeBg: "from-purple-600/30 to-indigo-600/20 border-purple-500",
     },
     {
       id: "knowledge_rag_agent",
-      name: "מאגר ידע RAG",
-      role: "אחזור וקטורי VectorStore",
+      name: "מדריך היעדים המקומי",
+      role: "אטרקציות ומידע לישראלים",
       icon: Database,
       color: "text-violet-400",
       activeBg: "from-violet-600/30 to-purple-600/20 border-violet-500",
     },
     {
       id: "reasoning_agent",
-      name: "מנוע חשיבה Reasoning",
-      role: "ביקורת לוגית Chain-of-Thought",
+      name: "בקרת איכות ולו\"ז",
+      role: "אימות מרחקים ושעות פתיחה",
       icon: Brain,
       color: "text-fuchsia-400",
       activeBg: "from-fuchsia-600/30 to-pink-600/20 border-fuchsia-500",
@@ -145,7 +145,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
     },
     {
       id: "shopping_taxfree_agent",
-      name: "שופינג ו-Tax-Free",
+      name: "שופינג והחזרי מע\"מ",
       role: "החזרי מע\"מ ואאוטלטים",
       icon: ShoppingBag,
       color: "text-pink-400",
@@ -177,7 +177,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
     },
     {
       id: "travel_memory_agent",
-      name: "זיכרון מטייל",
+      name: "העדפות מטייל אישיות",
       role: "דרכון, כרונולוגיה והעדפות",
       icon: Brain,
       color: "text-teal-300",
@@ -225,7 +225,7 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
     },
     {
       id: "trip_critic_agent",
-      name: "מבקר מטה-AI",
+      name: "בקרת איכות מסלול",
       role: "אימות עומס, זמנים ואיכות",
       icon: ShieldCheck,
       color: "text-emerald-400",
@@ -233,8 +233,8 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
     },
     {
       id: "bundle_deal_negotiator_agent",
-      name: "סוכן מו\"מ, ACP ו-Price Guard",
-      role: "הנחות -10%, אסימון ₪ והגנת מחיר",
+      name: "מומחה הטבות והגנת מחיר",
+      role: "הנחות -10%, תקרת ₪ והגנת מחיר",
       icon: Sparkles,
       color: "text-amber-300",
       activeBg: "from-amber-500/30 to-orange-600/20 border-amber-400",
@@ -260,14 +260,14 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-serif text-base sm:text-lg font-bold text-white tracking-tight">
-                מוניטור חשיבה, RAG וסנכרון של 31 סוכני ה-AI האוטונומיים
+                מעקב תכנון החופשה החי — 32 מומחי הנסיעות שלנו
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono border border-white/10 shrink-0">
                 STAGE: {currentStage}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-              טלמטריה, אחזור וקטורי (RAG VectorStore), מנוע Reasoning, הפעלת כלים בזמן אמת וסנכרון יומנים בהזרמת SSE
+              עדכון בזמן אמת של חיפוש טיסות מנתב&quot;ג, מלונות בוטיק, זמני שבת וכשרות, תקציב ואטרקציות.
             </p>
           </div>
         </div>
@@ -276,17 +276,17 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
           {isStreaming ? (
             <span className="inline-flex items-center gap-2 text-xs text-mint-300 font-bold bg-mint-500/15 px-3.5 py-1.5 rounded-full border border-mint-400/40 shadow-sm shadow-mint-500/20">
               <span className="w-2.5 h-2.5 rounded-full bg-mint-400 animate-ping" />
-              הסוכנים מתאמים בזמן אמת...
+              המומחים מתכננים בזמן אמת...
             </span>
           ) : (
             <span className="inline-flex text-xs text-slate-400 bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-800 font-medium">
-              המתנה / מוכן לשיגור
+              מוכן לתכנון החופשה
             </span>
           )}
         </div>
       </div>
 
-      {/* 15 Specialist Agents Grid */}
+      {/* Specialist Travel Team Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 relative z-10">
         {agents.map((agent) => {
           const Icon = agent.icon;
@@ -325,9 +325,9 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
         })}
       </div>
 
-      {/* Terminal Output Container */}
+      {/* Live Planning Steps Container */}
       <div className="rounded-2xl bg-[#060a10] border border-white/10 overflow-hidden shadow-2xl font-mono text-xs text-right relative z-10">
-        {/* Terminal Titlebar */}
+        {/* Titlebar */}
         <div className="bg-[#0c131d] px-3.5 sm:px-4 py-2.5 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex gap-1.5 shrink-0">
@@ -337,20 +337,20 @@ export const AgentStreamLogs: React.FC<AgentStreamLogsProps> = ({ logs, activeAg
             </div>
             <span className="text-[11px] text-slate-400 mr-1 sm:mr-2 font-sans font-medium flex items-center gap-1.5 truncate">
               <Terminal className="w-3.5 h-3.5 text-mint-400 shrink-0" />
-              <span className="truncate">יומן פעולות חי - wanderlust-agent-stream.log</span>
+              <span className="truncate">שלבי הכנת המסלול בזמן אמת</span>
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-sans shrink-0">{logs.length} אירועים נרשמו</span>
+          <span className="text-[10px] text-slate-400 font-sans shrink-0">{logs.length} עדכונים התקבלו</span>
         </div>
 
-        {/* Terminal Logs Area */}
+        {/* Logs Area */}
         <div className="p-3.5 sm:p-4 max-h-72 sm:max-h-80 overflow-y-auto space-y-2.5">
           {logs.length === 0 ? (
             <div className="py-8 text-center text-slate-400 font-sans">
               <Sparkles className="w-6 h-6 mx-auto mb-2 text-mint-400/60" />
-              <p className="text-xs font-medium">ממתין לפרמטרי נסיעה ושיגור צוות הסוכנים...</p>
+              <p className="text-xs font-medium">ממתין לפרטי החופשה כדי להתחיל לתכנן עבורך...</p>
               <p className="text-[11px] text-slate-500 mt-1">
-                בחרו מוצא, יעד ותקציב כדי לצפות בתיאום האוטונומי של 15 הסוכנים בזמן אמת.
+                בחרו מוצא, יעד ותקציב כדי לראות את 32 מומחי הנסיעות שלנו בונים עבורכם את המסע.
               </p>
             </div>
           ) : (

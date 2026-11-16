@@ -49,7 +49,7 @@ export const Navbar: React.FC = () => {
 
   const NAV_LINKS = [
     { label: t("דף הבית", "Home"), href: "/" },
-    { label: t("גילוי AI ✨", "AI Discovery ✨"), href: "/discover" },
+    { label: t("גילוי ודילים ✨", "Discover & Deals ✨"), href: "/discover" },
     { label: t("טיסות חגים TLV ✈️", "TLV Holidays ✈️"), href: "/flights" },
     { label: t("יעדים", "Destinations"), href: "/destinations" },
     { label: t("חוויות", "Experiences"), href: "/experiences" },
@@ -71,10 +71,10 @@ export const Navbar: React.FC = () => {
             </div>
             <div className="min-w-0">
               <span className="font-heading font-black text-xs xs:text-sm sm:text-xl tracking-[0.06em] sm:tracking-[0.15em] text-white block truncate">
-                AGENT TRAVEL PLANNER
+                WANDERLUST VOYAGES
               </span>
               <span className="text-[7px] sm:text-[9px] tracking-[0.16em] sm:tracking-[0.25em] text-slate-300/90 font-medium block truncate">
-                AUTONOMOUS AI VOYAGES
+                TAILORED GLOBAL TRAVEL
               </span>
             </div>
           </a>

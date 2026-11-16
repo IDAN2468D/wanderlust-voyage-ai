@@ -67,10 +67,10 @@ export const SidekickPulseStrip: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-white text-sm sm:text-base">
-              {t("Sidekick Pulse Live — המלצות אוטומציה פרואקטיביות", "Sidekick Pulse Live — Proactive TravelOps")}
+              {t("המלצות חיסכון ושדרוגים לחופשה שלך", "Smart Trip Savings & Upgrades")}
             </h3>
             <p className="text-[11px] text-slate-400">
-              {t("הפעלת סוכני FX, Price Guard ושדרוגי שבת בלחיצה אחת", "1-Click FX, Price Guard & Shabbat Bundle Automations")}
+              {t("הפעלת מעקב שער מט\"ח, הגנת ירידת מחיר ושדרוגי כשרות ושבת בלחיצה", "1-Click Currency Alerts, Price Guard & Shabbat Upgrades")}
             </p>
           </div>
         </div>

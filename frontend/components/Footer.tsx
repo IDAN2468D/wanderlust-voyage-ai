@@ -213,7 +213,7 @@ export const Footer: React.FC = () => {
             <h4 className="text-sm font-bold text-white font-serif tracking-wide">AgentTravelPlanner</h4>
             <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-4 gap-y-2 text-xs text-slate-400">
               <li><a href="/about" className="hover:text-mint-400 transition inline-block py-0.5">אודות המיזם והחזון</a></li>
-              <li><a href="/about" className="hover:text-mint-400 transition inline-block py-0.5">צוות 25 סוכני ה-AI האוטונומיים</a></li>
+              <li><a href="/about" className="hover:text-mint-400 transition inline-block py-0.5">צוות 32 מומחי הנסיעות שלנו</a></li>
               <li><a href="/blog" className="hover:text-mint-400 transition inline-block py-0.5">מגזין ובלוג המטיילים</a></li>
               <li><a href="/about" className="hover:text-mint-400 transition inline-block py-0.5">אבטחה ופרטיות מידע</a></li>
               <li><a href="/about" className="hover:text-mint-400 transition inline-block py-0.5">תמיכה וסיוע 24/7</a></li>
